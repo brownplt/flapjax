@@ -1,0 +1,109 @@
+<html>
+<head>
+
+
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript" src="/fx/fxws.js"></script>
+
+<title>extracts</title>
+<style type="text/css">
+  div { padding: 5px 5px 5px 5px; }
+</style>
+<script>
+function loader() {
+  flapjaxInit();
+
+  insertDomB(extractValue_b( 'c1'), 'c1v');
+
+  insertDomB(extractValue_b( 'c2a'), 'c2v');
+    
+  insertDomB(extractValue_b( 'r2'), 'c3v');
+    
+  insertDomB(extractValue_b( 'c4'), 'c4v');
+    
+  insertDomB(
+    extractValue_b( 'c5').transform_b(
+      function (arr) {
+        return '[' + arr + ']';
+      }),
+    'c5v');
+
+  insertDomB(extractValue_b( 'c6'), 'c6v');
+
+  insertDomB(extractValue_b( 'c7'), 'c7v');
+
+  insertDomB(extractValue_b( 'c8'), 'c8v');
+
+  insertDomB(extractValue_b( 'c9'), 'c9v');
+
+}
+</script>
+</head>
+
+<body onload="loader();">
+
+  <ul>
+    <li>
+      <input type="checkbox" id="c1"/> checked: <span id="c1v">stat init</span>
+    </li>
+    
+    <li>
+      <input type="radio" id="c2a" name="r2" value="first"/>
+      <input type="radio" id="c2b" name="r2" value="second"/>
+      
+      <ul>
+        <li>
+          first selected: <span id="c2v">stat init</span>
+        </li>
+        
+        <li>
+          which selected: <span id="c3v">stat init</span>
+        </li>
+      </ul>
+
+    </li>
+    
+    <li>select-one:
+      <select id="c4">
+        <option value="av">a</option>
+        <option value="bv">b</option>
+        <option>c</option>
+      </select>
+      
+      which selected: <span id="c4v">stat init</span>
+      
+    </li>
+    
+    <li>select-multiple:
+      <select id="c5" multiple>
+        <option value="av">a</option>
+        <option value="bv">b</option>
+        <option value="cv">c</option>
+      </select>
+      
+      which selected: <span id="c5v">stat init</span>
+      
+    </li>
+
+    <li>text:
+      <input type="text" id="c6"> entered: <span id="c6v">stat init</span>
+    </li>
+
+    <li>textarea:
+      <textarea id="c7">def txt</textarea> entered: <span id="c7v">stat init</span>
+    </li>
+
+    <li>hidden:
+      <input type="hidden" id="c8" value="hidden text"> should be 'hidden text': <span id="c8v">stat init</span>
+    </li>
+
+    <li>password:
+      <input type="password" id="c9"> entered: <span id="c9v">stat init</span>
+    </li>
+
+      
+  </ul>
+
+</body>
+</html>

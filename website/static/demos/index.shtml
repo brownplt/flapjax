@@ -1,0 +1,191 @@
+<!--#INCLUDE virtual="../top.xml" -->
+
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript" src="/demos/prototype.js"></script>
+<script type="text/javascript">
+var examples =
+  [ { synopsis: 'Catch Up', id: 'catchup' 
+    , items: { desc:  "This is a simple demo that includes a mouse follower and a delayed mouse follower.\n" +
+                      "Whenever the mouse is over the 'up' box, the box should be red.\n" +
+                      "A counter should record the number of times the mouse has gone over the 'up' box.",
+               url: "catchup.html" } }
+  , { synopsis: "Delicious", id: 'delicious'
+    , items:
+      [ { desc: "This program demonstrates the use of a cross-site script to download a user's del.icio.us bookmarks."
+        , url: "delicious1.html" }
+      , { desc: "Slow down requests to the server and do not request for the empty username."
+        , url: "delicious2.html" }
+      , { desc: "Replace long link names with abbreviated forms, showing the full names during mouseover."
+        , url: "delicious3.html" }
+      , { desc: "Show a history of searches."
+      , url: "delicious4.html" } ] }
+  , { synopsis: "Draft Saver", id: 'draftsaver'
+    , items:
+      [ { desc: "Basic idea for an automatic draft saver."
+        , url: "transient_drafts.html" }
+      , { desc: "Add server persistence of the draft saver."
+        , url: "persistent_drafts.html" } ] }
+  , { synopsis: "Extract", id: 'extract'
+    , items:
+      { desc: "This program demonstrates usage of the Flapjax library to extract form content as time-varying values."
+      , url: "extract.html" } }
+  , { synopsis: "Fisheye", id: 'fisheye'
+    , items: { desc: 'This program shows how to build a reactive animation (a "fisheye" menu widget reacts by ' +
+                     'enlarging the items closest to the mouse).'
+             , url: "fisheye.html" } }
+  , { synopsis: "Follow the Mouse", id: 'follow'
+    , items: 
+      [ { desc: "Create a box whose position is the same as that of the mouse."
+        , url: 'mouse1.html' }
+      , { desc: "Add a second box whose position is that of the mouse, with a slight delay."
+        , url: 'mouse2.html' }
+      , { desc: "Add a third box that trails the second with a delay and a jitter."
+               , url: 'mouse3.html' } ] }
+  , { synopsis: "Letter Count", id: 'lettercount'
+    , items:
+      { desc: 'Print the number of letters of a word'
+      , url: 'letters.html' } }
+  , { synopsis: "Reader/Writer", id: 'readwrite'
+    , items: { desc: 'This demo demonstrates reading and writing values to a server.'
+             , url: 'readwrite.html' } }
+  , { synopsis: "Time", id: 'time'
+    , items: 
+      [ { desc: 'Print the current time to millisecond precision, updating every 100 milliseconds.'
+        , url: 'time1.html' }
+      , { desc: 'Take the time in milliseconds and truncate it to seconds. Then, create a number that cycles from 0 ' +
+                'to 9, changing every second.'
+        , url: 'time2.html' }
+      , { desc: 'Create an array of numbers, 0 to n, where n is the value from the previous version.'
+        , url: 'time3.html' } ] }
+  , { synopsis: "Validator", id: 'validator'
+    , items: 
+      [ { desc: " Create a form validator:<ol>" +
+                "<li>The first sub-form is valid when its first field has a value of length 3, and the second of " +
+                "length 4.</li>" +
+                "<li>The second sub-form is valid when exactly three of its checkboxes are checked.</li>" +
+                "<li>The entire form is valid when a sub-form is selected and that sub-form itself is valid.</li></ol>" +
+                "It should be clear to the user what needs to be filled in:<ol>" +
+                "<li>When the form is valid, its border should be green, or else it is red.</li>" +
+                "<li>When a sub-form is valid, its border should be green, or else it is red.</li></ol>"
+        , url: "validator.html" } ] }
+  , { synopsis: "Where's the Mouse", id: 'wheremouse'
+    , items:
+      { desc: "This program demonstrates how to manipulate the mouse location as a time-varying value and link " +
+              "it to textual page content."
+      , url: 'mouse_coords.html' } }
+  , { synopsis: "Yaggle: Yahoo Local and Google Maps mashup", id: 'yaggle'
+    , items: 
+      { desc: "A mashup of Yahoo! Local and Google Maps."
+      , url: "yaggle.html" } }
+  , { synopsis: "Drag and Drop", id: 'drag'
+    , items:
+    [ { desc: "Demonstration of free-form drog and drop of a single element."
+      , url:  "drag.html" } 
+    , { desc: "Draging elements between lists."
+      , url: "listdrag.html" } ] }
+  ];
+
+var exampleTable = { }; // populated by makeDemoLink; items indexed by id
+
+function makeDemoLink(item) {
+  if (typeof (item.synopsis) !== 'string' || typeof(item.id) !== 'string') 
+    { alert('Error'); console.log(item); } // debugging
+  
+  exampleTable[item.id] = item;
+  
+  var anchor = A({href: '/demos/index.html#' + item.id, name: item.id},item.synopsis);
+  // extractEvent_e(anchor,'click').lift_e(function(_) { processAnchor(item.id); });
+  return DIV({},anchor);
+}
+
+var removeAllChildren = function(element) {
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+}
+
+
+function processAnchor(id) {
+  if (id == 'main') {
+    $('demoList').style.display = 'block';
+    $('demoSection').style.display = 'none';
+    removeAllChildren($('demo'));
+  }
+  else {
+    $('demoList').style.display = 'none';
+    $('demoSection').style.display = 'block';
+    removeAllChildren($('demo'));
+    removeAllChildren($('currentDemoTitle'));
+    insertDom(exampleTable[id].synopsis,$('currentDemoTitle'),'beginning');
+    
+    var items = (exampleTable[id].items instanceof Array) ? exampleTable[id].items : [ exampleTable[id].items ];
+    var makeItem = function(item) {
+      var p = P();
+      p.innerHTML = item.desc;
+      return DIV({},p,
+                 P(A({href: '/demos/' + item.url},'Run the demo')),
+                 P(A({href: '/try/?edit=' + item.url}, 'View and edit the code')));
+    }
+    
+    var itemsDom = DIV({},map(makeItem,items));
+
+    insertDom(itemsDom,$('demo'),'beginning');
+  }
+}
+
+function extractAnchor() {
+  var matches = (new String(window.location)).match(/.*?#(.*)$/);
+  return (matches && matches[1]) || 'main';
+}
+
+var history_e = function() {
+  var t = timer_e(500); // check for a URL change every 500ms
+  var changes = t.collect_e({ change: false, loc: ""},function(_,prev) {
+    var loc = window.location.toString();
+    if (prev.loc == loc) {
+      return { change: false, loc: loc };
+    }
+    else {
+      return { change: true, loc: loc };
+    }
+  });
+  
+  return changes.filter_e(function(v) { return v.change; }).lift_e(function(v) {
+    return extractAnchor(v.loc); 
+  });
+}
+  
+      
+  
+  
+  
+function loader() {
+  flapjaxInit();
+  
+  var demos = DIV({id: "demoLinks" },map(makeDemoLink,examples));
+  insertDom(demos,'demoLinks');
+  
+  history_e().lift_e(processAnchor);
+};
+
+Event.observe(window,'load',loader);
+</script>
+
+<div id="demoList" class="sectionOut1">
+<div class="sectionOut2">
+<div class="sectionTitle"><span>Flapjax Demos</span></div>
+<div class="sectionBody">
+<div class="sectionBody2">
+
+<div id="demoLinks"><i>Loading...</i></div>
+
+</div></div></div></div></div>
+
+<div id="demoSection" style="display: none" class="sectionOut1">
+<div class="sectionOut2">
+<div class="sectionTitle"><span id="currentDemoTitle">Loading...</span></div>
+<div id="demo">demos</div>
+</div></div>
+
+
+<!--#INCLUDE virtual="../bot.xml" -->

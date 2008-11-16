@@ -1,0 +1,27 @@
+<html>
+<head>
+<title>Flapjax Demo: Where is the Mouse?</title>
+
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript">
+
+function loader() {
+  flapjaxInit();
+
+  insertDomB(mouseTop_b(document), 'Mtop');
+  insertDomB(mouseLeft_b(document), 'Mleft');
+}
+
+</script>
+<link rel="stylesheet" href="/demo.css"/>
+</head>
+
+<body onload="loader()">
+
+<p>The mouse's coordinates are 
+&lt;<span id="Mleft">_</span>,<span id="Mtop">_</span>&gt;.
+</p>
+
+</body>
+
+</html>

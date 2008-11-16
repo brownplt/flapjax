@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+
+<title>fvlogger</title>
+
+<script type="text/javascript" src="logger.js"></script>
+
+<!-- styles for this page -->
+<style type="text/css">
+	* { font: 9pt lucida grande, verdana, arial, helvetica, sans-serif; text-align: justify; line-height: 1.5em; }
+	em { font-weight: inherit; font-style: italic; }
+	code, pre { font-family: monaco, courier, monospace; color: #00c; }
+	pre { color: #444; border: 1px solid #00c; background-color: #efefef; border: 1px solid #ddd; padding: 8px; }
+	h1 { font-size: 12pt; font-weight: bold; padding: 0; margin: 0 0 2px 0; }
+	h2 { font-size: 10pt; font-weight: bold; padding: 0; margin: 0;}
+	fieldset { border: 0; padding: 0; margin: 0; }
+	body { margin: 32px; }
+	#bottle { margin: 0; padding: 0; float: left; width: 450px; margin-top: 16px; }
+	p { margin-bottom: 8px; padding: 0; margin-top: 0; }
+	#fvlogger { margin: 0; width: 450px; padding: 0; margin-bottom: 4px; }
+
+	/* the following css rule should be applied to all elements whose class is "labrat" */
+	.labrat { font-weight: bold; color: red; }
+</style>
+
+<!-- import the supporting logger files -->
+<link rel="stylesheet" type="text/css" href="logger.css" />
+
+<link rel="icon" type="image/png" href="magnet.png" />
+
+</head>
+
+<body>
+
+<h1>fvlogger Example Page</h1>
+<div id="fvlogger">
+	<dl>
+		<dt>fvlogger</dt>
+		<dd class="all"><a href="#fvlogger" onclick="showAll();" title="show all" id="abcdef">all</a></dd>
+		<dd class="debug"><a href="#fvlogger" onclick="showDebug();" title="show debug" id="showDebug">debug</a></dd>
+		<dd class="info"><a href="#fvlogger"  title="show info" id="showInfo">info</a></dd>
+		<dd class="warn"><a href="#fvlogger" onclick="showWarn();" title="show warnings" id="showWarn">warn</a></dd>
+		<dd class="error"><a href="#fvlogger" onclick="showError();" title="show errors" id="showError">error</a></dd>
+		<dd class="fatal"><a href="#fvlogger" onclick="showFatal();" title="show fatals" id="showFatal">fatal</a></dd>
+		<dd><a href="#fvlogger" onclick="eraseLog(true);" title="erase">erase</a></dd>
+	</dl>
+</div>
+
+
+<div id="bottle">
+
+	<p>
+		This page illustrates how the use of logging can aid JavaScript development, <em>especially</em> in creating scripts that behave identically across multiple browsers. As a real&ndash;world example, let&rsquo;s look at how <acronym title="Internet Explorer">IE</acronym> assigns attributes to dynamically&ndash;created document elements&mdash;something that caused a hiccup in the development of fvlogger.
+	</p>
+
+	<h2>The Theory</h2>
+	<p>
+		Included in the styles of this page is the follwing rule:
+	</p>
+	<pre>.labrat { font-weight: bold; color: red; }</pre>
+
+	<p>
+		Thus, any elements in the document whose class is &ldquo;labrat&rdquo;&mdash;whether they be a part of the <code>document</code> when the page is loaded into the browser or appended at some point thereafter&mdash;should appear in bold&ndash;faced red type, including the following two examples.
+	</p>
+
+	<p class="labrat">This is the first example.</p>
+	<p class="labrat">This is the second example.</p>
+
+	<p>
+		Easy&ndash;peasy, right? Almost, but not quite.
+	</p>
+
+	<h2>The Problem</h2>
+	<p>
+		The examples shown above are included in the document (ie: they were created when authoring the rest of this page), so it should come as no surprise that they appear as they should (ie: <span class="labrat">like this</span>) in every browser that supports <acronym title="Cascading Style Sheets">CSS</acronym>. However, with the cross&ndash;browser support of the DOM, dynamically creating elements and appending them to the <code>document</code> has become commonplace (and even <em>required</em> by many websites and applications). Let&rsquo;s take a quick look to make sure that this method also works.
+	</p>
+
+	<p>
+		The code to accomplish our task <em>should</em> look something like the following:
+	</p>
+	
+	<pre>var p = document.createElement("p");
+p.appendChild(
+  document.createTextNode("This is the third example")
+);
+p.setAttribute("class", "labrat");
+document.appendChild(p);
+</pre>
+
+<p>
+	The above snippet of code works in all modern browser families&mdash;WebKit, Gecko, and Opera&mdash;<em>except</em> for <acronym title="Internet Explorer">IE</acronym>. So in Internet Explrer, the following paragraph will have the same font as all regular paragraphs, even though it has the &ldquo;labrat&rdquo; class applied:
+</p>
+
+	<script type="text/javascript" class="js" id="js1">
+var bottle = document.getElementById("bottle");
+var p = document.createElement("p");
+p.setAttribute("class", "labrat");
+p.appendChild(
+  document.createTextNode("This paragraph is created dynamically and appears with the proper bold-faced red type in virtually all modern browsers except for Internet Explorer. The paragraph element is created and the text is appended, but the styles are not properly applied. Why?"));
+
+bottle.appendChild(p);
+	</script>
+
+	<p>
+		After a little investigating, the cause is <acronym title="Internet Explorer">IE</acronym>&rsquo;s implementation of the <code>setAttribute</code> and <code>createElement</code> methods. Take a look at the following code, which is used to create the following paragraph&hellip;
+	</p>
+
+	<script type="text/javascript" class="js" id="js2">
+
+	// create and append the paragraph to the document
+	var p2 = document.createElement("p");
+	p2.appendChild(
+		document.createTextNode(
+			"This is another dynamically created paragraph.")
+	);
+	p2.setAttribute("class", "labrat");
+	var bottle = document.getElementById("bottle");
+	bottle.appendChild(p2);
+	
+	// use fvlogger to log all attributes to the document
+	var i = 0; var attrs = p.attributes;
+	for (i = 0; i < attrs.length; i++) {
+		debug("attribute #" + i + ": " +
+			attrs[i].name + "=" + attrs[i].value);
+	}
+	
+	// display a summary of attrs length
+	if (i == 0) { error("new element has no attributes"); }
+	else { info("p has " + i + " attribute(s)"); }
+
+	// the code is mirrored below for display purposes
+	</script>
+
+	<pre id="listing2">// create and append the paragraph to the document
+var p2 = document.createElement("p");
+p2.appendChild(
+  document.createTextNode(
+    "This is another dynamically created paragraph.")
+);
+p2.setAttribute("class", "labrat");
+var bottle = document.getElementById("bottle");
+bottle.appendChild(p2);
+
+// use fvlogger to log all attributes to the document
+var i = 0; var attrs = p2.attributes;
+for (i = 0; i < attrs.length; i++) {
+  debug("attribute #" + i + ": " +
+    attrs[i].name + "=" + attrs[i].value);
+}
+
+// display a summary of attrs length
+if (i == 0) { error("new element has no attributes"); }
+else { info("p has " + i + " attribute(s)"); }</pre>
+
+	<p>&hellip; and the output that it <a href="#fvlogger" title="Logging output">produces</a>, shown at the top of the page. In Opera, Mozilla, and WebKit&ndash;based browsers, there are only two logging statements: one debug statement that shows the class of the element that we created, and the other indicating the number of attributes belonging to the element. Because we are only assigning one attribute to the element (its class), the output is exactly what we would expect it to be: the paragraph has 1 attribute named, not surprisingly, &ldquo;labrat&rdquo;.
+	</p>
+
+	<p>
+		However, Internet Explorer is unique in the way that it creates elements; instead of having zero attributes (as one would expect) immediately after creation, new elements inherit all attributes that are defined in Internet Explorer&rsquo;s default <acronym title="Document Type Definition">DTD</acronym>. Thus, instead of our new element having only <em>one</em> attribute after setting its <code>class</code>, it actually has 84!
+	</p>
+
+	<p>
+		But what&rsquo;s <em>equally</em> as odd is that when attempting to set the <code>class</code> of a new element through its <code>setAttribute()</code> method, <acronym title="Internet Explorer">IE</acronym> will actually create <em>another</em> attribute node instead of replacing the value of the existing <code>class</code> attribute. Thus, we end up with two <code>class</code> attributes instead of one (attributes #3 and #83 in the log statements shown at the <a href="#fvlogger" title="Log Statements">top</a> of the page when viewed with <acronym title="Internet Explorer">IE</acronym>).
+	</p>
+
+	<h2>The Solution</h2>
+	<p>
+		Luckily, there is, a relatively simple fix <acronym title="Internet Explorer">IE</acronym>&rsquo;s problem: instead of simply setting the value of an attribute based on its name, we can loop through all existing attributes until we find the one that we&rsquo;re looking for and set its value based on its numeric index in the node&rsquo;s <code>attributes[]</code> array. The following snippet of JavaScript will get the job done:
+	</p>
+
+	<pre>
+// if the node&rsquo;s class already exists, then replace its value
+if (p.getAttributeNode("class")) {
+  for (var i = 0; i < p.attributes.length; i++) {
+    if (p.attributes[i].name.toUpperCase() == 'CLASS') {
+      p.attributes[i].value = className;
+    }
+  }
+// otherwise create a new attribute
+} else {
+  p.setAttribute("class", LOG_CLASSES[level]);
+}
+	</pre>
+
+	<p>
+		This example illustrates how logging can aid in developing JavaScripts that work in <em>all</em> browsers. 
+	</p>
+
+</div>
+
+</body>
+</html>

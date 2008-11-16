@@ -1,0 +1,91 @@
+<html>
+<head>
+
+
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+<title>Flapjax Demo: Saving Drafts on the Server</title>
+
+<script type="text/javascript">
+
+// Wraps the draft object into a request.
+function save(draft,time) {
+  return { 
+    url: '/fxserver/fxserver/setobj/draft/',
+    fields: { savedtext: draft, savetime: time },
+    request: 'post', 
+    response: 'json',
+    asynchronous: true 
+  };
+}
+
+function load(ignored_arg) {
+  var obj = { savedtext: "no draft saved on the server", savetime: "draft never saved" };
+  return { url: '/fxserver/fxserver/getobj/draft/',
+    fields: obj,
+    request: 'post', 
+    response: 'json',
+    asynchronous: true 
+  };  
+}
+
+function loader() {
+  flapjaxInit();
+
+  // Save when the Save button is clicked, and every 10 seconds.
+  var saveClickE = extractEvent_e('saveButton', 'click');
+  var autoSaveE = timer_e(10000);
+  var saveE = merge_e(saveClickE, autoSaveE);
+
+  var draftTextE = saveE.snapshot(extractValue_b('theText'));
+  
+  // The storage API stores objects, not flat values.  So, we create an object
+  // with the draft as a field, and include a timestamp.
+  var saveObjectE = draftTextE.lift_e(function (txt) {
+    return save(txt,(new Date()).toLocaleString());
+  });
+  getWebServiceObject_e(saveObjectE);
+  
+  // Poll the server for a draft every 5 seconds.
+  serverDraftE = getWebServiceObject_e(timer_e(5000).lift_e(load));
+
+  var draftE = serverDraftE.lift_e(function(o) {
+    return SPAN({className: 'block'},o.savedtext);
+  });
+
+  var timeE = draftTextE.lift_e(function(o) {
+    return SPAN(o.savetime);
+  });
+
+  insertDomE(draftE, 'curDraft','over');
+  insertDomE(timeE, 'savedTime', 'over');
+  
+  // immediately check for a draft
+  serverDraftE.sendEvent(0); 
+}
+
+</script>
+</head>
+
+<body onload="loader();">
+
+<p>Drafts are associated with your current session and are stored on the server.  Sessions last for an hour.
+Drafts are saved every five seconds and whenever you click <i>Save Now</i>.  If you reload the page, the draft will be
+re-read from the server.</p>
+
+Last Saved: <span id='savedTime'></span>
+
+<form>
+<textarea id='theText'></textarea> <br>
+<input type='button' id='saveButton' value='Save Now'></input>
+</form>
+
+<p>The currently saved draft is:</p>
+<div><span class="block" id='curDraft'></span></div>
+
+</body>
+</html>
+
+
+

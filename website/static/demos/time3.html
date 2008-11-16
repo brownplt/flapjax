@@ -1,0 +1,64 @@
+<html>
+<head>
+
+
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+<title>Flapjax Demo: Time 3</title>
+
+<script type="text/javascript">
+
+function loader() {
+  flapjaxInit();
+
+  function oneToN(n) {
+    var arr = [];
+    for (var i = 0; i < n; i++) {
+      arr.push(i + 1);
+    }
+    return arr;
+  }
+	
+  function arrayToString(a) {
+    var acc = "[";
+
+    for (var i = 0; i < a.length - 1; i++) {
+      acc = acc + a[i] + ", ";
+    }
+
+    if (a.length > 0) {
+      acc = acc + a[a.length - 1];
+    }
+ 
+    acc = acc + "]";
+    return acc;
+  }
+	
+  var timerB = timer_b(100);
+  insertDomB(timerB, 'timer');
+
+  var secondsB = lift_b(function (v) { return Math.floor(v / 1000); }, timerB);
+  insertDomB(secondsB, 'timer2');
+
+  var secsMod10 = lift_b(function (v) { return v % 10; }, secondsB);
+  insertDomB(secsMod10, 'timer3');
+
+  var secsList = lift_b(function (v) { return arrayToString(oneToN(v)); },
+                        secsMod10);   
+  insertDomB(secsList, 'timelist');
+}
+
+</script>
+</head>
+
+<body onload="loader()">
+<p>The time is <span class="fixedBlock"><span id="timer">not initialized</span></span>.</p>
+<p>The time in seconds is <span class="fixedBlock"><span id="timer2">not initialized</span></span>.</p>
+<p>The time modulo 10 is <span class="fixedBlock"><span id="timer3">not initialized</span></span>.</p>
+<p>The list of time modulo 10 elements is 
+<span class="fixedBlock"><span id="timelist">not initialized</span></span>.
+</p>
+</body>
+
+</html>

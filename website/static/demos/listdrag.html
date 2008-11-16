@@ -1,0 +1,274 @@
+<html>
+<!-- :maxLineLen=80: -->
+
+<head>
+<title>Flapjax Demo: Dragging multiple elements</title>
+<style type="text/css">
+
+.item {
+  margin: 5px;
+  cursor: move;
+  background-color: #ccffcc; 
+  padding: 5px;
+  border: 1px solid #006600;
+  font-family: sans-serif;
+}
+
+.list {
+  min-width: 200px;
+  min-height: 300px;
+  background-color: #99ff99;
+  float: left;
+  margin: 5px;
+  border: 1px solid #006600;
+}
+
+</style>
+<script type="text/javascript" src="prototype.js"></script>
+<script type="text/javascript" src="../fx/flapjax.js"></script>
+<script type="text/javascript">
+
+// http://www.mail-archive.com/prototype-core@googlegroups.com/msg01671.html
+Element.addMethods({
+getStyles: function(element) {
+  element = $(element);
+  return $A(element.style).inject({}, function(styles, styleName) {
+    styles[styleName.camelize()] = element.getStyle( styleName );
+    return styles;
+  } );
+
+},
+
+clone: function(element) {
+  var clone = new Element(element.tagName);
+  clone.setStyle( element.getStyles() );
+  $A(element.attributes).each(function(attribute) { 
+      if ( attribute.name != 'style' )
+        { clone.setAttribute(attribute.name,attribute.value); }
+  });
+
+  clone.update(element.innerHTML);
+
+  return clone;
+
+} 
+});
+
+function findDropTarget(targets,exclude,mouseX,mouseY) {
+  var possibleTargets = [ ];
+  var left = mouseX;
+  var top = mouseY;
+  
+  for (var i = 0; i < targets.length; i++) {
+    var t = targets[i];
+    var p = t.cumulativeOffset();
+    if (t != exclude && p.left <= left && p.left + t.getWidth() >= left &&
+        p.top <= top && p.top + t.getHeight() >= top) {
+      possibleTargets.push(t);
+    }
+  }
+  
+  return possibleTargets;
+}
+
+// drag_e(downE) -> EventStream drag
+// downE : EventStream mousedown
+// dragE = { startDrag: element }
+//       | { dragging: element, left: int, top: int, mouseX: int, mouseY: int }
+//       | { drop: element, mouseX: int, mouseY: int }
+function drag_e(mdE) {
+  // If you really want to, you can eliminate this use of state.  But, it's
+  // unnecessarily painful.
+  var target;
+  
+  var drag_ee = mdE.lift_e(function(md) {
+    target = md.element();
+    
+    var offset = target.cumulativeOffset();
+    var startX = md.clientX - offset.left;
+    var startY = md.clientY - offset.top;
+    
+    md.stop(); // don't bubble (i.e. don't select text, etc)
+    
+    var drag_e = extractEvent_e(document,'mousemove').lift_e(function(mm) {
+      return { dragging: target,
+               mouseX: mm.clientX,
+               mouseY: mm.clientY,
+               left: mm.clientX - startX,
+               top: mm.clientY - startY };
+    });
+    
+    var down_e = one_e({ startDrag: target });
+        
+    return merge_e(down_e,drag_e);
+  });
+  
+  var drop_ee = extractEvent_e(document,'mouseup').lift_e(function(mu) {
+    return one_e({ drop: target,
+                   mouseX: mu.clientX,
+                   mouseY: mu.clientY });
+  });
+  
+  return switch_e(merge_e(drag_ee,drop_ee));
+}
+
+// Returns a stream of elements that a dragged element hovers over.
+// hover_e(targets,dragE) -> EventStream element
+// targets : Array element
+// dragE : EventStream drag
+var hover_e = function(hoverables,dragE) {
+  return dragE
+    .lift_e(function (op) {
+      return op.dragging
+        ? findDropTarget(hoverables,op.dragging,op.mouseX,op.mouseY)[0] || false
+        : false;
+    })
+    .filterRepeats_e();
+};
+
+// highlight_e(border,elementE);
+// border : string
+// elementE : EventStream element
+var highlight_e = function(highlightBorder,elementE) {
+  elementE.collect_e({ element: false, border: false },
+    function (current,last) {
+      if (last.element) {
+        last.element.style.border = last.border;
+      }
+
+      if (current) {
+        var currentBorder = current.getStyle('border');
+        current.style.border = highlightBorder;
+        return { element: current, border: currentBorder };
+      }
+      else {
+        return { element: false, border: false };
+      }
+    });
+};
+
+// In response to drags, moves a "ghost" of the item being dragged around
+// the screen.  When the item is dropped, an event fires.
+// ghose_e(dragE) -> EventStream { drop: element, mouseX: int, mouseY: int }
+// dragE : EventStream drag
+var ghost_e = function(drag_e) {
+
+  var dragGhost = function(evt,acc) {
+    if (evt.startDrag) {
+      var ghost = evt.startDrag.clone();
+      ghost.absolutize();
+      ghost.clonePosition(evt.startDrag);
+      ghost.style.opacity = 0.75;
+      document.body.appendChild(ghost);
+      
+      if (acc && acc.ghost)
+        { acc.ghost.remove(); }
+      
+      return { original: evt.startDrag, ghost: ghost };
+    }
+    else if (evt.dragging) {
+      if (acc && acc.ghost) {
+        acc.ghost.style.left = evt.left;
+        acc.ghost.style.top = evt.top;
+      }
+      return acc;
+    }
+    else if (evt.drop) {
+      if (acc && acc.ghost) {
+        acc.ghost.remove();
+        return evt;
+      }
+    };
+      
+  };
+  return drag_e.collect_e(undefined,dragGhost)
+    .filter_e(function(v) { return v && v.drop; });
+  
+};
+
+// listDrop_e(targets,dropE);
+// targets : Array element
+// dropE   : EventStream drag
+var listDrop_e = function(dropTargets,drop_e) {
+  drop_e.lift_e(function(drop) {
+    if (drop.drop) {
+      var droppedOn = 
+        findDropTarget(dropTargets,false,drop.mouseX,drop.mouseY);
+      
+      var dest = droppedOn[0];
+      if (!dest) 
+        { return; }
+      
+      if (dest == drop.drop) {
+        return;
+      }
+      else if (dest.className == 'list') {
+        dest.appendChild(drop.drop);
+      }
+      else if (dest.className == 'item') {
+        dest.parentNode.insertBefore(drop.drop,dest);
+      }
+      else {
+        throw 'missing case for a destination';
+      }
+    } 
+  });
+};
+
+function loader() {
+  flapjaxInit();
+ 
+  var dropTargets =
+    $A(document.getElementsByClassName('item'))
+    .concat($A(document.getElementsByClassName('list')));
+
+  // Mousedown on any item
+  var mouseDown_e = extractEvent_e(document.body,'mousedown')
+  .filter_e(function (md) {  return md.element().className == 'item' });
+  
+  // stream of starDrag / dragging / drop events
+  var pos_e = drag_e(mouseDown_e); 
+  
+  // ghost_e draws the faded element and filters pos_e to just return
+  // the drop events.
+  var drop_e = ghost_e(pos_e);
+
+  // listDrop_e filters out everything but the drop events and 
+  // moves the dropped element if appropriate.
+  listDrop_e(dropTargets,pos_e);
+  
+  // hover_e maps dragging events to a stream of elements we are hovering
+  // over.  If we aren't hovering over a valid drop target, the stream carries
+  // false.
+  //
+  // highlight_e highlights elements returned by hover_e, and un-highlights
+  // previously highlighted elements.
+  highlight_e('3px solid orange', hover_e(dropTargets,pos_e));  
+  
+}
+
+</script>
+<link rel="stylesheet" href="/demo.css"/>
+</head>
+
+<body onload="loader()">
+
+<div>
+
+<div class="list" id="items1">
+<div class="item"><i>PLT</i> Scheme</div>
+<div class="item">Haskell</div>
+<div class="item">ML</div>
+</div>
+
+<div class="list" id="items2">
+<div class="item">Monads</div>
+<div class="item">Arrows</div>
+<div class="item">Applicative Functors</div>
+</div>
+
+</div>
+
+</body>
+
+</html>

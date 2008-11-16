@@ -1,0 +1,1466 @@
+<document title="Flapjax Framework API Documentation">
+
+<chapter title="Initialization">
+
+<article title="flapjaxInit">
+
+<programlisting>
+flapjaxInit()
+flapjaxInit(False)
+flapjaxInit({
+  [ includeSynonyms: Bool ],
+  [ exportMisc: Bool ],
+  [ exportCore: Bool ],
+  [ exportDOM: Bool ],
+  [ exportDOMMisc: Bool ],
+  [ exportWS: Bool ],
+  [ hide: Array String ],
+  [ show: Array String ],
+  [ redefine: Bool ]
+});
+
+</programlisting>
+
+<p>Initializes the Flapjax framework, returning an object whose fields
+are the functions defined below.  If no arguments are specified, all
+Flapjax functions are exported to <code>window</code> if a function is
+already defined, it is not exported.  If <code>False</code> is supplied,
+nothing is exported.  (However, all of Flapjax is still accessible from
+the returned object.)</p>
+
+<p>Flapjax's functions may be selectively exported as well.  If
+<code>includeSynonyms</code> is set to <code>False</code>, synonyms for
+methods are not exported.  <code>exportMisc</code>,
+<code>exportCore</code>, <code>exportDOM</code>,
+<code>exportDOMMisc</code> or <code>exportWS</code> are set, categories
+of functions can be selectively exported.</p>
+
+<p>By default, Flapjax will not export functions that are already
+defined.  For example, the Prototype Framework defines <code>$</code>,
+<code>$A</code>, etc.  Flapjax will not redefine these functions.
+However, if <code>redefine</code> is set, Flapjax will overwrite
+Prototype's bindings.</p>
+
+<p>Finally, <code>hide</code> and <code>show</code> can be used to
+selectively export specific functions.</p>
+
+
+</article>
+
+</chapter>
+
+<chapter title="Event Streams">
+
+<article title="one_e">
+
+<programlisting>
+one_e(val) -> EventStream val
+</programlisting>
+
+<p>Create an event stream that fires just one event with the value
+<code>val</code>.</p>
+
+<p>Note that <code>one_e</code> does not immediately fire <code>val</code>.  The event is queued and fired after the current event has finished propagating.</p>
+
+<example>
+
+<p>The following code prints <code>&quot;first&quot;</code>, <code>&quot;second&quot;</code> and <code>&quot;third&quot;</code> in order:
+
+<programlisting>
+console.log('first');
+lift_e(function(val) { console.log(val); },one_e('third'));
+console.log('second');
+</programlisting>
+
+</p>
+
+</example>
+
+</article>
+
+<article title="zero_e">
+
+<programlisting>
+zero_e() -> EventStream a
+</programlisting>
+
+<p>Create an event stream that never fires any events.</p>
+
+</article>
+
+<article title="lift_e">
+
+<programlisting>
+lift_e(f, argE_1, ... , argE_n) -> EventStream b
+
+argE_1 :: EventStream a_1
+...
+argE_n :: EventStream a_n
+f :: a_1 ... a_n -> b
+</programlisting>
+
+<p>Transforms a stream of events.</p>
+
+<example>
+
+<p><code>timer_e(1000)</code> is an event stream that fires an event every
+second. The event value is the current time, in milliseconds. The following
+expression transforms the event stream to return the current time plus one
+second:</p>
+
+<programlisting>
+lift_e(timer_e(1000),function(t) { return t + 1; })
+</programlisting>
+
+<p>Alternatively, we can use the <code>lift_e</code> method of the event
+object to achieve the same effect.</p>
+
+<programlisting>
+timer_e(1000).lift_e(function(t) { return t + 1; })
+</programlisting>
+
+</example>
+
+<synonyms>transform_e apply_e map_e argE_1.lift(f) argE_1.transform(f) argE_1.apply(f)</synonyms>
+</article>
+
+<article title="merge_e">
+
+<programlisting>
+merge_e(event_1, ..., event_n) -> EventStream a
+
+event_1 :: EventStream a
+...
+event_n :: EventStream a
+</programlisting>
+
+<p>Accepts multiple event streams and merge their events into a single event
+stream. whenever an event occurs on one of the original streams, it is
+propagated into the merged event stream.</p>
+
+<example>
+
+<p>Suppose we are building a web-based document editor. We wish the save
+the document every 60 seconds, and when the user clicks the save button:</p>
+
+<programlisting>
+var saveTimer = timer_e(60000);
+var saveClicked = extractEvent_e('save-button','click');
+var save = merge_e(saveTimer,saveClicked);
+save.transform(doSave); // doSave does the real work
+</programlisting>
+
+</example>
+
+<synonyms>merge</synonyms> 
+
+</article>
+
+<article title="switch_e">
+
+<programlisting>
+switch_e(anyEE) -> EventStream a
+
+anyEE :: EventStream (EventStream a)
+</programlisting>
+
+<p>Given an event stream of event streams, fire events from the most recent
+event stream.</p>
+
+<example>
+
+<programlisting>
+var domStreamE = receiver_e(); // every event is a DOM object
+domStreamE.
+	switch_e().
+	extractEvent_e('mouseover').
+	transform_e(function(_) { alert('hit!'); });
+</programlisting>
+
+</example>
+
+<synonyms>anyEE.forwardLatest anyEE.switch_e</synonyms>
+
+</article>
+
+<article title="cond_e">
+
+<programlisting>
+cond_e([boolE,resultE], ...) -> EventStream a
+
+boolE :: EventStream Bool
+resultE :: EventStream a
+</programlisting>
+
+<p>Conditional with multiple branches. The input is a set of pairs. Using
+argument order to determine priority within one time step (only one event
+should be sent per timestep), the first tuple with both a pair with a first
+event occuring of true and second event of type a will have the value of the
+second event will propagate. No value needs to propagate every time step.</p>
+
+</article>
+
+<article title="filter_e">
+
+<programlisting>
+filter_e(sourceE,pred) -> EventStream a
+
+sourceE :: EventStream a
+pred :: a -> Bool
+</programlisting>
+
+<p>Given an event stream and a predicate, filters out the events that do not
+satisfy the predicate.</p>
+
+<example>
+
+<p>The following event stream only contains positive numbers:</p>
+
+<programlisting>
+numbers.filter_e(function (v) { return v > 0; })
+</programlisting>
+
+</example>
+
+<synonyms>sourceE.filter sourceE.filter_e</synonyms>
+
+</article>
+
+<article title="if_e">
+
+<programlisting>
+if_e(testE,trueE,falseE) -> EventStream a
+
+testE :: EventStream Bool
+trueE :: EventStream a
+falseE :: EventStream a
+</programlisting>
+
+<p>When an event occurs in the test position, if it is true, and in the same
+timestep an event occurs in the true branch, propagate the event in the true
+branch. If the test position receives a false event, then if in the same
+timestep an event occurs and the false branch, propagate that event. If either
+no event occurs in the test position or no event occurs in the enabled branch,
+do not send an event.  </p>
+
+<synonyms>choose_e testE.if_e testE.choose_e testE.choose</synonyms>
+
+</article>
+
+<article title="constant_e">
+
+<programlisting>
+constant_e(sourceE,val) -> EventStream val
+
+sourceE :: EventStream a
+</programlisting>
+
+<p>Transforms an event stream by discarding its events' values to return
+a constant value.</p>
+
+<example>
+
+<p>The following code displays an alert box whenever the button is clicked:
+</p>
+
+<programlisting>
+var clicks = extractValue_e('form-button','click');
+clicks.constant_e(function() { alert('Do not press this button.'); });
+</programlisting>
+
+</example>
+
+<synonyms>sourceE.constant sourceE.replaceValue replaceValue_e sourceE.constant_e
+</synonyms>
+
+</article>
+
+<article title="collect_e">
+
+<programlisting>
+collect_e(sourceE,init,f) -> EventStream b
+
+sourceE :: EventStream a
+init :: b
+f :: a b -> b
+</programlisting>
+
+<p>Given an event stream, an initial value and a combining function, returns
+an event stream of accumulated results.</p>
+
+<example>
+
+<p>The following code uses Javascript&apos;s <code>Array.concat</code> method
+to accumulate an array of events:</p>
+
+<programlisting>
+original.collect_e([],function(new,arr) { return [new].concat(arr); });
+</programlisting>
+
+<p>Note that the initial value is the empty array. In the resultant event
+stream of event value, the latest event is first.</p>
+
+<p>The following code ignores the event value, and increments the initial
+value, effectively counting the number of events that occur.  Naturally, the 
+initial value is <code>0</code>:</p>
+
+<programlisting>
+original.collect_e(0,function(_,count) { return count + 1; });
+</programlisting>
+
+</example>
+
+<synonyms>sourceE.collect sourceE.transformWithMemory</synonyms>
+
+</article>
+
+<article title="and_e">
+
+<programlisting>
+and_e(sourceE, ...) -> EventStream True
+
+sourceE :: EventStream Bool
+</programlisting>
+
+<p>Fires an event when all its arguments fire <code>True</code>.</p>
+
+</article>
+
+<article title="or_e">
+
+<programlisting>
+or_e(sourceE, ...) -> EventStream True
+
+sourceE :: EventStream Bool
+</programlisting>
+
+<p>Fires an event when any of its arguments fire <code>True</code>.</p>
+
+<synonyms>or_e or</synonyms>
+
+</article>
+
+<article title="not_e">
+
+<programlisting>
+not_e(sourceE) -> EventStream Bool
+
+sourceE :: EventStream Bool
+</programlisting>
+
+<p>Negates each event in the event stream.</p>
+
+<synonyms>sourceE.not</synonyms>
+
+</article>
+
+<article title="filterRepeats_e">
+
+<programlisting>
+filterRepeats_e(sourceE) -> EventStream a
+
+sourceE :: EventStream a
+</programlisting>
+
+<p>Filters an event stream, removing successive events that are
+equal.</p>
+
+<example>
+
+<p>This timer signals an event every 0.1 seconds.  However, it reports
+time in seconds.</p>
+
+<programlisting>
+var sec_e = timer_e(100).lift_e(function (ms)
+              { return Math.floor (ms / 1000) % 10; });
+</programlisting>
+
+<p><code>filterRepeats_e</code> removes the duplicate events from the event stream:</p>
+
+<programlisting>
+sec_e.filterRepeats_e()
+</programlisting>
+</example>
+
+<synonyms>sourceE.filterRepeats_e sourceE.filterRepeats
+</synonyms>
+
+</article>
+
+<article title="receiver_e and sendEvent">
+
+<programlisting>
+receiver_e() -> Event a
+
+sendEvent(a,EventStream a);
+</programlisting>
+
+<p><code>receiver_e</code> creates an event stream that does not receive
+events from any other event source.  However, <code>sendEvent</code> may be
+used to send an event to a <code>receiver_e</code> event source.</p>
+
+<example>
+
+<p><code>sendEvent</code> is useful for integrating Flapjax with existing
+event-based Javascript code.  For example, here is a simplified
+timer:</p>
+
+<programlisting>
+function simple_timer_e(interval_ms) {
+  var evt = receiver_e();
+  // create and install a callback
+  var f = function() { evt.sendEvent((new Date()).getTime()); };
+  window.setInterval(f,interval_ms);
+  return evt;
+}
+</programlisting>
+</example>
+
+</article>
+
+<article title="snapshot_e">
+
+<programlisting>
+snapshot_e(sourceE,valueB) -> EventStream b
+
+sourceE :: EventStream a
+valueB :: Behavior b
+</programlisting>
+
+<p>Returns an event stream carrying values from <i>valueB</i>. Values are captured when <i>sourceE</i> fires an
+event.</p>
+
+<synonyms>sourceE.snapshot_e sourceE.snapshot sourceE.takeSnapshot</synonyms>
+
+</article>
+
+<article title="once_e">
+
+<programlisting>
+once_e(sourceE) -> EventStream a
+
+sourceE : EventStream a
+</programlisting>
+
+<p>Given a stream of events, create a new stream that will send only the first event sent by the original event stream.
+</p>
+
+<synonyms>sourceE.once sourceE.once_e</synonyms>
+
+</article>
+
+<article title="skipFirst_e">
+
+<programlisting>
+skipFirst_e(sourceE) -> EventStream a
+
+sourceE : EventStream a
+</programlisting>
+
+<p>Skips the first event in <i>sourceE</i>.</p>
+
+<example>
+<p>The expression <code>skipFirst_e(skipFirst_e(sourceE))</code> skips the first two events from <i>sourceE</i>.</p>
+</example>
+
+<synonyms>sourceE.skipFirst sourceE.skipFirst_e</synonyms>
+
+</article>
+
+<article title="delay_e">
+
+<programlisting>
+delay_e(sourceE,intervalB) -> EventStream a
+
+sourceE :: EventStream a
+intervalB :: Behavior milliseconds
+</programlisting>
+
+<p>Delays propagation of the events from <i>sourceE</i> by <i>intervalB</i> milliseconds.</p>
+
+<synonyms>sourceE.delay</synonyms>
+
+</article>
+
+<article title="blind_e">
+
+<programlisting>
+blind_e(sourceE,intervalB) -> EventStream a
+
+sourceE : EventStream a
+intervalB : Behavior Int
+</programlisting>
+
+<p>Ignores events that fire less than <i>intervalB</i> milliseconds apart. All other events are propagated. Note that
+<i>intervalB</i> may be time-varying.</p>
+
+<synonyms>sourceE.blind_e sourceE.blind</synonyms>
+
+</article>
+
+
+<article title="calm_e">
+
+<programlisting>
+calm_e(sourceE,intervalB) -> EventStream a
+
+sourceE : EventStream a
+intervalB : Behavior Int
+</programlisting>
+
+<p>&quot;Calm&quot; the event stream to fire at most once every <i>intervalB</i> milliseconds.  Events that occur
+sooner are delayed to ocur <i>intervalB</i> milliseconds after the most recently-fired event.  Only the most recent
+event is delayed.  So, if multiple events fire within <i>intervalB</i>, only the last event will be propagated.</p>
+
+<synonyms>sourceE.calm sourceE.calm_e</synonyms>
+
+</article>
+
+</chapter>
+
+<chapter title="Behaviors">
+
+<article title="hold">
+
+<programlisting>
+hold(sourceE,initialVal) -> Behavior a
+
+sourceE :: Behavior a
+initialVal :: a
+</programlisting>
+
+<p>Given an event stream and an initial value, create a time varying value that starts as the initial value and changes
+value whenever an event occurs, taking on the value of that event.</p>
+
+<synonyms>sourceE.hold sourceE.toBehavior sourceE.startsWith</synonyms>
+
+</article>
+
+<article title="changes">
+
+<programlisting>
+changes(behavior) -> EventStream a
+
+behavior :: Behavior a
+</programlisting>
+
+<p>Given a time varying value, make an event steam whose events are the values of the behaviour whenever it changes.</p>
+
+<synonyms>behavior.changes behavior.toEvent</synonyms>
+
+</article>
+
+<article title="constant_b">
+
+<programlisting>
+constant_b(val) -> Behavior val
+</programlisting>
+
+<p>Create a behavior with a constant value.</p>
+
+</article>
+
+<article title="delay_b">
+
+<programlisting>
+delay_b(sourceB,delay) -> Behavior a
+delay_b(sourceB,delayB) -> Behavior a
+
+sourceB :: Behavior a
+delayB :: Behavior milliseconds
+delay :: milliseconds
+</programlisting>
+
+<p>Given a time varying value, create a new time varying value whose value at
+any point in time is the value of the original value from agiven amount of time
+before. The delay time is specified in milliseconds. As this would leave the
+value undefined until the delay time has passed at least once, such as at
+program initialization, there is also an optional initialization. Both the
+initialization argument and amount of time to delay may be time varying
+values.</p>
+
+<synonyms>sourceB.delay_b sourceB.delay</synonyms>
+
+</article>
+
+<article title="valueNow">
+
+<programlisting>
+valueNow(sourceB) -> a
+
+sourceB :: Behavior a
+</programlisting>
+
+<p>Returns the current value of <i>sourceB</i>.  This is a primitive method
+that should not be used under normal circumstances.  <link>lift_b</link> or
+<link>snapshot_e</link> may be more appropriate.</p>
+
+</article>
+
+<article title="switch_b">
+
+<programlisting>
+switch_b(sourceBB) -> Behavior a
+
+sourceBB :: Behavior (Behavior a)
+</programlisting>
+
+<p>When the value of a time varying value is time varying itself, which is common when dealing DOM objects.</p>
+
+<synonyms>sourceBB.switch_b sourceBB.forwardLatest</synonyms>
+
+</article>
+
+<article title="and_b">
+
+<programlisting>
+and_b(valueB, ...) -> Behavior Bool
+</programlisting>
+
+<p>Returns <code>True</code> when all arguments are <code>True</code> and <code>False</code> otherwise.</p>
+
+</article>
+
+<article title="or_b">
+
+<programlisting>
+or_b(valueB, ...) -> Behavior Bool
+</programlisting>
+
+<p>Returns <code>True</code> when any argument is <code>True</code> and <code>False</code> otherwise.</p>
+
+</article>
+
+<article title="not_b">
+
+<programlisting>
+not_b(valueB) -> Behavior Bool
+
+valueB = Behavior a
+</programlisting>
+
+<p>This function is short for:</p>
+
+<programlisting>
+valueB.lift_b(function(v) { return !v; })
+</programlisting>
+
+</article>
+
+<article title="lift_b">
+
+<programlisting>
+lift_b(f,arg_1, ..., arg_n) -> Behavior result
+
+
+f = (arg_1 ... arg_n -> result) or Behavior (arg_1 ... arg_n -> result)
+arg_1 = a_1 or Behavior a_1
+...
+arg_n = a_n or Behavior a_n
+</programlisting>
+
+<p>Create a time varying value that is a function of other time varying values. The function itself may be a
+time-varying value.</p>
+
+<synonyms>apply_b transform_b transform apply</synonyms>
+
+</article>
+
+<article title="cond_b">
+
+<programlisting>
+cond_b([conditionB,resultB], ...) -> Behavior a
+
+conditionB = Behavior Bool
+resultB = Behavior a
+</programlisting>
+
+<p>Evaluates to the first <i>resultB</i> whose associated <i>conditionB</i> is <code>True</code>.</p>
+
+</article>
+
+<article title="if_b">
+
+<programlisting>
+if_b(conditionB,trueB,falseB) -> Behavior a
+
+conditionB = Behavior Bool
+trueB = Behavior a
+falseB = Behavior a
+</programlisting>
+
+<p>Switches between <i>trueB</i> and <i>falseB</i>, as the value of <i>conditionB</i> varies between <code>true</code>
+and <code>false</code>.</p>
+
+<example>
+
+<programlisting>
+var t = timer_b(1000);
+var t1 = t.lift_b(function(v) { return v + 1; });
+var less_than = function(xB,yB) { return lift_b(function(x,y) { return x &lt; y; },xB,yB) };
+
+trueB = if_b(less_than(t,t1),true,false);
+</programlisting>
+
+<p>Since <code>t &lt; t1</code> is always <code>true</code>, <i>trueB</i> is always <code>true</code>.</p>
+
+</example>
+
+<synonyms>choose choose_b</synonyms>
+
+</article>
+
+<article title="timer_b">
+
+<programlisting>
+timer_b(interval) -> Behavior Int
+timer_b(intervalB) -> Behavior Int
+
+interval :: milliseconds
+intervalB :: Behavior milliseconds
+</programlisting>
+
+<p>Create a time varying value with the current time in milliseconds, updated
+by an interval argument (that may be time varying).</p>
+
+<synonyms>asTimer_b</synonyms>
+
+</article>
+
+<article title="blind_b">
+
+<programlisting>
+blind_b(sourceB,intervalB) -> Behavior a
+
+sourceB : Behavior a
+intervalB : Behavior Int
+</programlisting>
+
+<p>Similar to <link>blind_e</link> but for behaviors.</p>
+
+<synonyms>sourceB.blind sourceB.blind_b</synonyms>
+
+</article>
+
+<article title="calm_b">
+
+<programlisting>
+calm_b(sourceB,intervalB) -> Behavior a
+
+sourceB : Behavior a
+intervalB : Behavior Int
+</programlisting>
+
+<p>Similar to <link>calm_e</link>, but for behaviors.</p>
+
+<synonyms>sourceB.calm_b sourceB.calm</synonyms>
+
+</article>
+
+<article title="receiver_b and sendBehavior">
+
+<programlisting>
+receiver_b() -> Behavior a
+sendBehavior(destB,val);
+
+destB :: Behavior a
+val :: a
+</programlisting>
+
+<p>Shorthand for creating <code>receiver_e</code> and immediately turning it
+into a behaviour with some initial value. Useful in conjunction with
+<code>sendBehaviour</code> when interfacing with a callback.</p>
+
+<synonyms>destB.sendBehavior destB.sendBehaviour sendBehaviour</synonyms>
+
+</article>
+
+</chapter> <!-- Behaviors -->
+
+<chapter title="DOM Manipulation">
+
+<article title="Creating DOM elements">
+
+<programlisting>
+TAG :: { attribute-name: attribute-value, ...} * HTMLElement * ... -> HTMLElement
+TAG :: HTMLElement * ... -> HTMLElement // no attributes
+</programlisting>
+
+<p>Flapjax defines functions for building DOM elements compositionally.  For each HTML element, Flapjax defines a function
+with the same name, that constructs the corresponding element.</p>
+
+<example>
+<programlisting>
+var anchor = A({href: 'http://www.flapjax-lang.org/'},'Flapjax');
+
+var list = UL(LI('Reactive Programming'),
+              LI('JavaScript Framework'),
+              LI({style: { 'font-weight': 'bold' }}, 'No Download Required!'));
+</programlisting>
+</example>
+
+</article>
+
+<article title="Time-varying DOM elements">
+
+<programlisting>
+TAGB :: Behavior { attribute-name: attribute-value, ...} * Behavior HTMLElement * ... -> Behavior HTMLElement
+TAGB :: Behavior HTMLElement * ... -> Behavior HTMLElement // no attributes
+</programlisting>
+
+<p>Flapjax includes support for DOM elements with time-varying components. For each HTML Element, Flapjax defines a
+function with the same name, suffixed with &quot;B&quot;, that constructions the corresponding element.</p>
+
+<example>
+<programlisting>
+var secondsB = timer_e(1000).collect_e(0,function(_,x) { return x + 1; }).hold(0);
+var spanB = SPANB("We've been running for ",secondsB," seconds");
+</programlisting>
+
+<p>Note that this example intersperses a behavior (<code>spanB</code>) with constant values.</p>
+
+</example>
+
+</article>
+
+<article title="insertDomB">
+
+<programlisting>
+insertDomB :: Behavior HTMLElement * HTMLElement or id [ * location ] -> void
+
+location = 'before' U 'after' U 'leftMost' U 'rightMost' U 'over' U 'beginning' U 'end'
+
+insertDomB(Behavior HTMLElement,HTMLElement or id [, location]) -> void
+</programlisting>
+
+</article>
+
+<article title="mouseTop_b">
+
+<programlisting>
+mouseTop_b(Element) -> Behavior y-coordinate
+</programlisting>
+
+<p>A behavior carrying the y-coordinate of the mouse, relative to the specified element.</p>
+
+<example>
+
+<programlisting>
+var yB = mouseTop_b(document);
+</programlisting>
+
+<p><code>yB</code> is the coordinate of the mouse, relative to the entire document.</p>
+
+</example>
+
+</article>
+
+<article title="mouseLeft_b">
+
+<programlisting>
+mouseLeft_b(Element) -> Behavior x-coordinate
+</programlisting>
+
+<p>A behavior carrying the x-coordinate of the mouse, relative to the specified element.</p>
+
+</article>
+
+<article title="mouse_b">
+
+<programlisting>
+mouse_b(Element) -> Behavior xy
+
+xy = { left: Int; top: Int }
+</programlisting>
+
+<p>A behavior carrying the mouse's coordinates, relative to the specified element.</p>
+
+</article>
+
+<article title="extractValue_b">
+
+<programlisting>
+extractValue_b(formElement) -> Behavior value
+
+formElement = Element or Element-id
+</programlisting>
+
+<p>Returns a behavior carrying the value of the specified form element.</p>
+
+<synonyms>$B</synonyms>
+
+</article>
+
+<article title="extractValue_e">
+
+<programlisting>
+extractValue_e(formElement) -> EventStream value
+
+formElement = Element or Element-id
+</programlisting>
+
+<p>Returns an event stream that carries the value of <i>formElement</i>. A new event fires whenever the value
+changes.</p>
+
+<synonyms>$E</synonyms>
+
+</article>
+
+<article title="extractEvent_e">
+
+<programlisting>
+extractEvent_e(element,eventName) -> EventStream DOMEvent
+extractEvent_e(elementB,eventName) -> EventStream DOMEvent
+
+element = Element or Element-id
+elementB = Behavior element
+eventName = String
+</programlisting>
+
+<p>Returns an event stream that carries DOM events from <i>element</i>, of the type <i>eventName</i>. Each
+<i>DOMEvent</i> is a browser-dependent data-structure, derived from the <a
+href="http://www.w3.org/TR/2003/NOTE-DOM-Level-3-Events-20031107/">DOM Event Specification</a>.</p>
+
+</article>
+
+<article title="clicks_e">
+
+<programlisting>
+clicks_e(element) -> EventStream ClickEvent
+</programlisting>
+
+<p><code>clicks_e(element)</code> is shorthand for
+<code>extractEvent_e(element,'click')</code>.</p>
+
+</article>
+
+<article title="timer_e">
+
+<programlisting>
+timer_e(milliseconds) -> EventStream Int
+timer_e(millisecondsB) -> EventStream Int
+
+milliseconds : Int
+millisecondsB : Behavior milliseconds
+</programlisting>
+
+<p>Given an interval in milliseconds, returns an event stream that repeatedly
+fires an event as the interval lapses. The interval itself may be a behavior.
+The value of each event is the system time, in milliseconds. </p>
+
+<example>
+
+<p>The following event stream fires an event each second.  The event value
+is the current data and time, formatted as a string:</p>
+
+<programlisting>
+function formatDate(t) {
+  return (new Date(t)).toLocaleString();
+}
+
+timer_e(1000).lift_e(formatDate)
+</programlisting>
+
+<p>Note that the interval may be a behavior.  The following expression's
+interval changes as the user enters a different interval:</p>
+
+<programlisting>
+timer_e(extractValue_b('interval-text-box')).lift_e(formatDate)
+</programlisting>
+
+<p><code>timer_e</code> is a method of behavior objects.  The preceding
+expression may be written as:</p>
+
+<programlisting>
+extractValue_b('interval-text-box').timer_e().lift_e(formatDate)
+</programlisting>
+
+</example>
+
+<synonyms>millisecondsB.asTimer_e</synonyms>
+
+</article>
+
+<article title="disableTimer">
+
+<programlisting>
+disableTimer(timer);
+</programlisting>
+
+<p>Given an event timer, make it stop updating.</p>
+
+</article>
+
+<article title="extractValueOnEvent_e">
+
+<programlisting>
+extractValueOnEvent_e(anyE,formElement) -> EventStream value
+
+anyE = EventStream
+formElement = Element or Element-id
+</programlisting>
+
+<p>Extracts the value of <i>formElement</i> whenever an event occurs on <i>anyE</i>.</p>
+
+</article>
+
+<article title="extractId_b">
+
+<programlisting>
+extractId_b(id [, changes]) -> Behavior Element
+
+id = String
+changes = Behavior DOM
+</programlisting>
+
+<p>The element associated with a specified <i>id</i> may change over time.  Whenever the value <i>changes</i> changes,
+the element with the id <i>id</i> is reextracted.  If <i>changes</i> is not specified, the element <i>id</i> is
+reextracted whenever an inserted DOM element changes.</p>
+
+</article>
+
+<article title="insertDomE">
+
+<programlisting>
+insertDomE(source, dest, placement = 'over');
+
+source = EventStream Element
+dest = Element-Id or Element
+placement = 'before' or 'after' or 'leftMost' or 'rightMost' or 'over' or 'beginning' or 'end'
+</programlisting>
+
+<p>Similar to <link>insertDomB</link>, but inserts Elements from an event-stream instead of a behavior.</p>
+
+</article>
+
+<article title="insertValueE">
+
+<programlisting>
+insertValueE(valueE, dest, field, ...);
+
+valueE = EventStream
+dest = Element or Element-id
+field = String
+</programlisting>
+
+<p>Inserts each event in <i>valueE</i> info the field <i>field</i> of the elmeent <i>dest</i></p>
+
+<example>
+
+<programlisting>
+var textField = TEXT();
+var button = BUTTON();
+
+function getDate() { return (new Date()).toString(); };
+
+insertValueE(extractEvent_e(button, 'click').lift_e(getDate), textField, 'value');
+</programlisting>
+
+<p>This code inserts the current date and time into <i>textField</i> whenever <i>button</i> is clicked.</p>
+
+</example>
+
+</article>
+
+<article title="insertValueB">
+
+<programlisting>
+insertValueB(valueB, dest, field, ...);
+
+valueB = Behavior
+dest = Element or Element-id
+field = String
+</programlisting>
+
+<p>Inserts the time-varying value <i>valueB</i> info the field <i>field</i> of the elmeent <i>dest</i>.  This function
+is similar to <link>insertValueE</link>.</p>
+
+</article>
+
+<article title="tagRec">
+
+<programlisting>
+tagRec(Array eventName, (Array eventName -> ElementB)) -> Behavior Element
+</programlisting>
+
+<p>An element may be a function of some event and behaviours, while those same events and behaviours might als be
+functions of the tag. <i>tagRec</i> is a convenience method for writing such cyclic dependencies. Also, as certain
+updates may cause a tag to be destroyed and recreated, this guarentees the extracted events are for the most recently
+constructed DOM node.</p>
+
+<example>
+<programlisting>
+tagRec(
+  ['mouseover', 'mouseout'],
+  function (overE, outE) {
+    return DIVB(
+      { style: {
+        color:
+          merge(overE.constant_e('#FFF'), outE.constant_e('#000')).
+          startsWith('#000')}},
+      'mouse over me to change color!');
+  });
+</programlisting>
+
+<p>Create a tags whose background color is white on mouse over and black on mouseout, starting as black.</p>
+
+</example>
+
+</article>
+
+</chapter>
+
+<chapter title="Web Services">
+
+<article title="getWebServiceObject_e">
+
+<programlisting>
+getWebServiceObjectE(requestE) -> EventStream response
+
+requestE = EventStream request
+request = {
+  url: string,
+  request: 'get' | 'rest' | 'post' | 'rawPost',
+  response: 'json', 'xml', 'plain',
+  fields: object | undefined,
+  body: string | undefined
+  asynchronous: bool
+}
+</programlisting>
+
+<p>Sends a stream of requests to a web server and receives a stream of
+responses.</p>
+
+<p><code>url</code> is the address of the web service.
+<code>getWebServiceObject_e</code> is based on
+<code>XMLHttpRequest</code>, so the service must be on the same server
+as your application.</p>
+
+<p><code>request</code> specifies how the request should be encoded.
+
+<ul>
+
+<li>In a <code>get</code> request, each field in <code>fields</code> is
+encoded as a <code>GET</code> parameter.  The value of each field is
+cast to a string.</li>
+
+<li>A <code>rest</code> request is similar to a <code>get</code>
+request.  Each field is encoded as a <code>POST</code> parameter.  The
+value of each field is cast to a string.</li>
+
+<li>In a <code>post</code> request, the <code>fields</code> object is
+serialized as a JSON string and sent as the body of the request.</li>
+
+<li>In a <code>rawPost</code> request, the <code>body</code> string is 
+sent as the body of the request.</li>
+
+</ul></p>
+
+<p><code>response</code> specifies how the response is decoded.
+<code>plain</code>  indicates that the body should not be decoded.  This
+is the default behavior.  <code>json</code> indicates that the response
+should be parsed as a JSON string.  <code>xml</code> indicates that the
+response is XML.</p>
+
+</article>
+
+<article title="getForeignWebServiceObject_e">
+
+<programlisting>
+getForeignWebServiceObject_e(requestE) -> responseE
+</programlisting>
+
+<p><i>Note:</i> You must call
+<code><link>initFlapjaxForeignWSO</link></code> before using this
+function.</p>
+
+<p>This function has the same interface as
+<code><link>getWebServiceObject_e</link></code>.  Requests are made
+through a Flash object, so the <code>url</code> is subject to the Flash
+Player's <a
+href="http://www.adobe.com/devnet/flashplayer/articles/cross_domain_policy.html">cross-domain
+policy</a>.</p>
+
+</article>
+
+<article title="evalForeignScriptVal_e">
+
+<programlisting>
+evalForeignScriptVal_e(urlArgE) -> EventStream result
+
+urlArgE = EventStream { url: string, globalArg: string }
+</programlisting>
+
+<p>Evaluates the JavaScript code at <code>url</code>; <code>url</code>
+may be on a remote server.  The code is expected to set the global
+variable named <code>globalArg</code>.  Flapjax will poll this variable
+and send its value to the result stream when it is set.</p>
+
+<example>
+
+<p>See the <a href="/demos/index.shtml#delicious">Delicious</a>
+demos.</p>
+
+</example>
+
+</article>
+
+<article title="initFlapjaxForeignWSO">
+
+<programlisting>
+initFlapjaxForeignWSO(baseUrl);
+
+baseUrl : url
+</programlisting>
+
+<p>This function must be called before
+<code><link>getForeignWebServiceObject_e</link></code> is called.
+<code>baseUrl</code> must be base URL of the Flapjax library.</p>
+
+<example>
+
+<programlisting>
+initFlapjaxForeignWSO('http://www.flapjax-lang.org/fx');
+</programlisting>
+
+</example>
+
+</article>
+
+</chapter> <!-- Web Services -->
+
+<chapter title="DOM Utilities">
+
+<article title="getElementsByClass">
+
+<programlisting>
+getElementsByClass(className) -> Array Element
+getElementsByClass(className,rootElement) -> Array Element
+getElementsByClass(className,rootElement,elementTag) -> Array Element
+
+className = String
+rootElement = Element or undefined
+elementTag = String
+</programlisting>
+
+<p>Returns an array of elements with the specified <i>className</i>. If <i>rootElement</i> is specified, the returned
+elements are children of <i>rootElement</i>. If <i>elementTag</i> is specified, it constraints the elements to have the
+specified tag. </p>
+
+<example>
+
+<programlisting>
+getElementsByClass('article',document,'div')
+</programlisting>
+
+<p>Returns all <code>div</code> elements of the class <code>article</code>.</p>
+
+</example>
+
+<synonyms>$$</synonyms>
+
+</article>
+
+<article title="getObjsA">
+
+<programlisting>
+getObjsA(elementId, ...) -> Array Element
+
+elementId = String
+</programlisting>
+
+<p>Returns an array of elements, selected by their <i>id</i>s.</p>
+
+<synonyms>$A</synonyms>
+
+</article>
+
+<article title="getObjs">
+
+<programlisting>
+getObjs(elementId, ...) -> { elementId: Element, ... }
+
+elementId = String
+</programlisting>
+
+<p>Returns a dictionary of elements, keyed by their <i>id</i>s.</p>
+
+<synonyms>$O</synonyms>
+
+</article>
+
+<article title="getObj">
+
+<programlisting>
+getObj(elementId) -> Element
+getObj(Element) -> Element
+
+elementId = String
+</programlisting>
+
+<p>Returns the element with the id <i>elementId</i>.</p>
+
+<synonyms>$</synonyms>
+
+</article>
+
+<article title="readCookie">
+
+<programlisting>
+readCookie(fieldName) -> String or undefined
+
+fieldName = String
+</programlisting>
+
+<p>Returns the value associated with <i>fieldName</i> from the cookie.</p>
+
+</article>
+
+<article title="swapDom">
+
+<programlisting>
+swapDom(existingElement,newElement) -> Element
+
+existingElement = Element or ElementId
+newElement = Element or ElementId
+</programlisting>
+
+<p>Removes <i>existingElement</i> from the document, replacing it with <i>newElement</i>. The removed element is
+returned.</p>
+
+</article>
+
+<article title="getURLParam">
+
+<programlisting>
+getURLParam(paramName) -> String or undefined
+
+paramName = String
+</programlisting>
+
+<p>Returns the value of an GET argument supplied to the URL.  The initial URL is stored when the Flapjax framework
+is initialized, so subsequent modifications do not affect this function.</p>
+
+<synonyms>$URL</synonyms>
+
+</article>
+
+<article title="cumulativeOffset">
+
+<programlisting>
+cumulativeOffset(element) -> { left: integer, top: integer }
+</programlisting>
+
+<p>Returns the absolute position of an element relative to the top-left
+corner of the window.</p>
+
+</article>
+
+</chapter> <!-- DOM Utilities -->
+
+<chapter title="Miscellaneous Functions">
+
+<article title="slice">
+
+<programlisting>
+slice(array, startIndex) -> Array
+slice(array, startIndex, endIndex) -> Array
+</programlisting>
+
+<p>Returns a subsequence of <i>array</i>, starting from the element at <i>startIndex</i> and upto and excluding the
+element at <i>endIndex</i>.  If <i>endIndex</i> is not specified, it is assumed to be <code>array.length - 1</code>.</p>
+
+</article>
+
+<article title="member">
+
+<programlisting>
+member(elt,array) -> Bool
+
+elt : a
+array : Array a
+</programlisting>
+
+<p>Determines whether <i>elt</i> is an element of <i>array</i>. Comparision is performed with the <code>===</code>
+operator.</p>
+
+</article>
+
+<article title="map">
+
+<programlisting>
+map(f,array_1, ..., array_n) -> Array r
+
+array_1 : Array a_1
+...
+array_n : Array a_n
+f : (a_1 ... a_n -> r)
+</programlisting>
+
+<p>Applies <i>f</i> pointwise across the supplied arrays and returns an array of results.</p>
+
+</article>
+
+<article title="filter">
+
+<programlisting>
+filter(predicate,array) -> Array a
+
+predicate : a -> bool
+array : Array a
+</programlisting>
+
+<p>Filters out the elements that fail to satisfy <i>predicate</i>.</p>
+
+</article>
+
+<article title="forEach">
+
+<programlisting>
+forEach(f,array_1, ..., array_n);
+
+array_1 : Array a_1
+...
+array_n : Array a_n
+f : (a_1 ... a_n -> r)
+</programlisting>
+
+<p>Similar to <link>map</link>, but does not accumulate an array of results</p>.
+
+</article>
+
+<article title="fold">
+
+<programlisting>
+fold(f,init,array_1, ..., array_n) -> b
+
+init : b
+f : a_1 ... a_n b -> b
+array_1 : Array a_1
+...
+array_n : Array a_n
+</programlisting>
+
+<p>Reduces the arrays left-to-right.</p>
+
+</article>
+
+<article title="foldR">
+<programlisting>
+foldR(f,init,array_1, ..., array_n) -> b
+
+init : b
+f : a_1 ... a_n b -> b
+array_1 : Array a_1
+...
+array_n : Array a_n
+</programlisting>
+
+<p>Reduces the arrays right-to-left.</p>
+
+</article>
+
+
+</chapter>
+
+</document>

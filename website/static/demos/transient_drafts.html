@@ -1,0 +1,55 @@
+<html>
+<head>
+
+
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+<title>Flapjax Demo: Basic Draft Saving</title>
+
+<script lang="javascript">
+
+function loader() {
+  flapjaxInit();
+
+  var saveClickE = extractEvent_e('saveButton', 'click');
+
+  var savedTimeE = saveClickE.transform(function (_) {
+    var date = new Date();
+    return date.toLocaleString();
+  });
+
+  var draftTextE = saveClickE.snapshot(extractValue_b('theText'));
+ 
+  var draftE = draftTextE.lift_e(function(text) {
+    return SPAN({className: 'block'},text);
+  });
+
+  var timeE = draftTextE.lift_e(function(time) {
+    return SPAN(time);
+  });
+    
+
+  insertDomE(draftE, 'curDraft','over');
+  insertDomE(timeE, 'savedTime', 'over');
+}
+
+</script>
+</head>
+
+<body onload="loader();">
+
+<p>Click 'Save Now' to save the draft.  The draft is stored locally, and is not sent to the server.
+Last Saved: <span id='savedTime'></span>
+</p>
+
+<form>
+<textarea id='theText'></textarea> <br>
+<input type='button' id='saveButton' value='Save Now'></input>
+</form>
+    
+<p>The currently saved draft is:</p>
+<div><span class="block" id='curDraft'></span></div>
+
+</body>
+</html>

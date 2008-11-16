@@ -1,0 +1,13 @@
+On fxinternal
+-------------
+
++ Browser compatibility matrix (Google Docs)
++ Check all demos in the "Try" window.
+
+
+On flapjax
+----------
+
++ Set Yaggle Google Maps API key for flapjax-lang.org.
++ Set Yaggle Yahoo! Local API key for flapjax-lang.org.
++ Disable debug mode on Django portion.

@@ -1,0 +1,33 @@
+<html>
+<head>
+
+
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+<title>Flapjax Demo: Letter Count</title>
+<style type="text/css">
+body {text-align: center; 
+      background-color: #CCFFCC;
+      color: #006600;}
+</style>
+
+<script type="text/javascript">
+
+function loader() {
+  flapjaxInit();
+
+  var valB = extractValue_b('toCount', 'value');
+  var lengthStrB = valB.transform(function (s) { return 'length: ' + s.length; });
+  insertDomB(lengthStrB, 'result');	
+}
+
+</script>
+</head>
+
+<body onload="loader()">
+<p>Text buffer: <input type="text" id="toCount"></input></p>
+<p id="result">Start Typing!</p>
+</body>
+
+</html>

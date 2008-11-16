@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Flapjax</title>
+    <link rel="stylesheet" href="/flapjax.css"/>
+    <style type="text/css">
+    
+
+    #featureList li {
+        clear: both;
+        list-style: none;
+        border-bottom: 1px #777 dotted;
+    }
+    
+    #featureList .first {
+        float: left;
+        font-weight: bold;
+    }
+    
+    #featureList .second {
+        float: right;
+        font-size: .8em;
+        color: #000;
+        display: none;
+        visibility: hidden;
+    }
+    
+    #featureList .des {
+        font-style: italic;
+        text-align: right;
+        display: block;
+        font-weight: bold;
+    }
+
+   </style>
+  </head>
+
+  <body>
+<div id="header">
+    <img id="logo" src="/images/logo.jpg" alt="Flapjax Logo"/>
+    <div class="outDarkSection">
+        <div id="topMenu">
+        <ul>
+            <li><a href="/index.shtml">Home</a></li>
+            <li><a href="/docs/">Docs</a></li>
+            <li><a href="/download/">Download</a></li>
+            <li><a href="/try/">Try</a></li>
+            <li><a href="/demos/">Demos</a></li>
+            <li><a href="/tutorial/">Tutorial</a></li>
+            <li><a href="http://flapjax.blogspot.com/">Blog</a></li>
+            <li><a href="http://groups.google.com/group/flapjax">Discussion</a></li>
+            <li><a href="/who/">Credits</a></li>
+        </ul>
+        </div>
+    </div>
+</div>
+<div id="content">    
+
+<!--
+<div class="sectionOut1">
+    <div class="sectionOut2">
+        <div class="sectionBody">
+        <div class="sectionBody2">
+            <div style="float: left;">
+                <script>
+                    digg_url = 'URLOFSTORY';
+                </script>
+                <script src="http://digg.com/api/diggthis.js"></script>
+            </div>
+            <div style="float: left;">Reddit</div>
+            <div style="clear: both;">Thanks for the support!</div>
+        </div>
+        </div>
+    </div>
+    </div>
+
+-->
+ 

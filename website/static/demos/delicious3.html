@@ -1,0 +1,71 @@
+<html>
+<head>
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript" src="/fx/fxws.js"></script>
+
+<title>Flapjax Demo: Delicious bookmarks with collapsed links</title>
+
+<script type="text/javascript">
+
+function collapsedItems_b(linksE,maxLength) {
+  
+  var collapsedItem_b = function(post) {
+    var full = post.d;
+    var url = post.u;
+    
+    var collapsed = (full.length <= maxLength) 
+      ? full : (full.substr(0,maxLength) + '...');
+      
+    return tagRec(['mouseover', 'mouseout'],
+      function (overE,outE) {
+        return LIB(AB({ href: url },
+          merge_e(overE.constant_e(full),outE.constant_e(collapsed))
+          .hold(collapsed)));
+      });
+  };
+  
+  return linksE.lift_e(function(links) {
+    return map(collapsedItem_b,links.posts);
+  })
+  .hold([ ])
+  .lift_b(function (items) {
+      return items.length == 0 ? 'Type to start' : ULB(items);
+  })
+  .switch_b();
+};
+
+function loader() {
+  flapjaxInit();
+  
+  var linksInfoE = evalForeignScriptVal_e(extractValue_e('userName')
+    .filter_e(function(str){return str.length > 0;})
+    .calm_e(450).lift_e(function (name) {
+      return { 
+        'url': 'http://del.icio.us/feeds/json/' + name,
+        'globalArg': 'Delicious'
+      };
+    }));
+  
+  insertDomB(collapsedItems_b(linksInfoE,20),'userLinks');
+  
+}
+
+</script>
+</head>
+<body onload="loader();">
+
+<div style="text-align: center">
+
+<span style="padding: 2px">
+<a id="mylink" href="http://del.icio.us">del.icio.us</a>
+</span> 
+
+user name: <input type="text" id="userName"/><br/><br/>
+
+<ul id="userLinks">delicious user links go here</ul>
+
+</div>
+
+</body>
+</html>

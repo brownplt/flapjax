@@ -1,0 +1,26 @@
+<html>
+<head>
+
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+<title>Flapjax Demo: Time 1</title>
+
+<script type="text/javascript">
+
+function loader() {
+  flapjaxInit();
+  
+  var timerB = timer_b(100);
+  
+  insertDomB(timerB, 'timer');
+}
+
+</script>
+</head>
+
+<body onload="loader()">
+<p>The time is <span class="fixedBlock"><span id="timer">not initialized</span></span>.</p>
+</body>
+
+</html>

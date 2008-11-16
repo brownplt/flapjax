@@ -1,0 +1,10 @@
+Building
+========
+
+The Flapjax framework is hand-coded in JavaScript.
+
+The Flapjax website is built with:
+ + PLT Scheme 4.1.2 or higher
+ + GHC 6.10.1 or higher
+ + rsync
+ + make

@@ -1,0 +1,90 @@
+<!--#INCLUDE virtual="top.xml" -->
+<div class="sectionOut1">
+<div class="sectionOut2">
+<div class="sectionTitle"><span>What is Flapjax?</span></div>
+<div class="sectionBody">
+<div class="sectionBody2">
+<!-- [ features ] -->
+<p>
+Flapjax is a new programming language
+designed around the demands of modern,
+client-based Web applications.  Its principal features include:
+</p>
+
+<ol id="featureList">
+<li>
+<div class="first">Event-driven, reactive evaluation</div>
+<div class="second">
+<span class="des">print time of last click of btn1 or btn2</span>
+time: {! merge($EVENT('btn1', 'click'), $EVENT('btn2', 'click')).<br/>snapshot((new Date()).getTime()) !}</div>    
+</li>
+<li>
+<div class="first">Persistent data saved on a data store we provide</div>
+<div class="second">
+<span class="des">keep a copy  on the server of 'age' as it changes</span>
+writePersistentObject($E('age'), {path: ['savedAge']});
+</div>
+</li>
+<li>
+<div class="first">Convenient data sharing</div>
+<div class="second">
+<span class="des">create a link to share the current user's tasklist</span>
+getSharingConsoleLink('receivepage.html?user=' + uidB, ['tasklist']);
+</div>
+</li>
+<li>
+<div class="first">Access-control for shared data</div>
+<div class="second">
+<span class="des">display whether the user can write to an object</span>
+{! readPermissionsB({path:['tasklist']}).has('WRITE')?'yes':'no'!}
+</div>
+</li>
+<li>
+<div class="first">Interfaces to external Web services</div>
+<div class="second">
+<span class="des">show the first link of a user's delicious bookmarks</span>
+&lt;input type=text id=u value='enter name'/&gt;: <br/>{! getWebServiceObject_e({url: 'del.icio.us/feeds/json/' <br/> + $B('u'), serviceType: 'jsonLiteral'}).posts[0].d !}
+</div>
+</li>
+</ol>
+<br style="clear: both"/>    
+<p>
+Flapjax is easy to learn: its just a JavaScript framework Furthermore, because Flapjax is built entirely atop
+JavaScript, it runs on traditional Web browsers without the need for plug-ins or other downloads. It integrates
+seamlessly with existing JavaScript code and other frameworks.
+</p>
+
+<p>
+Flapjax is licensed under the <a href="/legal/license.html">New BSD license</a>.
+</p>
+<!-- [ /features ] -->
+</div>
+</div>
+</div>
+</div>
+<div class="sectionOut1">
+<div class="sectionOut2">
+<div class="sectionTitle"><span>Do!</span></div>
+<div class="sectionBody">
+<div class="sectionBody2">
+
+<!-- [ links ] -->
+<ul id="biggie">
+<li> <a href="/demos/">See</a> Flapjax in action</li>
+<li> <a href="/tutorial/">Learn</a> how to program in Flapjax</li>
+<li> <a href="/try/">Try</a> Flapjax in your browser&mdash;no download required</li>
+<li> <a href="/download/">Download</a> the Flapjax framework</li>
+<li> <a href="/docs/">Explore</a> the framework documentation</li>
+<li> <a href="http://groups-beta.google.com/group/flapjax">Discuss</a> Flapjax with the developers and other users</li>
+<li><a href="http://flapjax.blogspot.com/">View</a> the blog of progress</li>
+<li><a href="/who/">Find</a> out whodunnit</li>
+</ul>
+
+Please send questions, comments, and problem reports to our <a href="http://groups-beta.google.com/group/flapjax">discussion group</a>.
+<!-- [ /links ] -->
+
+</div>
+</div>
+</div>
+</div>
+<!--#INCLUDE virtual="bot.xml" -->

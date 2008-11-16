@@ -1,0 +1,112 @@
+a.link  { text-decoration: none; }
+a.link:hover { text-decoration: underline; }
+
+.diminutive {
+  font-size: x-small;
+  font-family: sans-serif;
+  text-decoration: none;
+  font-color: blue;
+}
+
+.title a { }
+
+.title a:visited { 
+  font-color: blue;
+}
+
+.title a:hover {
+  text-decoration: underline;
+}
+
+.tocLine {
+  margin: 5px;
+}  
+
+.tocOuterLink {
+  margin: 5px;
+}
+
+.tocInnerLink {
+  background-color: #ffffcc;
+}
+
+
+.tocInnerLink a {
+  text-decoration: none;
+}
+
+.toc {
+  border: 1px solid black;
+  font-family: sans-serif;
+}
+
+.toc > .title {
+  background-color: #3333cc;
+  font-size: x-large;
+  color: white;
+  padding: 10px;
+}
+
+.tocSection {
+  padding: 5px;
+  border: 1px solid #999999;
+  margin: 5px;
+}
+
+
+
+.article {
+  /* border: 1px solid #999999; */
+  font-family: sans-serif;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  padding: 10px;
+}
+
+.article p {
+  padding: 5px;
+}
+
+.article > .title  {
+  font-weight: bold;
+  padding: 5px;
+  border-bottom: 1px solid black;
+  font-size: larger;
+  /* background-color: #99ccff; */
+}
+
+.article .example {
+  background-color: #f0f0f0;
+  padding: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.article .example > .title {
+ font-weight: bold;
+}
+
+.footnote {
+  font-size: smaller;
+  padding: 5px;
+}
+
+pre {
+ padding: 5px;
+ font-family: monospace;
+}
+
+.inlineCode {
+  font-family: monospace;
+}
+
+.summary {
+  background-color: #ccccff;
+  padding: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 20px;
+  margin-right: 20px;
+}

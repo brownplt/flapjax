@@ -1,0 +1,76 @@
+<html>
+<head>
+
+
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+
+<title>Flapjax: Reading and Writing</title>
+<script type="text/javascript">
+
+function readFrom(objName,val) {
+  return function(_) { // discard what is usually a timer value
+    return {
+      url: '/fxserver/fxserver/getobj/' + objName + '/',
+      fields: { name: objName, "default": val },
+      request: 'post',
+      response: 'plain', // do not parse the response
+      asynchronous: true
+    };
+  };
+};
+
+function writeTo(name,valE) {
+  return valE.lift_e(function(val) {
+      return {
+        url: '/fxserver/fxserver/setobj/' + name + '/',
+        fields: { name: name, value: val },
+        request: 'post',
+        response: 'json', // parse the response as a JSON value (it's simply 'true')
+        asynchronous: true
+      };
+  });
+};
+
+function loader() {
+  flapjaxInit();
+
+  // Poll the server for 'someValue' every two seconds.
+  var someValue = getWebServiceObject_e(timer_e(2000).lift_e(readFrom('someValue',"nothing saved")));
+  // Create a text node in the DOM with the contents of someValue
+  insertDomE(someValue,$('someValue'));
+  // Send a request to the server when the value changes.  'Calm' the requests so that we don't send more than once
+  // every second.
+  getWebServiceObject_e(writeTo('someValue',extractValue_e('someValueSrc','value').calm_e(1000)));
+  
+}    
+
+/*
+initFlapjaxServerAPIs(getFlapjaxObj(), 'http://www.flapjax-lang.org/flapjax/servlets/');
+
+writePersistentObject(extractValue_b('someValue').changes(), { path: ['someValue'] });
+writePersistentObject(extractValue_b('someArr0').transform(function (val) { return [val]; }).changes(), 
+{ path: ['someArr'] });
+writePersistentObject(extractValue_b('someObjbar').transform(function (val) { return { bar: val }; }).changes(),
+{ path: ['someObj'] });
+
+
+var someValue = readPersistentObject({initial: '', path: ['someValue'], poll: 1800 });
+var someArr = readPersistentObject({initial: [''], path: ['someArr'], poll: 1800 });
+var someObj = readPersistentObject({initial: {bar:''}, path: ['someObj'], poll: 1800 });*/
+
+</script>
+</head>
+
+<body onload="javascript:loader()">
+<h1>Readers</h1>
+<p>someValue: <div id="someValue"><i>Waiting for server ...</i></div></p>
+<div>someValue: {! someValue !}</div>
+<div>someArr[0]: {! someArr[0] !}</div>
+<div>someObj.bar: {! someObj.bar !}</div>
+<h1>Writers</h1>
+<p>someValue: <input type="text" id="someValueSrc" /></p>
+
+</body>
+</html>

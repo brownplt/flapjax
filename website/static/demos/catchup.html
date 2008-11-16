@@ -1,0 +1,113 @@
+<html>
+<head>
+<title>Catch Up</title>
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+<script type="text/javascript">
+
+function loader() {
+  flapjaxInit();
+
+  var DIAM1 = 100;
+  var DIAM2 = 220;
+  var OFFSET2 = 23;
+  var SPEED = 1000; //slows when higher - irrespective of framerate
+
+  var toInt = function (v, def) { try { return parseInt(v); } catch (_) { return def; } };
+
+  var timerB = timer_b(extractValue_b('frameRate').lift_b(toInt, 50));
+
+  var delayTimeB = extractValue_b('delayRate').transform_b(toInt, 500);
+
+  //CATCH box    
+  insertDomB( 
+    DIVB(
+      {id: 'catch',
+       style: {backgroundColor: '#000000',
+           color: '#FFFFFF',
+           fontSize: '3em',
+           position: 'absolute',
+           padding: '5px',
+           left: 
+            apply_b(
+              function (t, x) {
+                return x + Math.round(DIAM1 * Math.cos(t / SPEED)); 
+              },
+              timerB, 
+              mouseLeft_b( document)),
+            top: 
+            apply_b(
+              function (t, y) {
+                return y + Math.round(DIAM1 * Math.sin(t / SPEED)); 
+              },
+              timerB,
+              mouseTop_b( document))}},
+       'catch'),
+    'body', 'beginning');
+    
+    //UP box, changes color on mouseover
+    var upB =
+      tagRec( 
+        ['mouseover', 'mouseout'],
+        function (mouseOverE, mouseOutE) {
+          return DIVB(
+          {id: 'up',
+           style: {
+            padding: '5px',
+            backgroundColor:
+              merge_e(
+                mouseOverE.constant_e('#FF0000'),
+                mouseOutE.constant_e('#000')).startsWith('#000'),
+             color: '#FFFFFF',
+             fontSize: '3em',
+             position: 'absolute',
+             left: 
+              apply_b(
+                function (t, x) {
+                  return OFFSET2 + x + Math.round(DIAM2 * Math.cos(t / SPEED)); 
+                },
+                timerB,
+                mouseLeft_b(document).delay_b(delayTimeB)),
+            top: 
+              apply_b(
+                function (t, y) {
+                  return y + Math.round(DIAM2 * Math.sin(t / SPEED)); 
+                },
+                timerB,
+                mouseTop_b(document).delay_b(delayTimeB))}},
+           'up');
+      });
+      
+    insertDomB( upB, 'catch', 'before');
+    
+  // Count the number of times we catch up.
+  var caughtUpB = 
+    extractEvent_e(upB, 'mouseover').collect_e(0,
+      function (_,p) { return p + 1;}).startsWith(0);
+
+  // Display caughtUpB.
+  insertDomB(DIVB(H1B('you caught up ', 
+                      SPANB({style: {color: 'white', backgroundColor: 'black' }},
+                            caughtUpB.lift_b(function (n) { return n.toString(); })),
+                      ' times.'),
+                  'hit up with your mouse'),
+    'count');
+      
+}
+
+</script>
+</head>
+
+<body onload="loader();" id="body" style="text-align: center; margin: 0px; overflow: hidden;">
+
+<div class="block">
+<div>
+update every <input type="text" id="frameRate" value="10" size="5"/> ms 
+with a delay of <input type="text" id="delayRate" value="800" size="5"/> ms
+</div>
+<span id="count"></span>
+</div>
+
+</body>
+</html>

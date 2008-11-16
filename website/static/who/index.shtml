@@ -1,0 +1,56 @@
+<!--#INCLUDE virtual="../top.xml" -->
+
+<div class="sectionOut1">
+  <div class="sectionOut2">
+    <div class="sectionTitle"><span>The Chefs and Sous-Chefs</span></div>
+    <div class="sectionBody">
+
+<p>
+Flapjax is the result of the work of many.
+</p>
+
+<p>
+The core team consists of
+<ul id="biggie">
+<li>Leo Meyerovich</li>
+<li>Michael Greenberg</li>
+<li>Gregory Cooper</li>
+<li>Aleks Bromfield</li>
+<li>Jacob Baskin</li>
+<li>Arjun Guha</li>
+<li>Shriram Krishnamurthi</li>
+</ul>
+</p>
+
+<p>
+We thank Andrey Skylar, Josh Gan, and Jay McCarthy for their help.
+</p>
+
+<p>We're especially grateful to our Brains Trust for their feedback and
+support: Pete Hopkins, David Reiss, and Kimberley Burchett. We thank
+Cormac Flanagan for focusing our attention.  We also thank our local
+area technology buddies at <a
+href="http://www.providencegeeks.org/">Providence Geeks</a>, especially
+Jack Templin and Brian Jepson, for their encouragement.  </p>
+
+<p>A big thank you to contributors like Lee Butterman, Richard Whitney, Ethan
+Aubin, Daniel Ignatoff and many others for their support and making sure that
+we keep moving forward.  </p>
+
+<p>Thank you to <a href="http://www.geocities.jp/lethevert/">lethevert</a> for the 
+<a href="http://www.geocities.jp/lethevert/flapjax/tutorial.html">Japanese translation</a> of the tutorial.
+</p>
+
+<p>Thank you to the following people for providing very useful libraries: Christian Cantrell and Mike Chambers
+(Macromedia), for the Flash/JavaScript integration kit; Julien Couvreur, for &quot;Flash4AJAX&quot;; Bob Ippolito,
+for the simplejson library; Dave Herman, for his JavaScript parser; Robert Harder, for his Base64 library; and <a
+href="http://www.json.org">JSON.org</a> for their Java <acronym title="JavaScript Object Notation">JSON</acronym>
+library.</p>
+
+
+        </div><!-- /sectionBody 1 -->
+    </div><!-- /sectionOut 2 -->
+</div><!-- /sectionOut 1 -->
+
+<!--#INCLUDE virtual="../bot.xml" -->
+

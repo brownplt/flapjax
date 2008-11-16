@@ -1,0 +1,53 @@
+<html>
+    <head>
+        <title>Tests</title>
+	<script type="text/javascript" src="debug.js"></script>
+        <script type="text/javascript" src="flapjax.js"></script>
+        <script type="text/javascript" src="testSuite.js"></script>
+	<script type="text/javascript" src="fvlogger/logger.js"></script>
+        <link rel="stylesheet" type="text/css" href="fvlogger/logger.css"/>
+    </head>
+
+<body>
+<!-- [body ----------------------------------------------------------------] -->
+
+<input type=button onclick="eraseLog(false);testSuite();" value="Run tests"/>
+
+<div id="fvlogger">
+  <dl>
+    <dt>fvlogger</dt>
+    <dd class="all">
+      <a href="#fvlogger" onclick="showAll();"
+        title="show all">all</a>
+    </dd>
+    <dd class="debug">
+      <a href="#fvlogger" onclick="showDebug();"
+        title="show debug">debug</a>
+    </dd>
+    <dd class="info">
+      <a href="#fvlogger" onclick="showInfo();"
+        title="show info">info</a>
+    </dd>
+    <dd class="warn">
+      <a href="#fvlogger" onclick="showWarn();"
+        title="show warnings">warn</a>
+    </dd>
+    <dd class="error">
+      <a href="#fvlogger" onclick="showError();"
+        title="show errors">error</a>
+    </dd>
+    <dd class="fatal">
+      <a href="#fvlogger" onclick="showFatal();"
+        title="show fatals">fatal</a>
+    </dd>
+    <dd>
+      <a href="#fvlogger" onclick="eraseLog(true);"
+        title="erase">erase</a>
+      </dd>
+  </dl>
+</div>
+
+<!-- [body ----------------------------------------------------------------] -->
+
+    </body>
+</html>

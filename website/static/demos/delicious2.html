@@ -1,0 +1,57 @@
+<html>
+<head>
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+<title>Flapjax Demo: Delicious Bookmarks (FilterRepeats &amp; Calm)</title>
+
+<script type="text/javascript">
+
+function loader() {
+    flapjaxInit();
+
+    var linksInfoE = 
+    	evalForeignScriptVal_e(
+    		extractValue_e('userName').    		
+			filter_e(function(str){return str.length > 0;}).
+			calm_e(450).transform_e(
+    			function (name) 
+    			{
+    				var res = 
+    					{ 'url': 'http://del.icio.us/feeds/json/' + name,
+						   'globalArg': 'Delicious'
+    					};
+    				return res;
+    			}));
+    			
+	var postToLi = function (post) { return LI(A({href: post.u}, post.d)); };
+
+	var lis =
+		linksInfoE.startsWith({posts:[]}).transform_b(
+			function (linksObj)
+    		{
+    			return map(postToLi, linksObj.posts);
+    		});
+    		
+ 	insertDomB(  			
+ 		changes(ULB(lis)).startsWith('type to start'),
+ 		'userLinks');
+}
+
+</script>
+</head>
+<body onload="loader();">
+
+<div style="text-align: center">
+
+<span style="padding: 2px">
+<a id="mylink" href="http://del.icio.us">del.icio.us</a>
+</span> 
+
+user name: <input type="text" id="userName"/><br/><br/>
+<ul id="userLinks">delicious user links go here</ul>
+
+</div>
+
+</body>
+</html>

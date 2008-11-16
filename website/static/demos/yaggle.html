@@ -1,0 +1,147 @@
+<html>
+
+<head>
+
+
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+<!-- Contains getForeignWebServiceObject_e -->
+<script type="text/javascript" src="/fx/fxws.js"></script>
+
+<title>Flapjax Yahoo/Google Mashup</title>
+		<style>
+			#main {	float:left; width:50%; }
+			#sidebar { float:right; width:50%; }
+		</style>
+    
+    <!-- Key for http://fxinternal.cs.brown.edu/ -->
+    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAARESS6jJKYBfaMZPBBTSULRTJ5VdHXjH0QrfBukiiaTWNKqxyThSqgiHvz1GPkYd7riA99s6j9OWkhQ"
+            type="text/javascript"></script>
+    
+    <!-- Key for flapjax-lang.org
+    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAA07alahwIRxVTzJTPWrMsbRS5L0b6NFYsD3pTE4uwqmHLVbk78xQu2MH5NiPwIQoK-AySk1s6kldWoQ"
+      type="text/javascript"></script>
+     -->
+<script type="text/javascript">
+
+function loader() {
+	var flapjax = flapjaxInit();
+  initFlapjaxForeignWSO('/fx');
+
+	var formatItem = function (item) {
+		var itemTitleText = SPAN(item.Title ? item.Title : 'Generic Business');
+		return LI(
+			{addrForGeo: item.Address + ', ' + item.City + ', ' + item.State},
+			item.Url ?
+				A({href:item.Url,target:'yahoo'},itemTitleText) :
+				SPAN(itemTitleText),
+			item.Address ? DIV(item.Address) : SPAN(),
+			(item.City && item.State) ? DIV(item.City,', ',item.State) : SPAN(),
+			item.Phone ? DIV(item.Phone) : SPAN(),
+			item.Rating ? DIV('Rating: ',item.Rating) : SPAN(),
+			item.Distance ? DIV('Distance: ',item.Distance) : SPAN(),
+			item.BusinessUrl ?
+				A({href:item.BusinessUrl,target:'_blank'},'Website') :
+				SPAN());
+	}
+	
+	var wsInfoB = apply_b(function (lcn,q) {
+		return {
+			url: 'http://local.yahooapis.com/LocalSearchService/V3/localSearch',
+			fields: {
+				appid:
+          // http://fxinternal.cs.brown.edu/
+          'jNvUtojV34GCNdeq9U4xe8_9C9u5EG1sUjZOg2_5UEO.hLgCo_p5CEWE_auPCQ4Lig--',
+          // http://www.flapjax-lang.org/
+          // 'bjg8xnDV34EA77JkPgi8GzmhfMWEugh8PBqrxdBIcoSMtm3jr5Zq1ZxurPjdLCCuUQ--',
+				location: lcn,
+				output: 'json',
+				query: q},
+		    response: 'json',
+			request: 'rest'
+		};
+	},extractValue_b('location'),extractValue_b('query'));
+	
+	var yahooLocalE = getForeignWebServiceObject_e(wsInfoB.changes().calm(500));
+	yahooLocalE.lift_e(function(_) { console.log(_); });
+	var yahooLocalB = yahooLocalE.hold({ResultSet:{Result:[{'Title':'Information from Yahoo! Local will appear here.'}]}});
+	
+	var yahooItemsB = yahooLocalB.lift(function(r) {
+		return (r && r.ResultSet && r.ResultSet.Result) ?
+		map(formatItem,r.ResultSet.Result) : [];
+	});
+	
+	insertDomB(ULB(yahooItemsB), 'yahooItems');
+	
+	var addrB = yahooItemsB.transform(function(k) {
+		var arrayOfNodes = map(function(q){return extractEvent_e(q,'click');},k)
+		var merged = merge_e.apply(this,arrayOfNodes);
+		var addrE = merge_e.apply(this,[merged.transform(function(v){
+			return v.currentTarget.addrForGeo;}),
+			yahooItemsB.transform(function(v) {return v[0] && v[0].addrForGeo;}).changes()]);
+		return addrE.hold('Providence, RI');
+	}).switch_b();
+
+	var theMap;
+	var geocoder;
+	
+	if (GBrowserIsCompatible()) {
+		theMap = new GMap2(document.getElementById("map"));
+		geocoder = new GClientGeocoder();
+	
+		var latLngE = receiver_e();
+
+		// callbacker: -> {e: Event a, c: a -> }
+		// makeCallback: Event a -> (a -> )
+	
+		// TODO: this
+		// var latLngE = callback_e(function(callback){geocoder.getLagLng(addr,callback);});
+	
+		addrB.transform(function (addr) {
+			var callback = function (point) {
+				if (point) { latLngE.sendEvent(point); }
+			};
+			geocoder.getLatLng(addr,callback);
+		});
+		
+		latLngE.collect_e(
+			false,
+			function (point, marker) {
+				theMap.setCenter(point, 13);
+				if (marker) { theMap.removeOverlay(marker); }
+				marker = new GMarker(point);
+				theMap.addOverlay(marker);
+				return marker;
+		});
+	}
+}
+		</script>
+	</head>
+	<body onload="loader();" onunload="GUnload();">
+		<h1>Flapjax Yahoo/Google Mashup Demo</h1>
+		<form>
+			<div id="main">
+				<p>
+					Location:
+					<input type="text" id="location" value="Providence, RI" size="60"/>
+				</p>
+				<p>
+					Query:
+					<input type="text" id="query" value="delicious delicious pizza" size="60"/>
+				</p>
+				<br />
+				<div id="map" style="width: 500px; height: 300px"></div>
+				<br />
+				<div id="yahooLinkFrame" style="width: 500px; height: 300px">
+					<iframe name="yahoo" style="border: none; width: 500px; height: 300px">
+						<b>Click on a link and information about it will appear here.</b>
+					</iframe>
+				</div>
+			</div>
+			<div id="sidebar">
+				<div id="yahooItems" rows="20" cols="100"></div>
+			</div>
+		</form>
+	</body>
+</html>

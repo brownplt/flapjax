@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <title>Testing filterRepeats</title>
+    <script type="text/javascript" src="../flapjax.js"></script>
+    
+
+    <script type="text/javascript">
+    function accum_e(e) { 
+      return e.collect_e([],function(e,p) { return p.concat([e]); });
+    }
+    
+    function loader() {
+      flapjaxInit();
+      
+      var sec_e = 
+        timer_e = timer_e(100).lift_e(function (ms) { // Fires every 0.1 sec 
+          return Math.floor (ms / 1000) % 10;  
+        });
+      
+        
+      insertDomE(accum_e(sec_e.filterRepeats_e()),"history");
+      insertDomE(accum_e(sec_e),"history2");
+    }
+    
+    </script>
+
+  </head>
+  <body onload="loader()">
+    <p>A brief history of time:</p>
+    <span id="history">History will be written.</span>
+    <p>A longer history of time:</p>
+    <span id="history2">History will be written.</span>
+  </body>
+</html>

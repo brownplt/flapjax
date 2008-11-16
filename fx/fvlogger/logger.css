@@ -1,0 +1,86 @@
+/*
+  fvlogger styles
+  (c) 2005 davidfmiller
+  http://www.fivevoltlogic.com/code/fvlogger/
+
+  note: this stylesheet is designed to work with the stock configuration of
+        the fvlogger.js file; changes made there may or may not lead to
+        changing this file as well.
+
+  history:
+        v0.1  February 3, 2005
+        - basics in place
+*/
+
+#fvlogger {
+	border: 1px solid #ddd;
+	padding: 8px;
+	background-color: #fafafa;
+}
+
+#fvlogger * {
+	background-repeat: no-repeat;	
+	font-size: 9pt;
+	text-transform: lowercase;
+}
+
+#fvlogger h6 {
+	font-weight: bold;
+}
+
+#fvlogger p, #fvlogger h6, #fvlogger ul {
+	margin: 0;
+	padding: 0;
+	text-align: left;
+}
+
+#fvlogger dl {
+	padding-bottom: 4px;
+	border-bottom: 1px solid #eee;
+	margin-bottom: 4px;
+}
+
+#fvlogger dl dt:after {
+	content: " :";
+}
+
+#fvlogger dl dt, #fvlogger dl dd {
+	padding: 0;
+	margin: 0 4px 0 0;
+	display: inline;
+}
+
+#fvlogger dl dt {
+	font-weight: bold;
+	background-image: url(magnet.png);
+	min-height: 18px;
+	padding-left: 20px;
+	float: left;
+}
+
+#fvlogger dl dd {
+
+}
+
+#fvlogger a { font-weight: bold;}
+#fvlogger p {
+	padding-left: 20px;
+	background-position: top left;
+	line-height: 1.4em;
+}
+
+#fvlogger dd.debug a { color: #0CCD14; }
+#fvlogger dd.info  a { color: #0082C6; }
+#fvlogger dd.warn  a { color: #E9C000; }
+#fvlogger dd.error a { color: #EE0000; }
+#fvlogger dd.fatal a { color: #444; }
+
+#fvlogger p.debug, #fvlogger p.info, #fvlogger p.warn, #fvlogger p.error {
+	
+}
+
+#fvlogger p.debug { background-image: url(debug.png); color: #0CCD14; font-weight: bold; }
+#fvlogger p.info  { background-image: url(info.png);  color: #0066B3; font-weight: bold; }
+#fvlogger p.warn  { background-image: url(warn.png);  color: #E9C000;  font-weight: bold; }
+#fvlogger p.error { background-image: url(error.png); color: #EE0000; font-weight: bold; }
+#fvlogger p.fatal { background-image: url(fatal.png); color: #656565; font-weight: bold; }

@@ -1,0 +1,32 @@
+<html>
+<head>
+
+
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+
+<title>Flapjax Demo: Follow the Mouse</title>
+
+<script type="text/javascript">
+
+function loader() {
+  flapjaxInit();
+
+  var mouseLeftB = mouseLeft_b(document);
+  var mouseTopB  = mouseTop_b(document);
+
+  insertDomB( 
+    DIVB( 
+      {className: 'contrastBlock', style: {position: 'absolute', left: mouseLeftB, top: mouseTopB } },
+      'the mouse!'),
+    'body',
+    'beginning');
+}
+
+</script>
+</head>
+
+<body id="body" onload="loader()">
+</body>
+
+</html>

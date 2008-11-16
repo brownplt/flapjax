@@ -1,0 +1,1029 @@
+<!--#INCLUDE virtual="../top.xml" -->
+
+  <div class="sectionOut1">
+    <div class="sectionOut2">
+        <div class="sectionTitle"><span>Flapjax Tutorial</span></div>
+        <div class="sectionBody">
+        <div class="sectionBody2">
+
+<h3 class="section">Welcome!</h3>
+
+<p>
+Welcome to Flapjax!  
+This tutorial combines the specific with the abstract.
+We'll begin by discussing pure client-side programming, 
+then describe obtaining data from third-party servers,
+and finally discuss storing data on the Flapjax server.
+</p>
+
+<p>
+This tutorial contains links to the demos.  We encourage you to not
+only run them but also <em>read their sources</em>.  We've tried to
+create clean and readable code for you to learn from.
+The tutorial will be even most effective if you <a
+href="../compiler/">run</a> the examples in this tutorial 
+for yourself.
+</p>
+
+<p>
+Once again, welcome to Flapjax.  Please fasten your seat belts!
+</p>
+
+<h3 class="section">Introducing Behaviors</h3>
+
+<p>
+The easiest way to start programming in Flapjax is to use
+the templating syntax, which lets you embed Flapjax
+code in an HTML page.  Here's a simple example:
+</p>
+
+<pre class="code-disp">
+&lt;p&gt;
+The time is {! timer_b(100) !}.
+&lt;/p&gt;
+</pre>
+
+<p>
+In this fragment, the <code class="fx">{!</code> (pronounced
+&#147;curly-bang&#148;) and <code class="fx">!}</code> surround an
+expression
+written in Flapjax.  The expression's syntax looks remarkably similar
+to that of JavaScript, and this is no coincidence: Flapjax shares the
+syntax of JavaScript.  You may not be sure of what it does, but you
+can probably guess: the function <code class="fx">timer_b</code>
+probably returns the current system time.  That is, the page probably
+prints the system time at the point when it was loaded.  Let's check
+by <a href="../demos/time/1/run.html">running the program</a><!--[<a
+href="../note-on-links.html">first read a note on links in these
+documents</a>]-->.
+</p>
+
+<p>
+Hopefully what you saw is not just the current system time, but the
+time <em>incrementing rapidly</em>.  The function <code
+class="fx">timer_b</code> constructs something called a
+<strong>behavior</strong>, which is a value that changes over time.
+In the first part of this tutorial you'll learn quite a bit more
+about behaviors, which are central to Flapjax.
+</p>
+
+<p>
+Returning to the example, the expression <code
+class="fx">timer_b(100)</code> creates a timer behavior that returns a
+value every 100 milliseconds, i.e., ten times every second.  What it returns,
+however, is a microsecond timer value, and all those extra digits are
+what make the timer appear to be updating madly.  So to smooth it we
+should divide the value by <code class="fx">1000</code>:
+</p>
+
+<pre class="code-disp">
+&lt;p&gt;
+The time in seconds is {! Math.floor(timer_b(100) / 1000) !}.
+&lt;/p&gt;
+</pre>
+
+<p>
+First, <a href="../demos/time/2/run.html">see how it runs</a>.  As you
+can see, this value updates more sedately, once every second.
+</p>
+
+<p>
+Here's what is interesting about this example: the division and floor
+happened every time there was a new value for the timer!  We didn't
+need to <em>tell</em> the program to recompute: when the value of
+<code class="fx">timer_b</code> changed, the rest of the computation
+automatically noticed the change and updated itself.  In other words,
+not only did the value of <code class="fx">timer_b(100)</code> change
+over time, 
+so did the value of <code class="fx">timer_b(100) / 1000</code> and,
+in turn, the value of <code class="fx">Math.floor(timer_b(100) /
+1000)</code>.  This points to an important rule: <em>if an expression
+is a behavior, all expressions whose values depend on it also become
+behaviors</em>.  This automatic updating of the values of behaviors is
+central to Flapjax.
+</p>
+
+<p>
+We don't actually have to write all expressions inside the HTML
+document: we're welcome to, and should, move more complex expressions
+into a <code class="html">script</code> tag, where we can give them
+names that we can refer to later.  Let's do this:
+</p>
+
+<pre class="code-disp">
+&lt;script type="text/flapjax"&gt;
+var timerB = timer_b(100);
+var secondsB = Math.floor(timerB / 1000);
+var secsModTenB = Math.floor(secondsB % 10);
+&lt;/script&gt;
+</pre>
+
+<p>
+The script header tells the Flapjax compiler that the script code is
+in the Flapjax language.  The compiler converts this into pure
+JavaScript code, so that it can run on standard browsers without any
+plugins.  Notice how the definitions resemble regular JavaScript code,
+with the sole exception of the use of behaviors.
+</p>
+
+<p>
+Having created such definitions, we can now use them in our pages.
+For instance, we could ask whether the current system time, in
+seconds, is even or odd:
+</p>
+
+<pre class="code-disp">
+&lt;p&gt;
+The current system time is {! ((secondsB % 2 === 0) ? "even" : "odd") !}.
+&lt;/p&gt;
+</pre>
+
+<p>
+Or, suppose in a separate JavaScript script tag we had defined 
+the function <code
+class="js">arrayToString</code>.  We could apply this function to a
+behavior inside Flapjax:
+</p>
+
+<pre class="code-disp">
+&lt;p&gt;
+The list of time modulo 10 elements is
+  {! arrayToString(oneToN(secsModTenB)) !}.
+&lt;/p&gt;
+</pre>
+
+<p>
+Again, <a href="../demos/time/3/run.html">see how it runs</a>.  Notice
+how <code class="js">arrayToString</code>, even though written in
+JavaScript, automatically works over behaviors, and does the right
+thing: it recomputes a fresh array as the time changes every second.
+This process, of making a function written in JavaScript operate over
+behaviors, is called <strong>lifting</strong>: it ``lifts'' the
+function from operating over JavaScript values to operating over
+Flapjax behaviors.  The Flapjax compiler performs lifting for you
+automatically, so you should rarely, if ever, have to encounter it
+yourself.  If, however, you treat Flapjax simply as a JavaScript
+library (which is a mode of operation we support),
+you'll find yourself performing lifting explicitly.
+</p>
+
+<p>
+The examples used in this introduction to behaviors warrant two
+disclaimers.  First, you probably shouldn't rush to uselessly display
+such timers on your Web pages: they remind people of the worst abuses
+of JavaScript from the 1990s, and will make your site unpopular.
+Second, this tutorial has shown only excerpts of the full pages you
+see when you run the programs.  There is some missing code that you
+<em>must</em> write and some that you <em>should</em> write.  The
+must-write code creates a proper Web page and loads the Flapjax
+library.  The should-write code provides meaningful messages when the
+Web browser has disabled (or does not support) JavaScript.  You should
+read the annotated versions of the <a href="../demos/time/">demos</a>
+to understand these details.
+</p>
+
+<p>
+At this point, you can either soldier on with the tutorial or you can
+stop to read the demos and create your own working Flapjax pages.  We
+suggest you consider doing the latter.  The joy of a programming
+language is that you can actually write programs in it.  As the
+tutorial's examples get more complex, you'll find it helpful (if,
+occasionally, frustrating) to be able to not only see what we present
+but to also tweak the examples and see what impact your changes have.
+</p>
+
+<h3 class="section">Altering Content Based on Behaviors</h3>
+
+<p>
+Think about the position of the mouse.  Whenever you look it has a
+value, but the value keeps changing.  If we write a program that makes
+some entity depend on the current position of the mouse, we'd want
+that entity to be updated whenever the mouse moves.  Fortunately, this
+is easy because the mouse position is another built-in Flapjax
+behavior.
+</p>
+
+<p>
+Here's an example that draws a text box at the current mouse position.
+The code looks a little dense, but it's actually quite simple once you
+parse it:
+</p>
+
+<pre class="code-disp">
+&lt;div id="themouse" 
+  style={! {color: '#FFFFFF', 
+            backgroundColor: '#000000',
+            position: 'absolute',
+            left: mouseLeft_b(document),
+            top: mouseTop_b(document),
+            padding: '10px'} !}&gt;
+the mouse
+&lt;/div&gt;
+</pre>
+
+<p>
+This creates a <code class="html">div</code> element and sets its
+style.  The most important attributes are <code
+class="html">left</code> and <code class="html">top</code>, which are
+set to be those of the mouse.  But because Flapjax provides these as
+behaviors, the values of the style setting update automatically,
+moving the box to follow the mouse.  <a
+href="../demos/follow-the-mouse/1/run.html">See the mouse move</a>.
+</p>
+
+<p>
+The example above employs a syntactic convenience implemented by the
+Flapjax compiler.  Inside the delimiters, the expression has the form
+<code class="js">{ ... }</code>.  This syntax creates a <em>literal
+object</em> in JavaScript.  A object is just an aggregate that maps
+names to values; an HTML style is also just an aggregate that maps
+names to values.  When a Flapjax expression evaluates to an object,
+the delimiters therefore automatically splice the object into the
+context using the CSS attribute-value notation.  This shorthand makes
+it exceptionally easy to define an object containing behaviors and use
+these to manipulate style attributes of page entities.  (Note that the
+Flapjax expression can even <em>evaluate</em> to an object; the
+example above is a special case, where the expression is
+<em>syntactically</em> an object.)
+</p>
+
+<p>
+Now let's add some complexity to this example.  Suppose our mouse has
+a somewhat lazy tail, which takes a little while to catch up with the
+rest of the mouse.  That is, the tail's current position is where the
+mouse was a little while ago; in other words, the tail's position is
+a <em>delayed</em> version of the mouse's position.  This is easy to
+express in Flapjax:
+</p>
+
+<pre class="code-disp">
+&lt;div id="tail" 
+  style={! {color: '#FF0000', 
+            backgroundColor: '#000000',
+            position: 'absolute',
+            left: delay_b(mouseLeft_b(document), DELAY) + $('themouse').offsetWidth,
+            top: delay_b(mouseTop_b(document), DELAY),
+            padding: '10px'} !}>
+its tail!
+&lt;/div&gt;
+</pre>
+
+<p>
+The key expression is
+</p>
+<pre class="code-disp">
+delay_b(mouseLeft_b(document), DELAY) + $('themouse').offsetWidth
+</pre>
+<p>
+The sub-expression on the left delays the mouse's left position by
+some value given in the constant <code class="js">DELAY</code>
+(defined elsewhere), creating a new behavior.  The one on the right
+references the object on the current page whose whose CSS id is <code
+class="html">themouse</code>, and computes its width.  The sum of
+these yields the new horizontal position of the mouse.  <a
+href="../demos/follow-the-mouse/2/run.html">Watch the mouse's tail follow
+it</a>.
+</p>
+
+<p>
+Now you should try to write more complex examples yourself.  For
+instance, suppose we want another segment of the tail that not only
+follows the rest of the mouse but also wags.  (Do the tails of mice
+wag?  We don't really know: a quick survey around the office was
+inconclusive.)  You may not succeed, but you'll learn from the
+effort.  When you're done,
+<a href="../demos/follow-the-mouse/">see all the code</a>.
+</p>
+
+<p>
+Once again, our lawyers have asked us to warn you that pages that
+gratuitously contain such behaviors are annoying, so please use them
+only when necessary or when you're trying to annoy your users.
+</p>
+
+
+<h3 class="section">Reflecting Content as a Behavior</h3>
+
+<p>
+We've seen how the content of a page can depend on a behavior, thereby
+updating when the behavior's value changes.  We can go the other way,
+too: create a behavior that depends on the content of a page, so when
+the page's content changes, so does the behavior.  (And if something
+else on the page depends on that behavior, it'll update too...and so
+forth.)
+</p>
+
+<p>
+Suppose you have a form that contains a field whose content must be
+precisely three characters long.  It would be nice to use the border
+color of the field to indicate whether or not its content satisfies
+this constraint.  Notice that whether or not the constraint has been
+satisfied&#151;that is, the boolean value representing
+satisfaction&#151;depends on the current content of the form field;
+the color of the border in turn depends on this boolean value.
+Expressing all of these as behaviors ensures that the language
+automatically maintains the dependencies between them.
+</p>
+
+<p>
+First, here's the fragment of an HTML page that creates the field:
+</p>
+
+<pre class="code-disp">
+Enter a 3 character string: &lt;input id="textField1"/&gt;
+</pre>
+
+<p>
+We want to modify the border color attribute of the <code
+class="html">input</code> field depending on whether or not the length
+of the field is correct.  The function <code
+class="fx">extractValue_b</code> converts the value of an element on
+the page into a behavior.  Given this helpful function, the expression
+that determines the background color becomes
+</p>
+
+<pre class="code-disp">
+(extractValue_b('textField1').length === 3 ? 'green' : 'red')
+</pre>
+
+<p>
+So all that's left is to use this behavior to set the border color:
+</p>
+
+<pre class="code-disp">
+Enter a 3 character string:
+  &lt;input id="textField1"
+            style={! {borderColor: (extractValue_b('textField1').length === 3 ? 'green' : 'red')} !}/&gt;
+</pre>
+
+<p>
+This kind of inline expression is not always desirable, nor even
+always feasible:
+<ul>
+
+<li>
+It's sometimes undesirable because it clutters the page, intermingling
+presentation with behavior.  It is often better to move the validation
+code into a <code class="html">script</code> tag, so the HTML portion
+of the page remains unencumbered by scripting.  Indeed, because
+Flapjax provides the ability to convert page elements into behaviors,
+it's easy to retroactively add scripting to named <code
+class="html">id</code>s on a page without having to modify its HTML.
+Some people recommend this strategy of employing <strong>unobtrusive
+JavaScript</strong>.  If you're starved for buzzwords you can also
+think of this strategy as a kind of <strong>aspect-oriented
+programming</strong>, where the Flapjax script is <em>advising</em>
+the page, which is <em>oblivious</em> to Flapjax.  In this tutorial
+we'll try to speak in plain English, though.
+</li>
+
+<li>
+It may not be feasible because the constraints are not all local.  In
+the example above, the only constraint on the input field was its own
+length.  But in a more complex form, the constraints may be
+hierarchical or even mutually-dependent.  In such cases it becomes
+highly advisable to lift the scripting into a <code
+class="html">script</code> tag.  That also makes it possible to define
+functions that capture common validation options (such as checking for
+the length of a string using the appropriate comparison operator).
+</li>
+
+</ul>
+
+See the <a href="../demos/validator/">longer example</a>, which
+demonstrates these concepts.
+</p>
+
+<p>
+If you have prior experience programming in JavaScript, you will find
+it instructive to compare the use of Flapjax (whether in Flapjax
+syntax or in raw JavaScript syntax) to having to program the same
+behavior entirely using callbacks.
+</p>
+
+<h3 class="intermezzo">Intermezzo: The Spreadsheet Grew Up</h3>
+
+<p class="alert-box">
+Since we're catering to multiple audiences, we sometimes digress into
+more conceptual material.  You can always spot a digression because
+it's in a separate section labeled as an intermezzo (such as this
+one).  If all you want is the nitty-gritty of programming in the
+language you can safely ignore these digressions, but if you want to
+understand how it relates to other topics in programming, you may find
+these enlightening.  Of course, you can always skip the intermezzos in
+your early readings and come back to them later.
+</p>
+
+<p>
+Spreadsheets are a good idea.  Not in the sense that it's fun to spend
+all day crunching numbers arranged in rows and columns; rather, in the
+sense that they let you <em>express dependencies</em> between cells,
+then automatically perform the ``heavy lifting'' of propagating these
+dependencies.  They are, in some respect, the ultimate kind of
+declarative programming language, but without any associated religious
+cult.
+</p>
+
+<p>
+Behaviors are essentially the natural extension of the spreadsheet
+model, generalized in two respects:
+<ol>
+
+<li>
+You can program over arbitrary data, not just numbers and a few other
+impoverished datatypes.
+</li>
+
+<li>
+You don't have to write everything in a grid and use an unscaleable
+naming convention.  Instead, expression A depends on the value of
+expression B if B is a sub-expression of A (which includes B being an
+argument to a method and A being the method invocation, or even B
+being an expression in a method that A invokes).  If you do need to
+name an expression, you can employ the naming power of JavaScript,
+which includes not only variable names but also array indices, objects
+fields, and so forth.  Just pick the one that works best for your
+needs.
+</li>
+
+</ol>
+That said, behaviors are still in the spreadsheet mould of
+expressing dependencies and letting the language sort out the
+propagation of values.  Like most spreadsheets, Flapjax has
+optimizations to avoid wasteful computation; unlike most spreadsheets,
+Flapjax has mechanisms to handle quite sophisticated dependencies
+including mutual references (which often arise in programming visual
+user interfaces).
+</p>
+
+<p>
+One way of view Flapjax, then, is that it tries to reconcile two
+important programming styles that have needlessly been in conflict:
+declarative and imperative programming.  Imperative programs often put
+too much book-keeping burden on the programmer; where the programmer
+fails, the program generates errors owing to inconsistencies.  In
+contrast, traditional declarative programming forces programmers into
+a straightjacket that sometimes even ignores the presence of
+imperative effects in real-world data and systems.  In contrast to
+both of these, Flapjax fully embraces mutation&#151;behaviors are
+entirely built around the existence of mutation&#151;but encourages
+programmers to describe their systems declaratively, pushing the
+burden of propagating these changes through the declarative
+specification onto the language.  In short, Flapjax programs tend to
+be <em>declarative specifications over imperative data</em>.
+</p>
+
+<h3 class="section">Discrete Streams</h3>
+
+<p>
+The time, the position of the mouse, the content of a field: these all
+have a value <em>continuously</em>, i.e., at all points in time.  It's
+just that the value may change during observation, so all expressions
+dependent on these values must have their values updated to keep the
+system in a consistent state.  Flapjax automates the updating of
+these values.  This is the essence of behaviors.
+</p>
+
+<p>
+Now consider the following phenomena: the clicks of a mouse, the
+keystrokes at a keyboard, or the arrival of network packets.  These
+are <em>discrete</em>.  Over time there may be any number of values,
+perhaps even infinitely many, but a value may not arrive just when we
+look; in fact, there may never be a value ever again (if, for
+instance, the connection was unplugged).  This is especially typical
+of the communication patterns of external devices.
+</p>
+
+<p>
+Because they are discrete, and because there isn't always a
+``current'' value, behaviors are a poor model for these phenomena.  We
+don't want to poll for values because this may cause the system to
+pause indefinitely.  Instead, we want the arrival of a new value on
+this discrete stream to push computation through the rest of the
+system, updating dependencies and keeping the system consistent.  In
+Flapjax, we refer to such streams as <strong>event streams</strong>.
+</p>
+
+<p>
+Programming with event streams is a little different from programming
+with behaviors.  A behavior masquerades as an ordinary JavaScript
+object whose content just happens to change automatically.  In
+contrast, an event stream is a new kind of value, with new primitives
+for programming over it.
+</p>
+
+<p>
+Let's start with a very simple example: given an input box, we want a
+program that prints the length of the string in that box.  We can
+write this in terms of behaviors, but it is conceptually clean to also
+think of each keystroke as an event, and of wanting to only update the
+value when an event occurs.  The program first creates a text box:
+</p>
+
+<pre class="code-disp">
+Text buffer: &lt;input type="text" id="toLength"&gt;&lt;/input&gt;
+</pre>
+
+<p>
+The program then uses <code class="fx">extractValue_e</code> to create
+an event stream reflecting all events associated with this text box.
+(In practice, this stream includes not only keystrokes but also
+tabbing and other activities.  <code class="fx">extractValue_e</code>
+takes additional arguments that help refine the set of events.)  We
+want to then transform this event stream into a series of strings
+representing the length:
+</p>
+
+<pre class="code-disp">
+&lt;p&gt;
+Length: {! extractValue_e('toLength').transform(
+             function (s) {return s.length; }) !}
+&lt;p&gt;
+</pre>
+
+<p>
+The method <code class="fx">transform</code> iterates the supplied
+function over the given event stream, generating a transformed event
+stream as its output.  In this case, it iterates the event stream of
+the string in the <code class="html">toLength</code> entity into a
+stream of the lengths of the strings.
+</p>
+
+<p>
+For a second example, suppose we have a text box and we want to save
+the box's content as a draft.  This requires a server on which to save
+it.  We're only describing client-side programming for now&#151;we'll
+get to servers in a bit&#151;so for the moment, let's focus on how to
+program the client-side functionality.  The Web page contains a text
+box, a button to click on to save drafts, and space to indicate when
+the draft was last ``saved'':
+</p>
+
+<pre class="code-disp">
+Last Saved: &lt;span id='savedTime'&gt;&lt;/span&gt;
+
+&lt;form&gt;
+&lt;textarea id='theText'&gt;&lt;/textarea&gt; &lt;br&gt;
+&lt;input type='button' id='saveButton' value='Save Now'&gt;&lt;/input&gt;
+&lt;/form&gt;
+</pre>
+
+<p>
+Every time the user clicks on the button, we want the time to update
+(and, in a future version of this program, the content to be saved on
+a server).  First we'll create variables that represent the different
+DOM objects in the page (the `D' suffix helps us remember that these
+are references to DOM objects):
+</p>
+
+<pre class="code-disp">
+&lt;script type="text/flapjax"&gt;
+var textD = $('theText');
+var saveD = $('saveButton');
+var savedTimeD = $('savedTime');
+...
+&lt;/script&gt;
+</pre>
+
+<p>
+Now we want to extract the event stream of button clicks; every
+time there's a click, we want to update the time of last save:
+</p>
+
+<pre class="code-disp">
+var saveClickE = extractEvent_e(saveD, 'click');
+var savedTimeE = saveClickE.transform(getTime);
+insertValueE(savedTimeE, savedTimeD, 'textContent');
+</pre>
+
+where <code class="fx">getTime</code> is a JavaScript function:
+
+<pre class="code-disp">
+&lt;script type="text/javascript"&gt;
+var getTime = function (_) {
+  var date = new Date();
+  return date.toLocaleString();}
+&lt;/script&gt;
+</pre>
+
+<p>
+<a href="../demos/draftSaver/1/run.html">Watch this run</a>.  You notice
+that there's something rather unsatisfactory about it: it only
+registers drafts when the user clicks the button, which means a user
+immersed in their work who forgets to click may lose their draft.
+Instead, we'd like to use a timer that periodically saves the text:
+</p>
+
+<pre class="code-disp">
+var autoSaveE = timer_e(100);
+var savedTimeE = autoSaveE.transform(getTime);
+insertValueE(savedTimeE, savedTimeD, 'textContent');
+</pre>
+
+<p>
+While this is much better, this isn't quite right, either: now the
+auto-save happens <em>only</em> when the timer fires.  What we'd
+really like is an auto-save feature that saved <em>both</em> when the
+user clicks and when the timer fires.  That is, given an event stream
+corresponding to the timer and another corresponding to the user's
+clicks, we'd like one that merges these two to form a unified trigger
+for saving drafts.  This is precisely what the Flapjax operator <code
+class="fx">merge_e</code> does:
+
+<pre class="code-disp">
+var saveClickE = extractEvent_e(saveD, 'click');
+var autoSaveE = timer_e(10000);
+var saveE = merge_e(saveClickE, autoSaveE);
+var savedTimeE = saveE.transform(getTime);
+insertValueE(savedTimeE, savedTimeD, 'textContent');
+</pre>
+
+<p>
+Be sure to study the <a href="../demos/draftSaver/1/">full code</a>.
+</p>
+
+<h3 class="intermezzo">Intermezzo: Contrasting Behaviors and Event Streams</h3>
+
+<p>
+Event streams and behaviors offer complementary views of the world.
+It is easy, however, to overstate their differences.  Given an initial
+value, every event stream can be converted into a behavior: the
+behavior always has the value of the last event to have arrived on the
+stream, starting with the specified initial value until the first
+event arrives.  Likewise, every behavior can be converted into an
+event stream: when the behavior's value changes, send the new value as
+an event.  These conversions are handy enough that Flapjax provides
+them as primitive functions called <code class="fx">hold</code> and
+<code class="fx">changes</code>, respectively.  (These are not the
+sole means of converting between the two, only the most natural ones.)
+</p>
+
+<p>
+Though some phenomena are more naturally thought of as one or the
+other, in some cases the same phenomenon can be thought of as either,
+depending on the context.  As a rule-of-thumb, use behaviors to
+represent internal state and when the computation that expresses a
+dependency between two values won't run for too long.  When the state
+is in some external medium, odds are the communications channel can be
+unpredictable, making event streams more suitable.  Similarly, if a
+computation has the potential to take too long and you may need to
+time it out, it's better to use event stream and merge in timeout
+behavior, as we saw in the buffer draft saver example.
+</p>
+
+<h3 class="section">Dot Notation</h3>
+
+<p>
+Earlier we saw the following program:
+
+<pre class="code-disp">
+(extractValue_b('textField1').length === 3 ? 'green' : 'red')
+</pre>
+
+This fragment actually contains a small sleight-of-hand.  Notice the
+use of <code class="fx">.length</code>: we treated the result of <code
+class="fx">extractValue_b</code> as if it were a regular object and
+dereferenced its <code class="fx">length</code> field.  Not only is
+this perfectly legal in Flapjax, it behaves as you'd expect: the value
+of the entire expression <code
+class="fx">extractValue_b('textField1').length</code> is defined to be
+the length of that entity at all points in time, which means its value
+updates as the entity's content updates.
+</p>
+
+<p>
+This works for event streams as it does for behaviors.  Arguably it's
+even more convenient when used with event streams, since it often
+saves the bother of writing <code class="fx">transform</code>.
+Consider a
+simple program that presents a text buffer and prints the length of
+the string entered in the buffer.  First we set up the page:
+
+<pre class="code-disp">
+&lt;p&gt;Text buffer: &lt;input type="text" id="toCount"&gt;&lt;/input&gt;&lt;/p&gt;
+&lt;p id="result"&gt;Start Typing!&lt;/p&gt;
+</pre>
+
+Now to write the Flapjax code.  The first step is standard:
+
+<pre class="code-disp">
+var valE = extractValue_e('toCount', 'value');
+</pre>
+
+where <code class="fx">value</code> indicates which event to extract,
+so we only get notified about changes to the value.  Now we can use
+``dot notation'' over events just as we did for behaviors:
+
+<pre class="code-disp">
+insertDomE('length: ' + valE.length, 'result');	
+</pre>
+
+This too behaves just as you would expect, effectively automatically
+applying <code class="fx">transform</code>.
+<a href="../demos/letter-count/">See the demo</a>.
+</p>
+
+<h3 class="section">Static Initialization</h3>
+
+<p>
+As you may have noticed from some of the demo programs, we sometimes
+use the notation <code class="fx">|||</code> (which we pronounce
+&#147;super-or&#148;).  This is associated with the <code
+class="fx">{!</code> and <code class="fx">!}</code> delimiters.
+Everything on the left of the super-or is the Flapjax code; but
+because it may take some event to invoke this program, the right of
+the super-or specifies what HTML to use initially.  We call this the
+<em>static initializer</em>.
+</p>
+
+<p>
+A static initializer is especially important when using event streams
+where the programmer cannot predict when the first event will occur,
+but it's a good idea to provide one even when using behaviors.
+Sometimes there may be a moment or two before the code on the page
+begins to execute.  More likely, though, if a static initializer
+appears in place of a behavior's value after a few seconds, it often
+indicates a problem: either JavaScript has been disabled, or the
+library is not loading, or the program contains an error.
+</p>
+
+<p>
+Obviously, static initialization is a lingusitic concept that exists
+even in the absence of templating syntax.  Every event stream supports
+the method <code class="fx">startsWith</code> to enable the programmer
+to provide the static initialization value.
+</p>
+
+
+<h3 class="intermezzo">Intermezzo: Where are the Callbacks?</h3>
+
+<p>
+If you're experienced in JavaScript or in using GUI toolkits, and
+you've been paying attention to the examples, you must have noticed an
+important absence: callbacks!  Whereas callbacks are the cornerstone
+of most traditional interactive and event-driven programming, the
+Flapjax style seems to be entirely devoid of them.  Why?
+</p>
+
+<p>
+Most programs can usefully be thought of as black-boxes that consume
+some input (possibly an infinite stream of them) and producing
+corresponding output; that is, the output depends on the input.  The
+callback, however, is invoked by some application-<em>in</em>dependent
+part of the system; it therefore reverses the natural order of
+dependency.  The problem is even easier to see in a language with
+static type declarations:
+because the callback is invoked by an application-independent
+framework, it returns nothing (or, at best, a generic status code).
+As a result, a callback cannot compose with any other
+application-specific method.  The use of callbacks therefore forces
+the use of mutation and other imperative effects, even when these are
+not <em>conceptually</em> necessary.
+</p>
+
+<p>
+There is still value to callbacks, primarily because they enable a
+data-driven style of computation.  That is, rather than the output
+constantly polling the input for data, the system can stay dormant
+until the input has fresh data to generate new output.  To keep this
+benefit, Flapjax evaluates its updates by <em>pushing rather than
+pulling</em>.
+</p>
+
+<p>
+To summarize, while callbacks are a very useful programming mechanism
+and have a useful place in programming, their use often obscures
+important details of program structure.  For this reason, Flapjax
+programming style tries to avoid the use of callbacks.  We encourage
+you to give it a try.  It does sometimes force you to rethink your
+program structure, but invariably you'll find this is making you think
+less about imperative operations and more about your underlying data
+models.  By thinking harder about the relationships between your data
+you write more declarative specifications, leaving more of the work of
+maintaining consistency to the language.  Be lazy: Larry Wall and
+Randal L Schwartz called it one of the ``three great virtues of a
+programmer''!
+</p>
+
+
+<h3 class="section">Accessing Data from Foreign Servers</h3>
+
+<p>
+The security model of JavaScript prevents remote procedure call (RPC)
+requests from being made to sites other than the one where your page
+originated.  This makes it difficult to load data from other sites.
+</p>
+
+<p>
+Several people have proposed a variety of techniques to work around
+this shortcoming.  One common technique relies on the following
+observation: even though you cannot make an RPC request to a different
+host, you can load the content of a JavaScript <code
+class="html">script</code> tag from it.  The resulting JavaScript is
+then evaluated with the rest of the code on your page.  It can, for
+instance, therefore be a program that simply defines the datum you
+were trying to download.  For instance, the Web site <a
+href="http://del.icio.us/">del.icio.us</a> offers a limited number of
+your bookmarks in this form.
+</p>
+
+<p>
+Writing the code to perform this operation is laborious.  You have to
+first create a script, insert the reference to the remote site, wait
+for the data to download, and extract the resulting data.  The script
+binds the result to a fresh variable, so you would want to remove this
+variable from your namespace once you've obtained its value.  If your
+page is interactive, you will need to do all this on a repeated basis.
+Therefore, Flapjax provides a primitive that implements this behavior,
+and the primitive works over event streams (natch).
+</p>
+
+<p>
+Let's consider the del.icio.us example concretely.  Connecting to a
+particular URL that includes the username of a del.icio.us user
+downloads JavaScript code which, when run, binds the variable <code
+class="js">Delicious</code> to some of that user's bookmarks.  The
+Flapjax interface to this mechanism is <code
+class="fx">evalForeignScriptVal_e</code>, which consumes an event
+stream of requests.  Suppose <code class="fx">userName</code> were
+a field in which the user entered a del.icio.us username:
+</p>
+
+<pre class="code-disp">
+var userNameChangeE = extractValue_e('userName');
+
+var deliciousUserLinksE = 
+  evalForeignScriptVal_e(
+    {'url': 'http://del.icio.us/feeds/json/' + userNameChangeE,
+     'globalArg': 'Delicious'});
+</pre>
+
+<p>
+Every fresh username places a new value on the event stream, which
+leads to a fresh iteration of the remote site call.  Each time the
+Flapjax function extracts and returns the value bound to the named
+global argument, in this case <code class="js">Delicious</code>.  <a
+href="../demos/delicious/1/run.html">Run the program</a>.
+</p>
+
+<p>
+Observe that an event stream is the natural argument to this Flapjax
+function.  Even though event streams and behaviors are
+interchangeable, we want to think of connecting to a foreign Web site
+as a discrete activity rather than a continuous one.  Thus, even
+though it is natural to think of the value of the field as a behavior,
+we only want to connect to the foreign site <em>when the value
+changes</em>.  Indeed, this is a case where it is simply not clear
+what it would mean for <code class="fx">evalForeignScriptVal</code> to
+consume a behavior instead of an event stream&#151;or, at the very
+least, how to be a good citizen of the Internet in the process.
+</p>
+
+<p>
+Though we are not continuously connecting to the Internet, we are
+still connecting after every change.  This leads to a slightly jerky
+interaction, and perhaps also fetches the bookmarks of usernames we
+weren't interested in.  Rather, it is more natural to connect only
+when the user pauses.  This is a sufficiently useful construction that
+Flapjax provides two useful functions for this purpose: <code
+class="fx">filterRepeats_e</code> and <code class="fx">calm_e</code>.
+The former eliminates duplicates from an event stream.  The latter
+takes an additional argument, a duration, and only releases the latest
+event when the duration has elapsed and no new event has occurred.
+Putting these together:
+</p>
+
+<pre class="code-disp">
+var deliciousUserLinksE = 
+  evalForeignScriptVal_e(
+    {'url': 'http://del.icio.us/feeds/json/' +
+            calm_e(filterRepeats_e(userNameChangeE), 450),
+     'globalArg': 'Delicious'});
+</pre>
+
+<p>
+<a href="../demos/delicious/2/run.html">Run the revised program</a>.
+</p>
+
+<p>
+This is all quite a bit of fun, so we can't warn you strongly enough
+that it's also very dangerous: you're downloading code from a random
+Web site and running it right within your browser!  (We don't even
+need lawyers to tell you this.  Just thinking about it is enough to
+turn us into lawyers.)  You really, really don't want to do this until
+you have good reason to trust the remote site.  Even then, you should
+carefully examine the code they're generating.  And even then, you
+should check it repeatedly because it may change in ways you find
+undesirable.  And even if you do that, your classical education has
+taught you to keep in mind Bertrand Russell's chicken.
+</p>
+
+<p>
+That's not all.  Flapjax offers much more to enable you to program
+over Web services.  Take a look at
+<a href="../demos/yaggle/">Yaggle</a>, a <em>client-side</em> mashup
+that uses Yahoo!'s local services directory in conjunction with
+Google's mapping capability.  The key to this mashup is the Flapjax
+primitive
+<code class="fx">getWebServiceObject_e</code>, which simplifies the process
+of both constructing the service call and, even more usefully, parsing
+the response by converting XML responses into JSON.
+</p>
+
+<h3 class="section">Server-Side Persistence</h3>
+
+<p>
+Let's go back to the draft saver.  Obviously this is only useful if we
+can store drafts on an actual server, and access it at a later date.
+Flapjax provides a server where you can save your data!  Because the
+server conceptually stores Flapjax values, it automatically propagates
+changes to these values to all clients accessing them.  (In practice,
+of course, the Web makes it difficult to implement such an interface,
+so for now clients work by polling the server.  As Web standards
+evolve, Flapjax will exploit them without you, the programmer, having
+to rewrite your code.)
+</p>
+
+<p>
+To make a value persistent, we must specify do three things.  First,
+we should give the value a place to reside on the server, akin to a
+filename.  Second, we should specify how we want to initialize and
+subsequently read the value from the server.  Third, we must specify
+how to write changes to the server.  This separation proves to be
+quite flexible, and lets us implement a range of policies depending on
+our needs.
+</p>
+
+<p>
+Concretely, recall that the draft was stored in an element labeled
+<code class="html">theText</code>.  We should initialize the draft
+with its contents from the last time we edited it, which we do as
+follows:
+</p>
+
+<pre class="code-disp">
+&lt;textarea id='theText'
+          value={! readPersistentObject({path: ['draftFT'], 
+                                          initial:''}) !}/&gt;
+</pre>
+
+<p>
+We could, of course, have chosen to not read the value that was
+previously there.  The <code class="fx">initial</code> attribute
+simply indicates what value to use the <em>very</em> first time,
+before the persistent object has been created.
+</p>
+
+<p>
+In addition, we must write changes back to the server.  This couldn't
+be simpler: we just state where to store the value, and what to store
+there.  In this case, every time there is a event on <code
+class="fx">saveE</code> we want to store the current value of <code
+class="html">theText</code>: that is, we want to <code
+class="fx">snapshot</code> the value of that field:
+</p>
+
+<pre class="code-disp">
+writePersistentObject(saveE.snapshot($B('theText')), 
+                      {path: ['draftFT']});
+</pre>
+
+<p>
+Finally, we have to initialize the server and load the appropriate
+libraries.  See <a href="/demos/draftSaver/2/">the example</a> for the
+minutiae.  Notice that you can run the application and open the same
+URL in two windows or frames; you'll eventually see changes in one
+propagate to the other.
+</p>
+
+<h3 class="intermezzo">Intermezzo: Isn't This Model-View-Controller?</h3>
+
+<p>
+Software engineering textbooks love to tell you how you must use
+Model-View-Controller (MVC), which is a useful but heavy-weight way to
+think about structuring an application.  Flapjax gives you MVC, but
+with a twist.  You want to think of the server as holding the model,
+and the client as implementing the view.  The controller is the
+annoying part: updating values, distributing updates, propagating
+updates, and so forth.  Flapjax is the glue that implements the
+controller for free.  It's MVC without the bondage and discipline.
+</p>
+
+<h3 class="section">Conclusion</h3>
+
+<p>
+This concludes our tutorial on Flapjax.  Congratulations on making it
+this far!  There is more to the language, as you'll learn from reading
+the documentation and building your own programs.  Tell us about the
+cool programs you build!
+</p>
+
+<h3 class="section">&nbsp;</h3>
+
+        </div>
+        </div>
+    </div>
+    </div>
+    </div>
+    
+<!--#INCLUDE virtual="../bot.xml" -->
