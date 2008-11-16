@@ -10,7 +10,10 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = 'sqlite3' # 'mysql'
-DATABASE_NAME = '/home/flapjax/web/persistence/persistent-sqlitedb'
+if DEBUG:
+	DATABASE_NAME = '/Users/arjun/Projects/flapjax/website/persistence/persistent-sqlitedb'
+else:
+	DATABASE_NAME = '/home/flapjax/web/persistence/persistent-sqlitedb'
 # DATABASE_USER = 'fxserver'
 # DATABASE_PASSWORD = 'fxserver'
 # DATABASE_HOST = '' # empty = localhost

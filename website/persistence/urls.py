@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import *
 from django.conf import settings
+import settings
 
 urlpatterns = patterns('',
   (r'^fxserver/getobj/(?P<obj_id>\w+)/$','fxserver.views.getobj'),
@@ -11,7 +12,7 @@ urlpatterns = patterns('',
 )
 
 
-if False:
+if settings.DEBUG:
   urlpatterns += patterns('',
     (r'^(?P<path>.*)$', 'django.views.static.serve', 
      {'document_root': '../build', 'show_indexes': True}),
