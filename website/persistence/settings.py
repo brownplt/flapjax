@@ -9,13 +9,13 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'mysql'
-DATABASE_NAME = 'fxserver'
-DATABASE_USER = 'fxserver'
-DATABASE_PASSWORD = 'fxserver'
-DATABASE_HOST = '' # empty = localhost
-DATABASE_PORT = '' # empty = default
-
+DATABASE_ENGINE = 'sqlite3' # 'mysql'
+DATABASE_NAME = '/home/flapjax/web/persistence/persistent-sqlitedb'
+# DATABASE_USER = 'fxserver'
+# DATABASE_PASSWORD = 'fxserver'
+# DATABASE_HOST = '' # empty = localhost
+# DATABASE_PORT = '' # empty = default
+ 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.

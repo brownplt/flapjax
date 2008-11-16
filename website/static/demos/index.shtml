@@ -77,12 +77,12 @@ var examples =
     , items: 
       { desc: "A mashup of Yahoo! Local and Google Maps."
       , url: "yaggle.html" } }
-  , { synopsis: "Drag and Drop", id: 'drag'
+  /*, { synopsis: "Drag and Drop", id: 'drag'
     , items:
     [ { desc: "Demonstration of free-form drog and drop of a single element."
       , url:  "drag.html" } 
     , { desc: "Draging elements between lists."
-      , url: "listdrag.html" } ] }
+      , url: "listdrag.html" } ] } */
   ];
 
 var exampleTable = { }; // populated by makeDemoLink; items indexed by id

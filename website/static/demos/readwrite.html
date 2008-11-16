@@ -12,7 +12,7 @@
 function readFrom(objName,val) {
   return function(_) { // discard what is usually a timer value
     return {
-      url: '/fxserver/fxserver/getobj/' + objName + '/',
+      url: '/fxserver/getobj/' + objName + '/',
       fields: { name: objName, "default": val },
       request: 'post',
       response: 'plain', // do not parse the response
@@ -24,7 +24,7 @@ function readFrom(objName,val) {
 function writeTo(name,valE) {
   return valE.lift_e(function(val) {
       return {
-        url: '/fxserver/fxserver/setobj/' + name + '/',
+        url: '/fxserver/setobj/' + name + '/',
         fields: { name: name, value: val },
         request: 'post',
         response: 'json', // parse the response as a JSON value (it's simply 'true')

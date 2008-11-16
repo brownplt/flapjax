@@ -12,7 +12,7 @@
 // Wraps the draft object into a request.
 function save(draft,time) {
   return { 
-    url: '/fxserver/fxserver/setobj/draft/',
+    url: '/fxserver/setobj/draft/',
     fields: { savedtext: draft, savetime: time },
     request: 'post', 
     response: 'json',
@@ -22,7 +22,7 @@ function save(draft,time) {
 
 function load(ignored_arg) {
   var obj = { savedtext: "no draft saved on the server", savetime: "draft never saved" };
-  return { url: '/fxserver/fxserver/getobj/draft/',
+  return { url: '/fxserver/getobj/draft/',
     fields: obj,
     request: 'post', 
     response: 'json',

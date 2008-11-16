@@ -1,3 +1,5 @@
+.PHONY: build doc fx static
+
 all: build doc fx static
 
 clean:

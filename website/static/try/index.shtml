@@ -5,7 +5,7 @@
 <script type="text/javascript">
 function makeUpload(src) {
   return {
-    url: '/fxserver/fxserver/setobj/tryFlapjax/',
+    url: '/fxserver/setobj/tryFlapjax/',
     body: src,
     request: 'rawPost',
     response: 'json', /* we get back a simple true/false value */
@@ -53,12 +53,12 @@ function loader() {
   var isUploadSuccessful = uploadResult.startsWith(true); // TODO: BUG? 
   
   insertDomE(extractEvent_e($('run'),'click').snapshot(isUploadSuccessful).filter_e(whenTrue).lift_e(function(_true) {
-      return IFRAME({src: '/fxserver/fxserver/getobj/tryFlapjax/', width: '100%', height: '75%'}); 
+      return IFRAME({src: '/fxserver/getobj/tryFlapjax/', width: '100%', height: '75%'}); 
     }),
     'userpage');
   
   extractEvent_e($('runnew'),'click').snapshot(isUploadSuccessful).filter_e(whenTrue).lift_e(function(_true) {
-      window.open('/fxserver/fxserver/getobj/tryFlapjax/','Flapjax Compiler Target');
+      window.open('/fxserver/getobj/tryFlapjax/','Flapjax Compiler Target');
   });
 
   done_e.sendEvent(true);
