@@ -8,23 +8,25 @@
 flapjaxInit()
 flapjaxInit(False)
 flapjaxInit({
-  [ includeSynonyms: Bool ],
-  [ exportMisc: Bool ],
-  [ exportCore: Bool ],
-  [ exportDOM: Bool ],
-  [ exportDOMMisc: Bool ],
-  [ exportWS: Bool ],
-  [ hide: Array String ],
-  [ show: Array String ],
-  [ redefine: Bool ]
+  includeSynonyms: Bool,
+  exportMisc: Bool,
+  exportCore: Bool,
+  exportDOM: Bool,
+  exportDOMMisc: Bool,
+  exportWS: Bool,
+  hide: Array String,
+  show: Array String,
+  redefine: Bool
 });
 
 </programlisting>
 
 <p>Initializes the Flapjax framework, returning an object whose fields
 are the functions defined below.  If no arguments are specified, all
-Flapjax functions are exported to <code>window</code> if a function is
-already defined, it is not exported.  If <code>False</code> is supplied,
+Flapjax functions are exported to <code>window</code>. If a function is
+already defined, it is not exported.</p>
+
+<p>If <code>False</code> is supplied,
 nothing is exported.  (However, all of Flapjax is still accessible from
 the returned object.)</p>
 
