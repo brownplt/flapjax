@@ -41,10 +41,12 @@ we keep moving forward.  </p>
 <a href="http://www.geocities.jp/lethevert/flapjax/tutorial.html">Japanese translation</a> of the tutorial.
 </p>
 
-<p>Thank you to the following people for providing very useful libraries: Christian Cantrell and Mike Chambers
-(Macromedia), for the Flash/JavaScript integration kit; Julien Couvreur, for &quot;Flash4AJAX&quot;; Bob Ippolito,
-for the simplejson library; Dave Herman, for his JavaScript parser; Robert Harder, for his Base64 library; and <a
-href="http://www.json.org">JSON.org</a> for their Java <acronym title="JavaScript Object Notation">JSON</acronym>
+<p>Thank you to the following people for providing very useful libraries:
+Christian Cantrell and Mike Chambers (Macromedia), for the Flash/JavaScript
+integration kit; Julien Couvreur, for &quot;Flash4AJAX&quot;; Bob Ippolito, for
+the simplejson library; Dave Herman, for his JavaScript parser; Robert Harder,
+for his Base64 library; <a href="http://www.37signals.com/">37signals</a> for code we borrowed from <a href="http://www.prototypejs.org/">Prototype</a>; and <a href="http://www.json.org">JSON.org</a> for
+their Java <acronym title="JavaScript Object Notation">JSON</acronym>
 library.</p>
 
 
