@@ -41,7 +41,7 @@
     <div class="outDarkSection">
         <div id="topMenu">
         <ul>
-            <li><a href="/index.shtml">Home</a></li>
+            <li><a href="/index.html">Home</a></li>
             <li><a href="/docs/">Docs</a></li>
             <li><a href="/download/">Download</a></li>
             <li><a href="/try/">Try</a></li>
