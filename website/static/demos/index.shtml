@@ -172,20 +172,19 @@ Event.observe(window,'load',loader);
 </script>
 
 <div id="demoList" class="sectionOut1">
-<div class="sectionOut2">
-<div class="sectionTitle"><span>Flapjax Demos</span></div>
-<div class="sectionBody">
-<div class="sectionBody2">
+
+<h1>Flapjax Demos</h1>
 
 <div id="demoLinks"><i>Loading...</i></div>
 
-</div></div></div></div></div>
+</div>
 
-<div id="demoSection" style="display: none" class="sectionOut1">
-<div class="sectionOut2">
-<div class="sectionTitle"><span id="currentDemoTitle">Loading...</span></div>
+<div id="demoSection" style="display: none">
+
+<h1 id="currentDemoTitle">Loading...</h1>
 <div id="demo">demos</div>
-</div></div>
+
+</div>
 
 
 <!--#INCLUDE virtual="../bot.xml" -->

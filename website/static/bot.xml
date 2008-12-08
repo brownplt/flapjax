@@ -1,10 +1,15 @@
+</div> <!-- content -->
+
+<div class="footer"> 
+
+Flapjax is copyright &copy; 2006&mdash;2008 to the Flapjax Team. It is licensed
+under the <a href="/legal/license.shtml">New BSD license</a>. For more
+information and disclaimers, please read our <a href="/legal/">legal</a> page.
 
 </div>
-<div id="footer">
-<div id="legal">Flapjax is copyright &copy; 2006&mdash;2008 to the Flapjax Team. It is licensed under the <a
-href="/legal/license.shtml">New BSD license</a>. For more information and disclaimers, please read our <a
-href="/legal/">legal</a> page.</div>
-</div>
+
+</div> <!-- wrapper -->
 
 </body>
+
 </html>

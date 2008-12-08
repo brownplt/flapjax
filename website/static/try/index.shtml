@@ -68,10 +68,7 @@ function loader() {
 document.observe("dom:loaded",loader);
 </script>
 
-<div class="sectionOut1"><div class="sectionOut2">
-<div class="sectionTitle"><span>Try Flapjax</span></div>
-
-<div class="sectionBody"><div class="sectionBody2">
+<h1>Try Flapjax</h1>
 
 <p>Enter your Flapjax code below.  An application you write here has access to our storage server.</p>
 
@@ -86,20 +83,9 @@ Loading, please wait ...
 </textarea>
 </div>
 
-</div></div></div></div>
 
 <div id="userpage">
 <i>When you click 'Run Here', your application will appear here.</i>
 </div>
-
-
-
-<!--
-<div class="sectionOut1">
-<div class="sectionOut2">
-<div class="sectionTitle"><span>What is Flapjax?</span></div>
-<div class="sectionBody">
-<div class="sectionBody2">
--->
 
 <!--#INCLUDE virtual="../bot.xml" -->

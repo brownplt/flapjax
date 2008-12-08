@@ -1,13 +1,9 @@
 <!--#INCLUDE virtual="../top.xml" -->
 
-<div class="sectionOut1">
-  <div class="sectionOut2">
-    <div class="sectionTitle"><span>The Chefs and Sous-Chefs</span></div>
-    <div class="sectionBody">
+<h1>The Chefs and Sous-Chefs</h1>
 
-<p>
-Flapjax is the result of the work of many.
-</p>
+
+<p> Flapjax is the result of the work of many.  </p>
 
 <p>
 The core team consists of
@@ -41,16 +37,14 @@ we keep moving forward.  </p>
 <a href="http://www.geocities.jp/lethevert/flapjax/tutorial.html">Japanese translation</a> of the tutorial.
 </p>
 
-<p>Thank you to the following people for providing very useful libraries: Christian Cantrell and Mike Chambers
-(Macromedia), for the Flash/JavaScript integration kit; Julien Couvreur, for &quot;Flash4AJAX&quot;; Bob Ippolito,
-for the simplejson library; Dave Herman, for his JavaScript parser; Robert Harder, for his Base64 library; and <a
-href="http://www.json.org">JSON.org</a> for their Java <acronym title="JavaScript Object Notation">JSON</acronym>
-library.</p>
-
-
-        </div><!-- /sectionBody 1 -->
-    </div><!-- /sectionOut 2 -->
-</div><!-- /sectionOut 1 -->
+<p>Thank you to the following people for providing very useful libraries:
+Christian Cantrell and Mike Chambers (Macromedia), for the Flash/JavaScript
+integration kit; Julien Couvreur, for &quot;Flash4AJAX&quot;; Bob Ippolito, for
+the simplejson library; Dave Herman, for his JavaScript parser; Robert Harder,
+for his Base64 library; the Prototype Core Team for code we've borrowed from <a
+href="http://www.prototypejs.org/">Prototype</a>; and <a
+href="http://www.json.org">JSON.org</a> for their <acronym title="JavaScript
+Object Notation">JSON</acronym> library.</p>
 
 <!--#INCLUDE virtual="../bot.xml" -->
 

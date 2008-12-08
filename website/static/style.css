@@ -1,0 +1,67 @@
+body {
+  color: #333333;
+  height: 100%;
+  font-family: Verdana, serif;
+}
+
+h1 {
+  font-family: Palatino, serif;
+  color: #000000;
+}
+
+.wrapper {
+  min-height: 100%;
+  position: relative;
+}
+  
+.content {
+  height: auto;
+  min-height: 100%;
+}
+
+.left {
+  width: 48%;
+  float: left;
+}
+
+.right {
+  float: right;
+  border-left: 1px solid #333333;
+  border-top: 1px solid #333333;
+  padding-left: 10px;
+  padding-bottom: 10px;
+  width: 50%;
+  background-color: #ccccff;
+}
+
+.right p {
+  font-size: 14pt;
+}
+
+.footer {
+  position: relative;
+  text-align: center;
+  font-family: Verdana, sans-serif;
+  font-size: 9pt;
+  margin: 10pt;
+}
+
+.banner {
+  border-top: 4px solid black;
+  border-bottom: 2px solid black;
+  margin-bottom: 10px;
+  background-color: #0033ff;
+}
+
+.banner > .links {
+  float: right;
+}
+
+.banner a {
+  color: white;
+  vertical-align: middle;
+  text-decoration: underline;
+  font-family: Verdana, sans-serif;
+  margin-left: 5px;
+  margin-right: 5px;
+}

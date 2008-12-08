@@ -1,10 +1,6 @@
 <!--#INCLUDE virtual="../top.xml" -->
 
-  <div class="sectionOut1">
-    <div class="sectionOut2">
-        <div class="sectionTitle"><span>Flapjax Tutorial</span></div>
-        <div class="sectionBody">
-        <div class="sectionBody2">
+<h1>Flapjax Tutorial</h1>
 
 <h3 class="section">Welcome!</h3>
 
@@ -1019,11 +1015,5 @@ cool programs you build!
 </p>
 
 <h3 class="section">&nbsp;</h3>
-
-        </div>
-        </div>
-    </div>
-    </div>
-    </div>
     
 <!--#INCLUDE virtual="../bot.xml" -->
