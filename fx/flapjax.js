@@ -2456,7 +2456,7 @@ function flapjaxInit(options) {
         
         var reqType = obj.request ? obj.request : (obj.fields ? 'post' : 'get');
         if (obj.request == 'get') {
-          url += "?" + encodeRest(obj.fields);
+          url += "?" + encodeREST(obj.fields);
           body = '';
           method = 'GET';
         } else if (obj.request == 'post') {
