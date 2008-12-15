@@ -50,9 +50,9 @@ function loader() {
   var uploadResult = getWebServiceObject_e(upload.snapshot(src).lift_e(makeUpload));
   
   // misnomer; this event only fires when the upload is successful
-  var isUploadSuccessful = uploadResult.startsWith(true); // TODO: BUG? 
+  var isUploadSuccessful = uploadResult.hold(true); // TODO: BUG? 
   
-  insertDomE(extractEvent_e($('run'),'click').snapshot(isUploadSuccessful).filter_e(whenTrue).lift_e(function(_true) {
+  insertDomE(extractEvent_e($('run'),'click').snapshot_e(isUploadSuccessful).filter_e(whenTrue).lift_e(function(_true) {
       return IFRAME({src: '/fxserver/getobj/tryFlapjax/', width: '100%', height: '75%'}); 
     }),
     'userpage');

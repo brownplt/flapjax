@@ -759,24 +759,6 @@ intervalB : Behavior Int
 
 </article>
 
-<article title="receiver_b and sendBehavior">
-
-<programlisting>
-receiver_b() -> Behavior a
-sendBehavior(destB,val);
-
-destB :: Behavior a
-val :: a
-</programlisting>
-
-<p>Shorthand for creating <code>receiver_e</code> and immediately turning it
-into a behaviour with some initial value. Useful in conjunction with
-<code>sendBehaviour</code> when interfacing with a callback.</p>
-
-<synonyms>destB.sendBehavior destB.sendBehaviour sendBehaviour</synonyms>
-
-</article>
-
 </chapter> <!-- Behaviors -->
 
 <chapter title="DOM Manipulation">
