@@ -34,8 +34,6 @@ function writeTo(name,valE) {
 };
 
 function loader() {
-  flapjaxInit();
-
   // Poll the server for 'someValue' every two seconds.
   var someValue = getWebServiceObject_e(timer_e(2000).lift_e(readFrom('someValue',"nothing saved")));
   // Create a text node in the DOM with the contents of someValue

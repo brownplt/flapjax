@@ -31,8 +31,6 @@ function load(ignored_arg) {
 }
 
 function loader() {
-  flapjaxInit();
-
   // Save when the Save button is clicked, and every 10 seconds.
   var saveClickE = extractEvent_e('saveButton', 'click');
   var autoSaveE = timer_e(10000);

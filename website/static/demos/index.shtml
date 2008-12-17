@@ -160,8 +160,6 @@ var history_e = function() {
   
   
 function loader() {
-  flapjaxInit();
-  
   var demos = DIV({id: "demoLinks" },map(makeDemoLink,examples));
   insertDom(demos,'demoLinks');
   

@@ -19,7 +19,6 @@ function makeRequest(req) {
 };
 
 function loader() {
-  fx = flapjaxInit();
   initFlapjaxForeignWSO('../fx');
   
   var requestInfo = lift_b(function (url,body) { return { url: url, body: body }; },$B('url'),$B('body'));
