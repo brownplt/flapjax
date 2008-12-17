@@ -22,7 +22,7 @@ function loader() {
   insertDomB(extractValue_b( 'c4'), 'c4v');
     
   insertDomB(
-    extractValue_b( 'c5').transform_b(
+    extractValue_b( 'c5').lift_b(
       function (arr) {
         return '[' + arr + ']';
       }),

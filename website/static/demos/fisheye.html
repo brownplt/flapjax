@@ -104,7 +104,7 @@ function loader() {
   map(
     function (eltD, paddingSizeB) {
       insertValueB( 
-        paddingSizeB.transform_b( function (size) {return size + 'px'; }), 
+        paddingSizeB.lift_b( function (size) {return size + 'px'; }), 
         eltD, 'style', 'width');
     },
     eltsAD,
@@ -115,7 +115,7 @@ function loader() {
   map(
     function (eltD, paddingSizeB) {
       insertValueB( 
-        paddingSizeB.transform_b( function (size) {return size + 'px'; }), 
+        paddingSizeB.lift_b( function (size) {return size + 'px'; }), 
         eltD, 'style', 'height');
     },
     eltsAD,

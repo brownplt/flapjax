@@ -17,7 +17,7 @@ body {text-align: center;
 function loader() {
 
   var valB = extractValue_b('toCount', 'value');
-  var lengthStrB = valB.transform(function (s) { return 'length: ' + s.length; });
+  var lengthStrB = valB.lift_b(function (s) { return 'length: ' + s.length; });
   insertDomB(lengthStrB, 'result');	
 }
 

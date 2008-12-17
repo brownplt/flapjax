@@ -13,7 +13,7 @@ function loader() {
     	evalForeignScriptVal_e(
     		extractValue_e('userName').    		
 			filter_e(function(str){return str.length > 0;}).
-			calm_e(450).transform_e(
+			calm_e(450).lift_e(
     			function (name) 
     			{
     				var res = 
@@ -26,14 +26,14 @@ function loader() {
 	var postToLi = function (post) { return LI(A({href: post.u}, post.d)); };
 
 	var lis =
-		linksInfoE.startsWith({posts:[]}).transform_b(
+		linksInfoE.hold({posts:[]}).lift_b(
 			function (linksObj)
     		{
     			return map(postToLi, linksObj.posts);
     		});
     		
  	insertDomB(  			
- 		changes(ULB(lis)).startsWith('type to start'),
+ 		changes(ULB(lis)).hold('type to start'),
  		'userLinks');
 }
 

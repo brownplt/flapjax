@@ -1,6 +1,6 @@
 <!--#INCLUDE virtual="../top.xml" -->
 
-<script type="text/javascript" lang="javascript" src="/fx/flapjax.debug.js">
+<script type="text/javascript" lang="javascript" src="/fx/flapjax.js">
 </script>
 <script type="text/javascript" src="/demos/prototype.js"></script>
 <script type="text/javascript">
@@ -47,7 +47,7 @@ function loader() {
                        extractEvent_e($('runnew'),'click'));
   
   
-  var uploadResult = getWebServiceObject_e(upload.snapshot(src).lift_e(makeUpload));
+  var uploadResult = getWebServiceObject_e(upload.snapshot_e(src).lift_e(makeUpload));
   
   // misnomer; this event only fires when the upload is successful
   var isUploadSuccessful = uploadResult.hold(true); // TODO: BUG? 
@@ -57,7 +57,7 @@ function loader() {
     }),
     'userpage');
   
-  extractEvent_e($('runnew'),'click').snapshot(isUploadSuccessful).filter_e(whenTrue).lift_e(function(_true) {
+  extractEvent_e($('runnew'),'click').snapshot_e(isUploadSuccessful).filter_e(whenTrue).lift_e(function(_true) {
       window.open('/fxserver/getobj/tryFlapjax/','Flapjax Compiler Target');
   });
 

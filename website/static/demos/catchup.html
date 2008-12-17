@@ -16,7 +16,7 @@ function loader() {
 
   var timerB = timer_b(extractValue_b('frameRate').lift_b(toInt, 50));
 
-  var delayTimeB = extractValue_b('delayRate').transform_b(toInt, 500);
+  var delayTimeB = extractValue_b('delayRate').lift_b(toInt, 500);
 
   //CATCH box    
   insertDomB( 
@@ -28,14 +28,14 @@ function loader() {
            position: 'absolute',
            padding: '5px',
            left: 
-            apply_b(
+            lift_b(
               function (t, x) {
                 return x + Math.round(DIAM1 * Math.cos(t / SPEED)); 
               },
               timerB, 
               mouseLeft_b( document)),
             top: 
-            apply_b(
+            lift_b(
               function (t, y) {
                 return y + Math.round(DIAM1 * Math.sin(t / SPEED)); 
               },
@@ -56,19 +56,19 @@ function loader() {
             backgroundColor:
               merge_e(
                 mouseOverE.constant_e('#FF0000'),
-                mouseOutE.constant_e('#000')).startsWith('#000'),
+                mouseOutE.constant_e('#000')).hold('#000'),
              color: '#FFFFFF',
              fontSize: '3em',
              position: 'absolute',
              left: 
-              apply_b(
+              lift_b(
                 function (t, x) {
                   return OFFSET2 + x + Math.round(DIAM2 * Math.cos(t / SPEED)); 
                 },
                 timerB,
                 mouseLeft_b(document).delay_b(delayTimeB)),
             top: 
-              apply_b(
+              lift_b(
                 function (t, y) {
                   return y + Math.round(DIAM2 * Math.sin(t / SPEED)); 
                 },
@@ -82,7 +82,7 @@ function loader() {
   // Count the number of times we catch up.
   var caughtUpB = 
     extractEvent_e(upB, 'mouseover').collect_e(0,
-      function (_,p) { return p + 1;}).startsWith(0);
+      function (_,p) { return p + 1;}).hold(0);
 
   // Display caughtUpB.
   insertDomB(DIVB(H1B('you caught up ', 

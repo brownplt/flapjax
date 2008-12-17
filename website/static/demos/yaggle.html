@@ -45,7 +45,7 @@ function loader() {
 				SPAN());
 	}
 	
-	var wsInfoB = apply_b(function (lcn,q) {
+	var wsInfoB = lift_b(function (lcn,q) {
 		return {
 			url: 'http://local.yahooapis.com/LocalSearchService/V3/localSearch',
 			fields: {
@@ -72,12 +72,12 @@ function loader() {
 	
 	insertDomB(ULB(yahooItemsB), 'yahooItems');
 	
-	var addrB = yahooItemsB.transform(function(k) {
+	var addrB = yahooItemsB.lift_b(function(k) {
 		var arrayOfNodes = map(function(q){return extractEvent_e(q,'click');},k)
 		var merged = merge_e.apply(this,arrayOfNodes);
-		var addrE = merge_e.apply(this,[merged.transform(function(v){
+		var addrE = merge_e.apply(this,[merged.lift_e(function(v){
 			return v.currentTarget.addrForGeo;}),
-			yahooItemsB.transform(function(v) {return v[0] && v[0].addrForGeo;}).changes()]);
+			yahooItemsB.lift_b(function(v) {return v[0] && v[0].addrForGeo;}).changes()]);
 		return addrE.hold('Providence, RI');
 	}).switch_b();
 
@@ -96,7 +96,7 @@ function loader() {
 		// TODO: this
 		// var latLngE = callback_e(function(callback){geocoder.getLagLng(addr,callback);});
 	
-		addrB.transform(function (addr) {
+		addrB.lift_b(function (addr) {
 			var callback = function (point) {
 				if (point) { latLngE.sendEvent(point); }
 			};

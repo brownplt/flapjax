@@ -1477,20 +1477,19 @@ var generatedTags =
 "p", "pre", "select", "span", "strong", "table", "tbody", 
 "td", "textarea", "tfoot", "th", "thead", "tr", "tt", "ul" ];
 
-map(
-  function (tagName) { 
+for (var i = 0; i < generatedTags.length; i++) {
+  var tagName = generatedTags[i];
+  var upper = tagName.toUpperCase();
     
-    var upper = tagName.toUpperCase();
+  //d.<TAG>B
+  this[upper + 'B'] = function () { 
+    return createParameterizedTagB.apply(this, 
+      [tagName].concat(slice(arguments,0)));
+  };          
     
-    //d.<TAG>B
-    window[upper + 'B'] = function () { 
-      return createParameterizedTagB.apply(this, [tagName].concat(slice(arguments,0)));
-    };          
-    
-    //d.<TAG>
-    window[upper] = staticTagMaker(tagName);  //faster, simple
-  },
-  generatedTags);
+  //d.<TAG>
+  this[upper] = staticTagMaker(tagName);  //faster, simple
+};
 
 //TEXTB: Behaviour a -> Behaviour Dom TextNode    
 TEXTB = function (strB) {

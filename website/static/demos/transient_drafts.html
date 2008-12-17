@@ -12,12 +12,12 @@
 function loader() {
   var saveClickE = extractEvent_e('saveButton', 'click');
 
-  var savedTimeE = saveClickE.transform(function (_) {
+  var savedTimeE = saveClickE.lift_e(function (_) {
     var date = new Date();
     return date.toLocaleString();
   });
 
-  var draftTextE = saveClickE.snapshot(extractValue_b('theText'));
+  var draftTextE = saveClickE.snapshot_e(extractValue_b('theText'));
  
   var draftE = draftTextE.lift_e(function(text) {
     return SPAN({className: 'block'},text);

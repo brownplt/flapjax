@@ -28,6 +28,10 @@ anyFunction = :function(x) {
     return typeof x  == "function";
 };
 
+anyArray = :function(x) {
+  return x instanceof Array;
+};
+
 
 html = :isHtml;
 
@@ -160,6 +164,9 @@ readCookie :: string -> any; // optional(string);
 swapDom :: htmlOrId htmlOrId -> any;
 getURLParam :: string -> any; // optional(string);
 cumulativeOffset :: html -> { left: int, top: int };
+
+// Flapjax's map works over arbitrarily many arrays.
+map :: anyFunction anyArray ... -> anyArray;
 
 // Element constructors
 

@@ -12,7 +12,7 @@ function loader() {
   linksInfoE = 
     evalForeignScriptVal_e( // -> { posts: Array {u: String, d: String} }
       extractValue_e('userName').
-        transform_e(
+        lift_e(
           function (name) {
             return {
                      'url': 'http://del.icio.us/feeds/json/' + name,
@@ -24,12 +24,12 @@ function loader() {
   var postToLi = function (post) { return LI(A({href: post.u}, post.d)); };
 
   var lis = 
-        linksInfoE.startsWith({posts: []}).transform_b(
+        linksInfoE.hold({posts: []}).lift_b(
           function (linksObj) {
             return map(postToLi, linksObj.posts); 
           });
 
-  insertDomB(changes(ULB(lis)).startsWith(SPAN('type a name')),
+  insertDomB(changes(ULB(lis)).hold(SPAN('type a name')),
              'userLinks');
 
 }
