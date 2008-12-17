@@ -1603,7 +1603,7 @@ extractEvents_e = function (domObj /* . eventNames */) {
 extractValueOnEvent_e = function (triggerE, domObj) {
   if (!(triggerE instanceof EventStream)) { throw 'extractValueOnEvent_e: expected Event as first arg'; } //SAFETY
   
-  return changes(d.extractValueOnEvent_b.apply(this, arguments));
+  return changes(extractValueOnEvent_b.apply(this, arguments));
   
 };
 
@@ -1618,7 +1618,7 @@ extractDomFieldOnEvent_e = function (triggerE, domObj /* . indices */) {
 };
 
 extractValue_e = function (domObj) {
-  return changes(d.extractValue_b.apply(this, arguments));
+  return changes(extractValue_b.apply(this, arguments));
 };
 $E = extractValue_e;
 
