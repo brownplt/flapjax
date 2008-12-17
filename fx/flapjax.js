@@ -2356,6 +2356,3 @@ var cumulativeOffset = function(element) {
   } while (element);
   return { left: valueL, top: valueT };
 };
-
-// Prevents old applications from breaking.
-function flapjaxInit() { return; };
