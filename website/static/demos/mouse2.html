@@ -3,23 +3,22 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
 
 <title>Flapjax Demo: Follow the Mouse with a tail</title>
 
 <script type="text/javascript">
 
 function loader() {
-  flapjaxInit();
 
-  var DELAY = 300;
+  var DELAY = constant_b(300);
   var mouseLeftB = mouseLeft_b(document);
   var mouseTopB  = mouseTop_b(document);
 
   insertDomB( 
     DIVB( 
       {id: 'themouse',
-        className: 'contrastBlock',
+       className: 'contrastBlock',
        style: { 
 	       position: 'absolute',
 	       left: mouseLeftB,
@@ -29,14 +28,14 @@ function loader() {
     'beginning');
 
   var mouseOffset = $('themouse').offsetWidth;
-  var delayedLeft = lift_b(function (pos) { return pos + mouseOffset; },
+  var delayedLeft = lift_b(constant_b(function (pos) { return pos + mouseOffset; }),
                            delay_b(mouseLeftB, DELAY));
-  var delayedTop  = delay_b(mouseTopB, DELAY);
+  var delayedTop  = delay_b(mouseTopB, DELAY); 
 
   insertDomB(
     DIVB(
       {id: 'tail',
-        className: 'contrastBlock',
+      className: 'contrastBlock',
        style: {color: '#FF0000',
                position: 'absolute',
                left: delayedLeft,

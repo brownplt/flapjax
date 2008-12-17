@@ -13,6 +13,7 @@ doc:
 	rsync -rlptz --delete ../doc/build/ build/docs
 
 fx:
+	cd ../fx && $(MAKE)
 	rsync -rlptz --delete ../fx/ build/fx
 
 static:

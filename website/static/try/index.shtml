@@ -1,6 +1,7 @@
 <!--#INCLUDE virtual="../top.xml" -->
 
-<script type="text/javascript" lang="javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript" lang="javascript" src="/fx/flapjax.debug.js">
+</script>
 <script type="text/javascript" src="/demos/prototype.js"></script>
 <script type="text/javascript">
 function makeUpload(src) {
@@ -28,7 +29,6 @@ function makeDownload(src) {
 function whenTrue(v) { return v === true; };
 
 function loader() {
-  flapjaxInit();
 
   var done_e = receiver_e();
   

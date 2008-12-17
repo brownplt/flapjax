@@ -1117,6 +1117,8 @@ var getObj = function (name) {
 	}
 };
 
+var $ = getObj;
+
 
 
 //helper to reduce obj look ups

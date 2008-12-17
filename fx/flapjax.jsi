@@ -18,10 +18,11 @@ function isHtml(x) {
 
 }
 
-
 any = :function(x) { return true; };
 bool = any;
 object = any;
+elementMakerB = any;
+elementMaker = any;
 
 anyFunction = :function(x) {
     return typeof x  == "function";
@@ -153,10 +154,93 @@ changes :: Behavior -> EventStream;
 // also $$
 getElementsByClass :: string any any -> [ html, ... ]; 
 // optional(html) optional(string) -> [ html, ... ];
-// also $
 getObj :: htmlOrId -> html;
+$ :: htmlOrId -> html;
 readCookie :: string -> any; // optional(string);
 swapDom :: htmlOrId htmlOrId -> any;
 getURLParam :: string -> any; // optional(string);
 cumulativeOffset :: html -> { left: int, top: int };
 
+// Element constructors
+
+A :: elementMaker;
+B :: elementMaker;
+BLOCKQUOTE :: elementMaker;
+BR :: elementMaker;
+BUTTON :: elementMaker;
+CANVAS :: elementMaker;
+DIV :: elementMaker;
+FIELDSET :: elementMaker;
+FORM :: elementMaker;
+FONT :: elementMaker;
+H1 :: elementMaker;
+H2 :: elementMaker;
+H3 :: elementMaker;
+H4 :: elementMaker;
+HR :: elementMaker;
+IMG :: elementMaker;
+IFRAME :: elementMaker;
+INPUT :: elementMaker;
+LABEL :: elementMaker;
+LEGEND :: elementMaker;
+LI :: elementMaker;
+OL :: elementMaker;
+OPTGROUP :: elementMaker;
+OPTION :: elementMaker;
+P :: elementMaker;
+PRE :: elementMaker;
+SELECT :: elementMaker;
+SPAN :: elementMaker;
+STRONG :: elementMaker;
+TABLE :: elementMaker;
+TBODY :: elementMaker;
+TD :: elementMaker;
+TEXTAREA :: elementMaker;
+TFOOT :: elementMaker;
+TH :: elementMaker;
+THEAD :: elementMaker;
+TR :: elementMaker;
+TT :: elementMaker;
+UL ::elementMaker;
+TEXT :: elementMaker;
+
+AB :: elementMakerB;
+BB :: elementMakerB;
+BLOCKQUOTEB :: elementMakerB;
+BRB :: elementMakerB;
+BUTTONB :: elementMakerB;
+CANVASB :: elementMakerB;
+DIVB :: elementMakerB;
+FIELDSETB :: elementMakerB;
+FORMB :: elementMakerB;
+FONTB :: elementMakerB;
+H1B :: elementMakerB;
+H2B :: elementMakerB;
+H3B :: elementMakerB;
+H4B :: elementMakerB;
+HRB :: elementMakerB;
+IMGB :: elementMakerB;
+IFRAMEB :: elementMakerB;
+INPUTB :: elementMakerB;
+LABELB :: elementMakerB;
+LEGENDB :: elementMakerB;
+LIB :: elementMakerB;
+OLB :: elementMakerB;
+OPTGROUPB :: elementMakerB;
+OPTIONB :: elementMakerB;
+PB :: elementMakerB;
+PREB :: elementMakerB;
+SELECTB :: elementMakerB;
+SPANB :: elementMakerB;
+STRONGB :: elementMakerB;
+TABLEB :: elementMakerB;
+TBODYB :: elementMakerB;
+TDB :: elementMakerB;
+TEXTAREAB :: elementMakerB;
+TFOOTB :: elementMakerB;
+THB :: elementMakerB;
+THEADB :: elementMakerB;
+TRB :: elementMakerB;
+TTB :: elementMakerB;
+ULB ::elementMakerB;
+TEXTB :: elementMakerB;
