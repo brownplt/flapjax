@@ -1,5 +1,4 @@
 // TODO: mutually recursive named contracts (all vars on top)
-// variable-arity contracts
 // method contracts that place conditions on this (for switch_e)
 // EventStream-of (how generically???)
 // arbitrary-length array contracts [ ctc, ... ]
@@ -15,6 +14,35 @@ function isHtml(x) {
   return x instanceof window.HTMLElement || x instanceof window.Text ||
     x instanceof window.Document;
 };
+
+// contract constructor.  Assumes ctc1 if the value satisfies ctc1.flat.
+// Otherwise, assumes ctc2.  The server and client projections perform this
+// test independently, so it's possible for a malformed inner contract to
+// make one projection assume ctc1 and the other assume ctc2.
+var or = function(ctc1, ctc2) {
+  return {
+    flat: function(val) {
+      return ctc1.flat(val) || ctc2.flat(val);
+    },
+    server: function(s) { return function(val) {
+      if (ctc1.flat(val)) {
+        return ctc1.server(s)(val);
+      }
+      else {
+        return ctc2.server(s)(val);
+      }
+    } },
+    client: function(s) { return function(val) {
+      if (ctc1.flat(val)) {
+        return ctc1.client(s)(val);
+      }
+      else {
+        return ctc2.client(s)(val);
+      }
+    } }
+  };
+};
+
 
 }
 
@@ -59,7 +87,7 @@ response = :function(x) {
   return x == "json" || x == "xml" || x == "plain";
 };
 
-Behavior = {
+instance Behavior {
   changes : -> EventStream,
   delay_b : Behavior -> Behavior,
   blind_b : Behavior -> Behavior,
@@ -70,6 +98,25 @@ Behavior = {
   lift_b : Behavior ... -> Behavior, // TODO: underspecified (this carries fn)
   if_b : Behavior Behavior -> Behavior
 };
+
+instance EventStream {
+  lift_e : anyFunction -> EventStream,
+  switch_e : -> EventStream, // TODO: underspecified
+  filter_e : anyFunction -> EventStream,
+  if_e : EventStream EventStream -> EventStream,
+  constant_e : any -> EventStream,
+  collect_e : any anyFunction -> EventStream,
+  not_e : -> EventStream,
+  filterRepeats_e : -> EventStream,
+  snapshot_e : Behavior -> EventStream,
+  once_e : -> EventStream,
+  skipFirst_e : EventStream -> EventStream,
+  delay_e :  Behavior -> EventStream,
+  blind_e :  Behavior -> EventStream,
+  calm_e :  Behavior -> EventStream,
+  hold : any -> Behavior
+};
+
 
 constant_b :: any -> Behavior;
 delay_b :: Behavior Behavior -> Behavior;
@@ -111,24 +158,6 @@ getWebServiceObject_e
   -> EventStream;
 evalForeignScriptVal_e :: { url: string, globalArg: string }
                        -> EventStream;
-
-EventStream = {
-  lift_e : anyFunction -> EventStream,
-  switch_e : -> EventStream, // TODO: underspecified
-  filter_e : anyFunction -> EventStream,
-  if_e : EventStream EventStream -> EventStream,
-  constant_e : any -> EventStream,
-  collect_e : any anyFunction -> EventStream,
-  not_e : -> EventStream,
-  filterRepeats_e : -> EventStream,
-  snapshot_e : Behavior -> EventStream,
-  once_e : -> EventStream,
-  skipFirst_e : EventStream -> EventStream,
-  delay_e :  Behavior -> EventStream,
-  blind_e :  Behavior -> EventStream,
-  calm_e :  Behavior -> EventStream,
-  hold : any -> Behavior
-};
 
 
 one_e :: any -> EventStream;

@@ -343,16 +343,16 @@ var createTimeSyncNode = function(nodes) {
 };
 
 //This is up here so we can add things to its prototype that are in flapjax.combinators
-var Behaviour = function (event, init, updater) {
+var Behavior = function (event, init, updater) {
   if (!(event instanceof EventStream)) { 
-    throw 'Behaviour: expected event as second arg'; 
+    throw 'Behavior: expected event as second arg'; 
   }
   
   var behave = this;
   this.last = init;
   
   //sendEvent to this might impact other nodes that depend on this event
-  //sendBehaviour defaults to this one
+  //sendBehavior defaults to this one
   this.underlyingRaw = event;
   
   //unexposed, sendEvent to this will only impact dependents of this behaviour
@@ -363,7 +363,7 @@ var Behaviour = function (event, init, updater) {
    function (s, p) {behave.last = updater(p.value); p.value = behave.last; s(p);} : 
    function (s, p) {behave.last = p.value;  s(p);}));
 };
-Behaviour.prototype = new Object();
+Behavior.prototype = new Object();
 
 
 
@@ -576,11 +576,11 @@ var delayStatic_e = function (event, time) {
   return resE;
 };
 
-//delay_e: Event a * [Behaviour] Number ->  Event a
+//delay_e: Event a * [Behavior] Number ->  Event a
 EventStream.prototype.delay_e = function (time) {
   var event = this;
   
-  if (time instanceof Behaviour) {
+  if (time instanceof Behavior) {
     
     var receiverEE = internal_e();
     var link = 
@@ -738,9 +738,9 @@ var calmStatic_e = function (triggerE, time) {
 	return out;
 };
 
-//calm_e: Event a * [Behaviour] Number -> Event a
+//calm_e: Event a * [Behavior] Number -> Event a
 EventStream.prototype.calm_e = function(time) {
-  if (time instanceof Behaviour) {
+  if (time instanceof Behavior) {
 		var out = internal_e();
     createNode(
       [this],
@@ -768,7 +768,7 @@ EventStream.prototype.blind_e = function (time) {
     [this],
     function () {
       var intervalFn = 
-      time instanceof Behaviour?
+      time instanceof Behavior?
       function () { return valueNow(time); }
       : function () { return time; };
       var lastSent = (new Date()).getTime() - intervalFn() - 1;
@@ -789,7 +789,7 @@ var blind_e = function(sourceE,interval) {
 
 
 EventStream.prototype.hold = function(init) {
-  return new Behaviour(this,init);
+  return new Behavior(this,init);
 };
 
 
@@ -801,13 +801,13 @@ var hold = function(e,init) {
 };
 
 
-Behaviour.prototype.valueNow = function() {
+Behavior.prototype.valueNow = function() {
   return this.last;
 };
 var valueNow = function(behavior) { return behavior.valueNow(); };
 
 
-Behaviour.prototype.changes = function() {
+Behavior.prototype.changes = function() {
   return this.underlying;
 };
 
@@ -815,7 +815,7 @@ Behaviour.prototype.changes = function() {
 var changes = function (behave) { return behave.changes(); }
 
 
-Behaviour.prototype.switch_b = function() {
+Behavior.prototype.switch_b = function() {
   var behaviourCreatorsB = this;
   var init = valueNow(behaviourCreatorsB);
   
@@ -828,7 +828,7 @@ Behaviour.prototype.switch_b = function() {
   createNode(
     [changes(behaviourCreatorsB)],
     function (_, p) {
-      if (!(p.value instanceof Behaviour)) { throw 'switch_b: expected Behaviour as value of Behaviour of first argument'; } //SAFETY
+      if (!(p.value instanceof Behavior)) { throw 'switch_b: expected Behavior as value of Behavior of first argument'; } //SAFETY
       if (prevSourceE != null) {
         removeListener(prevSourceE, receiverE);
       }
@@ -839,13 +839,13 @@ Behaviour.prototype.switch_b = function() {
       sendEvent(receiverE, valueNow(p.value));
     });
   
-  if (init instanceof Behaviour) {
+  if (init instanceof Behavior) {
     sendEvent(makerE, init);
   }
   
   return hold(
     receiverE,
-    init instanceof Behaviour? valueNow(init) : init);
+    init instanceof Behavior? valueNow(init) : init);
 };
 
 
@@ -864,9 +864,9 @@ var delayStatic_b = function (triggerB, time, init) {
 };
 
 //TODO test, signature
-Behaviour.prototype.delay_b = function (time, init) {
+Behavior.prototype.delay_b = function (time, init) {
   var triggerB = this;
-  if (time instanceof Behaviour) {
+  if (time instanceof Behavior) {
     return hold(
       delay_e(
         changes(triggerB), 
@@ -888,33 +888,33 @@ var delay_b = function(srcB, timeB, init) {
 
 //artificially send a pulse to underlying event node of a behaviour
 //note: in use, might want to use a receiver node as a proxy or an identity map
-Behaviour.prototype.sendBehaviour = function(val) {
+Behavior.prototype.sendBehavior = function(val) {
   sendEvent(this.underlyingRaw,val);
 };
-Behaviour.prototype.sendBehavior = Behaviour.prototype.sendBehaviour;
+Behavior.prototype.sendBehavior = Behavior.prototype.sendBehavior;
 
-var sendBehaviour = function (b,v) { b.sendBehaviour(v); };
+var sendBehavior = function (b,v) { b.sendBehavior(v); };
 
 
 
-Behaviour.prototype.if_b = function(trueB,falseB) {
+Behavior.prototype.if_b = function(trueB,falseB) {
   var testB = this;
   //TODO auto conversion for behaviour funcs
-  if (!(trueB instanceof Behaviour)) { trueB = constant_b(trueB); }
-  if (!(falseB instanceof Behaviour)) { falseB = constant_b(falseB); }
+  if (!(trueB instanceof Behavior)) { trueB = constant_b(trueB); }
+  if (!(falseB instanceof Behavior)) { falseB = constant_b(falseB); }
   return lift_b(function(te,t,f) { return te ? t : f; },testB,trueB,falseB);
 };
 
 
 var if_b = function(test,cons,altr) {
-  if (!(test instanceof Behaviour)) { test = constant_b(test); };
+  if (!(test instanceof Behavior)) { test = constant_b(test); };
   
   return test.if_b(cons,altr);
 };
 
 
 
-//cond_b: . [Behaviour boolean, Behaviour a] -> Behaviour a
+//cond_b: . [Behavior boolean, Behavior a] -> Behavior a
 var cond_b = function (/* . pairs */ ) {
   var pairs = slice(arguments, 0);
 return lift_b.apply({},[function() {
@@ -927,9 +927,9 @@ return lift_b.apply({},[function() {
 
 
 //TODO optionally append to objects
-//createConstantB: a -> Behaviour a
+//createConstantB: a -> Behavior a
 var constant_b = function (val) {
-  return new Behaviour(internal_e(), val);
+  return new Behavior(internal_e(), val);
 };
 
 
@@ -939,12 +939,12 @@ var lift_b = function (fn /* . behaves */) {
   //dependencies
   var constituentsE =
     map(changes,
-    filter(function (v) { return v instanceof Behaviour; },
+    filter(function (v) { return v instanceof Behavior; },
       arguments));
   
   //calculate new vals
   var getCur = function (v) {
-    return v instanceof Behaviour ? v.last : v;
+    return v instanceof Behavior ? v.last : v;
   };
   
   var ctx = this;
@@ -953,7 +953,7 @@ var lift_b = function (fn /* . behaves */) {
   };
 
   if(constituentsE.length == 1) {
-    return new Behaviour(constituentsE[0],getRes(),getRes);
+    return new Behavior(constituentsE[0],getRes(),getRes);
   }
     
   //gen/send vals @ appropriate time
@@ -963,11 +963,11 @@ var lift_b = function (fn /* . behaves */) {
         prevStamp = p.stamp;
         s(p);
   }});
-  return new Behaviour(mid,getRes(),getRes);
+  return new Behavior(mid,getRes(),getRes);
 };
 
 
-Behaviour.prototype.lift_b = function(/* args */) {
+Behavior.prototype.lift_b = function(/* args */) {
   var args= slice(arguments,0).concat([this]);
   return lift_b.apply(this,args);
 };
@@ -981,7 +981,7 @@ return lift_b.apply({},[function() {
 };
 
 
-Behaviour.prototype.and_b = function() {
+Behavior.prototype.and_b = function() {
   return and_b([this].concat(arguments));
 };
 
@@ -994,12 +994,12 @@ return lift_b.apply({},[function() {
 };
 
 
-Behaviour.prototype.or_b = function () {
+Behavior.prototype.or_b = function () {
   return or_b([this].concat(arguments));
 };
 
 
-Behaviour.prototype.not_b = function() {
+Behavior.prototype.not_b = function() {
   return this.lift_b(function(v) { return !v; });
 };
 
@@ -1007,7 +1007,7 @@ Behaviour.prototype.not_b = function() {
 var not_b = function(b) { return b.not_b(); };
 
 
-Behaviour.prototype.blind_b = function (intervalB) {
+Behavior.prototype.blind_b = function (intervalB) {
   return changes(this).blind_e(intervalB).hold(this.valueNow());
 };
 
@@ -1017,7 +1017,7 @@ var blind_b = function(srcB,intervalB) {
 };
 
 
-Behaviour.prototype.calm_b = function (intervalB) {
+Behavior.prototype.calm_b = function (intervalB) {
   return this.changes().calm_e(intervalB).hold(this.valueNow());
 };
 
@@ -1155,7 +1155,7 @@ var timerDisablers = [];
 var disableTimerNode = function (node) { timerDisablers[node.__timerId](); };
 
 var disableTimer = function (v) {
-  if (v instanceof Behaviour) { 
+  if (v instanceof Behavior) { 
     disableTimerNode(v.underlyingRaw); 
   } else if (v instanceof EventStream) {
     disableTimerNode(v);
@@ -1173,7 +1173,7 @@ var createTimerNodeStatic = function (interval) {
 };
 
 var timer_e = function (interval) {
-  if (interval instanceof Behaviour) {
+  if (interval instanceof Behavior) {
     var receiverE = internal_e();
     
     //the return
@@ -1230,8 +1230,8 @@ var TagB = function(tagName,args) {
 };
 
 TagB.prototype = {
-  // Array [[Behaviour] Object *] [[Behaviour] Array] [Behaviour] Dom U String U undefined
-  //   --> {attribs: Array [Behaviour] Object, arrs: Array [Behaviour] Array [Behaviour] Dom }
+  // Array [[Behavior] Object *] [[Behavior] Array] [Behavior] Dom U String U undefined
+  //   --> {attribs: Array [Behavior] Object, arrs: Array [Behavior] Array [Behavior] Dom }
   // split an arguments array into:
   //   1. arrs: (coalesced, and possibly time varying) arrays of dom objects 
   //   2. attribs: attribute objects
@@ -1242,7 +1242,7 @@ TagB.prototype = {
 		var curarr = [];
 		this.arrs.push(curarr);
 		for (var i = 0; i < args.length; i++) {
-			if (args[i] instanceof Behaviour) {
+			if (args[i] instanceof Behavior) {
 				var vn = valueNow(args[i]);
 				if (vn instanceof Array) {	        
 					this.arrs.push(args[i]);
@@ -1287,12 +1287,12 @@ TagB.prototype = {
         return document.createTextNode(e); 
     }
     
-		function unBehaviourize(arr) {
-			return map(function(n) {return (n instanceof Behaviour) ? valueNow(n) : n;},arr)
+		function unBehaviorize(arr) {
+			return map(function(n) {return (n instanceof Behavior) ? valueNow(n) : n;},arr)
 		}
     
 		var lnodes = map(function() {return [];},this.arrs);
-		var arrLastVals = map(unBehaviourize,unBehaviourize(this.arrs));
+		var arrLastVals = map(unBehaviorize,unBehaviorize(this.arrs));
     
 		var arrChangesE = internal_e();
 		var nodeChangesE = internal_e();
@@ -1300,7 +1300,7 @@ TagB.prototype = {
 		function attachNodes(i,arr) {
 			for(var j=0;j<arr.length;j++) {
 				var cnode = arr[j];
-				if(cnode instanceof Behaviour) {
+				if(cnode instanceof Behavior) {
 					var newnode = (function(jj) {
               return changes(cnode).lift_e(function(n) {return {index:i,jdex:jj,val:n};});
 					})(j);
@@ -1312,7 +1312,7 @@ TagB.prototype = {
 		}
     
 		var childChangesE = merge_e(
-			// Behaviour arrays change
+			// Behavior arrays change
 			arrChangesE.lift_e(function(ai) {
           var i = ai.index;
           var newarr = ai.val;
@@ -1320,7 +1320,7 @@ TagB.prototype = {
             var ln = lnodes[i].pop();
             removeListener(ln,nodeChangesE);
           }
-          var newvals = map(function(n) {return quickNode(n);},unBehaviourize(newarr));
+          var newvals = map(function(n) {return quickNode(n);},unBehaviorize(newarr));
           for(var j=0;j<arrLastVals[i].length;j++)
 			try {
 				ctx.currentTag.removeChild(arrLastVals[i][j]);
@@ -1336,7 +1336,7 @@ TagB.prototype = {
           attachNodes(i,newarr);
           return ctx.currentTag;
 			}),
-			// Behaviour nodes change
+			// Behavior nodes change
 			nodeChangesE.lift_e(function(ni) {
           var i = ni.index;
           var j = ni.jdex;
@@ -1352,7 +1352,7 @@ TagB.prototype = {
 				arrLastVals[i][j] = quickNode(arrLastVals[i][j]);
 				this.currentTag.appendChild(arrLastVals[i][j]);
 			}
-			if(this.arrs[i] instanceof Behaviour) {
+			if(this.arrs[i] instanceof Behavior) {
 				attachNodes(i,valueNow(this.arrs[i]));
 				var newnode = (function(ii) {return changes(ctx.arrs[ii]).lift_e(function(na) {return {index:ii,val:na};});})(i);
 				attachListener(newnode,arrChangesE);
@@ -1364,12 +1364,12 @@ TagB.prototype = {
 	},
 	enstyle: function(obj,vals) {
 		//build & record hook if dynamic collection
-		if (vals instanceof Behaviour) {
+		if (vals instanceof Behavior) {
 			if (!(typeof(valueNow(vals)) == 'object')) { throw 'enstyle: expected object literal as behaviour value'; } //SAFETY
 			this.styleHooks.push(changes(vals));
 			attachListener(changes(vals),this.styleChangedE);
 		}
-		var valsV = vals instanceof Behaviour ? valueNow(vals) : vals;
+		var valsV = vals instanceof Behavior ? valueNow(vals) : vals;
 		if (typeof(valsV) == 'object') {
 			for (var i in valsV) {
 				if (!(Object.prototype) || !(Object.prototype[i])) {
@@ -1380,7 +1380,7 @@ TagB.prototype = {
 		else { throw 'enstyle: expected object literals'; } //SAFETY
 	},
   enstyleProperty: function (obj, vals, i) {
-    if (vals[i] instanceof Behaviour) {
+    if (vals[i] instanceof Behavior) {
       if (typeof(valueNow(vals[i])) == 'object') {
         this.enstyle(obj[i], vals[i]);
       }
@@ -1491,10 +1491,10 @@ for (var i = 0; i < generatedTags.length; i++) {
   this[upper] = staticTagMaker(tagName);  //faster, simple
 };
 
-//TEXTB: Behaviour a -> Behaviour Dom TextNode    
+//TEXTB: Behavior a -> Behavior Dom TextNode    
 TEXTB = function (strB) {
-  //      if (!(strB instanceof Behaviour || typeof(strB) == 'string')) { throw 'TEXTB: expected Behaviour as second arg'; } //SAFETY
-  if (!(strB instanceof Behaviour)) { strB = constant_b(strB); }
+  //      if (!(strB instanceof Behavior || typeof(strB) == 'string')) { throw 'TEXTB: expected Behavior as second arg'; } //SAFETY
+  if (!(strB instanceof Behavior)) { strB = constant_b(strB); }
   
   return hold(
     changes(strB).lift_e(
@@ -1510,7 +1510,7 @@ var TEXT = function (str) {
 // Reactive DOM
 
 //tagRec: Array (EventName a) * 
-//      ( .Array (Event a) * Array (Event a) -> Behaviour Dom) -> Behaviour Dom
+//      ( .Array (Event a) * Array (Event a) -> Behavior Dom) -> Behavior Dom
 var tagRec = function (eventNames, maker) {
   if (!(eventNames instanceof Array)) { throw 'tagRec: expected array of event names as first arg'; } //SAFETY
   if (!(maker instanceof Function)) { throw 'tagRec: expected function as second arg'; } //SAFETY
@@ -1560,9 +1560,9 @@ var extractEventStatic_e = function (domObj, eventName) {
   return primEventE;
 };
 
-//extractEvent_e: [Behaviour] Dom * String -> Event
+//extractEvent_e: [Behavior] Dom * String -> Event
 var extractEvent_e = function (domB, eventName) {
-  if (!(domB instanceof Behaviour)) {
+  if (!(domB instanceof Behavior)) {
     return extractEventStatic_e(domB,eventName);
   }
   else {
@@ -1582,7 +1582,7 @@ var extractEvent_e = function (domB, eventName) {
 
 
 //extractEvents_e: 
-//      [Behaviour] Dom  
+//      [Behavior] Dom  
 //      . Array String
 //      -> Event
 // ex: extractEvents_e(m, 'body', 'mouseover', 'mouseout')
@@ -1621,13 +1621,13 @@ extractValue_e = function (domObj) {
 };
 $E = extractValue_e;
 
-//extractValueOnEvent_b: Event * DOM -> Behaviour
+//extractValueOnEvent_b: Event * DOM -> Behavior
 // value of a dom form object, polled during trigger
 extractValueOnEvent_b = function (triggerE, domObj) {
   return extractValueStatic_b(domObj, triggerE);
 };
 
-//extractValueStatic_b: DOM [ * Event ] -> Behaviour a
+//extractValueStatic_b: DOM [ * Event ] -> Behavior a
 //If no trigger for extraction is specified, guess one
 extractValueStatic_b = function (domObj, triggerE) {
   
@@ -1781,7 +1781,7 @@ extractValueStatic_b = function (domObj, triggerE) {
 };
 
 extractValue_b = function (domObj) {
-  if (domObj instanceof Behaviour) {
+  if (domObj instanceof Behavior) {
     return lift_b(function (dom) { return extractValueStatic_b(dom); },
                   domObj)
            .switch_b();
@@ -1794,7 +1794,7 @@ $B = extractValue_b;
 
 //into[index] = deepValueNow(from) via descending from object and mutating each field
 deepStaticUpdate = function (into, from, index) {
-  var fV = (from instanceof Behaviour)? valueNow(from) : from;
+  var fV = (from instanceof Behavior)? valueNow(from) : from;
   if (typeof(fV) == 'object') {
     for (var i in fV) {
       if (!(Object.prototype) || !(Object.prototype[i])) {
@@ -1811,9 +1811,9 @@ deepStaticUpdate = function (into, from, index) {
 //into[index] = from
 //only updates on changes
 deepDynamicUpdate = function (into, from, index) {
-  var fV = (from instanceof Behaviour)? valueNow(from) : from;
+  var fV = (from instanceof Behavior)? valueNow(from) : from;
   if (typeof(fV) == 'object') {
-    if (from instanceof Behaviour) {
+    if (from instanceof Behavior) {
       throw 'deepDynamicUpdate: dynamic collections not supported';
     }
     for (var i in fV) {
@@ -1822,7 +1822,7 @@ deepDynamicUpdate = function (into, from, index) {
       }
     }
   } else {
-    if (from instanceof Behaviour) {
+    if (from instanceof Behavior) {
       createNode(
         [changes(from)],
         function (s, p) {
@@ -1855,7 +1855,7 @@ insertValueE = function (triggerE, domObj /* . indices */) {
     });
 };
 
-//insertValueB: Behaviour * domeNode . Array (id) -> void
+//insertValueB: Behavior * domeNode . Array (id) -> void
 //TODO notify adapter of initial state change?
 insertValueB = function (triggerB, domObj /* . indices */) { 
   
@@ -1956,16 +1956,16 @@ insertDom = function (replaceWithD, hook, optPosition) {
 
 //TODO test
 //insertDomB: 
-//      [Behaviour] String U Dom 
+//      [Behavior] String U Dom 
 //      [* ( id U null U undefined ) 
 //          [* ('before' U 'after' U 'leftMost' U 'rightMost' U 'over' U 'beginning' U 'end')]]
-//      -> Behaviour a
+//      -> Behavior a
 //if optID not specified, id must be set in init val of trigger
 //if position is not specified, default to 'over'
 //performs initial swap onload    
 insertDomB = function (initTriggerB, optID, optPosition) {
   
-  if (!(initTriggerB instanceof Behaviour)) { 
+  if (!(initTriggerB instanceof Behavior)) { 
     initTriggerB = constant_b(initTriggerB);
   }
   
@@ -2003,7 +2003,7 @@ insertDomB = function (initTriggerB, optID, optPosition) {
 extractId_b = function (id, start)
 {
   return hold(
-    createNode( start instanceof Behaviour? [changes(start)] :
+    createNode( start instanceof Behavior? [changes(start)] :
       [],
       function (s, p) {
         p.value = getObj(id);
