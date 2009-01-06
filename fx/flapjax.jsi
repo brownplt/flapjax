@@ -19,30 +19,29 @@ function isHtml(x) {
 // Otherwise, assumes ctc2.  The server and client projections perform this
 // test independently, so it's possible for a malformed inner contract to
 // make one projection assume ctc1 and the other assume ctc2.
-var or = function(ctc1, ctc2) {
+var or = function(name) { return function(ctc1, ctc2) {
   return {
     flat: function(val) {
       return ctc1.flat(val) || ctc2.flat(val);
     },
-    server: function(s) { return function(val) {
+    server: function(s,loc) { return function(val) {
       if (ctc1.flat(val)) {
-        return ctc1.server(s)(val);
+        return ctc1.server(s,loc)(val);
       }
       else {
-        return ctc2.server(s)(val);
+        return ctc2.server(s,loc)(val);
       }
     } },
-    client: function(s) { return function(val) {
+    client: function(s,loc) { return function(val) {
       if (ctc1.flat(val)) {
-        return ctc1.client(s)(val);
+        return ctc1.client(s,loc)(val);
       }
       else {
-        return ctc2.client(s)(val);
+        return ctc2.client(s,loc)(val);
       }
     } }
-  };
-};
-
+  }; 
+}; };
 
 }
 
@@ -158,7 +157,7 @@ getWebServiceObject_e
      , asynchronous : any // optional(bool)
      }
   -> EventStream;
-evalForeignScriptVal_e :: { url: string, globalArg: string }
+evalForeignScriptVal_e :: EventStream // TODO: { url: any , globalArg: any }
                        -> EventStream;
 
 

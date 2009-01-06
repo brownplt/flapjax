@@ -31,6 +31,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Miscellaneous functions
 
+var module = this;
+
 //credit 4umi
 //slice: Array a * Integer * Integer -> Array a
 var slice = function (arr, start, stop) {
@@ -1887,7 +1889,7 @@ insertDomE = function (triggerE, domObj) {
     function (newObj) {
       //TODO safer check
       if (!((typeof(newObj) == 'object') && (newObj.nodeType == 1))) { 
-        newObj = SPAN({}, newObj);
+        newObj = module.SPAN({}, newObj);
       }
       swapDom(objD, newObj);
       objD = newObj;

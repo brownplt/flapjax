@@ -1,7 +1,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
 <script type="text/javascript" src="/fx/fxws.js"></script>
 
 <title>Flapjax Demo: Delicious Bookmarks</title>
@@ -9,16 +9,15 @@
 
 function loader() {
 
-  linksInfoE = 
-    evalForeignScriptVal_e( // -> { posts: Array {u: String, d: String} }
-      extractValue_e('userName').
-        lift_e(
-          function (name) {
-            return {
-                     'url': 'http://del.icio.us/feeds/json/' + name,
-                     'globalArg': 'Delicious'
-                   };
-          }));
+  // EventStream { posts: [ { u: String, d: String }, ... ] }
+  linksInfoE = evalForeignScriptVal_e(
+    extractValue_e('userName').
+      lift_e(function (name) {
+        return { 
+          url: 'http://del.icio.us/feeds/json/' + name,
+          globalArg: 'Delicious'
+        };
+      }));
 
     
   var postToLi = function (post) { return LI(A({href: post.u}, post.d)); };
