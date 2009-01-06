@@ -49,6 +49,12 @@ var isEqual = function (a,b) {
 		  (((typeof(b) == 'number') && isNaN(b)) || b == 'NaN') );
 };
 
+var forEach = function(fn,arr) {
+  for (var i = 0 ; i < arr.length; i++) {
+    fn(arr[i]);
+  }
+};
+
 //member: a * Array b -> Boolean
 var member = function(elt, lst) {
 	for (var i = 0; i < lst.length; i++) { 
@@ -1477,10 +1483,8 @@ var generatedTags =
 "p", "pre", "select", "span", "strong", "table", "tbody", 
 "td", "textarea", "tfoot", "th", "thead", "tr", "tt", "ul" ];
 
-for (var i = 0; i < generatedTags.length; i++) {
-  var tagName = generatedTags[i];
+forEach(function(tagName) {
   var upper = tagName.toUpperCase();
-    
   //d.<TAG>B
   this[upper + 'B'] = function () { 
     return createParameterizedTagB.apply(this, 
@@ -1488,8 +1492,8 @@ for (var i = 0; i < generatedTags.length; i++) {
   };          
     
   //d.<TAG>
-  this[upper] = staticTagMaker(tagName);  //faster, simple
-};
+  this[upper] = staticTagMaker(tagName); // faster constructor
+}, generatedTags);
 
 //TEXTB: Behavior a -> Behavior Dom TextNode    
 TEXTB = function (strB) {
