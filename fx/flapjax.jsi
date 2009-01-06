@@ -95,7 +95,8 @@ instance Behavior {
   valueNow : -> any,
   switch_b : -> Behavior, // TODO: underspecified
   not_b : -> Behavior,
-  lift_b : Behavior ... -> Behavior, // TODO: underspecified (this carries fn)
+  // TODO: underspecified (this carries fn)
+  lift_b : or(Behavior,anyFunction) any ... -> Behavior, 
   if_b : Behavior Behavior -> Behavior
 };
 
@@ -119,7 +120,7 @@ instance EventStream {
 
 
 constant_b :: any -> Behavior;
-delay_b :: Behavior Behavior -> Behavior;
+delay_b :: Behavior or(Behavior,positiveInt) -> Behavior;
 calm_b :: Behavior Behavior -> Behavior;
 blind_b :: Behavior Behavior -> Behavior;
 valueNow :: Behavior -> any;
@@ -127,7 +128,7 @@ switch_b :: Behavior -> Behavior;
 and_b :: Behavior ... -> Behavior;
 or_b :: Behavior ... -> Behavior;
 not_b :: Behavior -> Behavior;
-lift_b :: Behavior Behavior ... -> Behavior;
+lift_b :: or(Behavior,anyFunction) Behavior ... -> Behavior;
 cond_b :: [Behavior,Behavior] ... -> Behavior;
 if_b :: Behavior Behavior Behavior -> Behavior;
 timer_b :: Behavior -> Behavior;
@@ -137,7 +138,8 @@ mouseLeft_b :: html -> Behavior;
 mouse_b :: html -> Behavior;
 extractValue_b :: htmlOrId -> Behavior;
 extractValue_e :: htmlOrId -> EventStream;
-extractEvent_e :: htmlOrId string -> EventStream;
+// TODO: underspecified, behavior carries htmlOrId
+extractEvent_e :: or(Behavior,htmlOrId) string -> EventStream;
 clicks_e :: htmlOrId -> EventStream;
 timer_e :: Behavior -> EventStream;
 extractValueOnEvent_e :: EventStream htmlOrId -> EventStream;
