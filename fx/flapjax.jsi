@@ -207,7 +207,8 @@ lift_b :: or(BehaviorOf(anyFunction),anyFunction) Behavior ... -> Behavior;
 cond_b :: [Behavior,Behavior] ... -> Behavior;
 if_b :: Behavior Behavior Behavior -> Behavior;
 timer_b :: or(positiveInt,BehaviorOf(positiveInt)) -> Behavior;
-insertDomB :: or(html,BehaviorOf(html)) htmlOrId location -> any;
+insertDomB :: or(html,or(string,BehaviorOf(or(string,html)))) htmlOrId location
+           -> any;
 mouseTop_b :: html -> Behavior;
 mouseLeft_b :: html -> Behavior;
 mouse_b :: html -> Behavior;
