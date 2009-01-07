@@ -43,6 +43,34 @@ var or = function(name) { return function(ctc1, ctc2) {
   }; 
 }; };
 
+var EventStreamOf = function(name) { return function(eventValueContract) {
+  return { 
+    flat: function(val) {
+      return val instanceof impl.EventStream;
+    },
+    server: function(s,loc) { return function(val) {
+      if (val instanceof impl.EventStream) {
+        return val.lift_e(function(e) {
+           return eventValueContract.server(s,loc)(e);
+        });
+      }
+      else {
+        contracts.blame(s,name,val,"not an EventStream",loc);
+      }
+    }; },
+    client: function(s,loc) { return function(val) {
+      if (val instanceof impl.EventStream) {
+        return val.lift_e(function(e) {
+           return eventValueContract.client(s,loc)(e);
+        });
+      }
+      else {
+        return val;
+      }
+    }; }
+  };
+}; };
+
 }
 
 any = :function(x) { return true; };
@@ -157,7 +185,7 @@ getWebServiceObject_e
      , asynchronous : any // optional(bool)
      }
   -> EventStream;
-evalForeignScriptVal_e :: EventStream // TODO: { url: any , globalArg: any }
+evalForeignScriptVal_e :: EventStreamOf({ url: string, globalArg: string })
                        -> EventStream;
 
 
