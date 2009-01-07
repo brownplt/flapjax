@@ -2,5 +2,6 @@ build
 *.pyc
 /website/persistence/persistent-sqlitedb
 /fx/flapjax.debug.js
+/fx/flapjax.js
 .DS_Store
 *~
