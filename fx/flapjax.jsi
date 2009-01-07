@@ -115,6 +115,7 @@ var BehaviorOf = function(name) { return function(valueContract) {
 
 }
 
+
 any = :function(x) { return true; };
 staticAttributes = any;
 
@@ -139,6 +140,14 @@ html = :isHtml;
 
 htmlOrId = :function(x) {
   return isHtml(x) || document.getElementById(x) != null;
+};
+
+inputName = :function(name) {
+  var inputs = document.getElementsByTagName("input");
+  for (var i = 0; i < inputs.length; i++) {
+    if (inputs[i].getAttribute('name') == name) { return true; }
+  }
+  return false;
 };
 
 
@@ -193,6 +202,7 @@ instance EventStream {
   hold : any -> Behavior
 };
 
+notEventStream = :function(x) { return !(x instanceof impl.EventStream); };
 
 constant_b :: any -> Behavior;
 delay_b :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
@@ -207,13 +217,13 @@ lift_b :: or(BehaviorOf(anyFunction),anyFunction) Behavior ... -> Behavior;
 cond_b :: [Behavior,Behavior] ... -> Behavior;
 if_b :: Behavior Behavior Behavior -> Behavior;
 timer_b :: or(positiveInt,BehaviorOf(positiveInt)) -> Behavior;
-insertDomB :: or(html,or(string,BehaviorOf(or(string,html)))) htmlOrId location
-           -> any;
+// just about anything can be printed to the DOM
+insertDomB :: notEventStream htmlOrId location -> any;
 mouseTop_b :: html -> Behavior;
 mouseLeft_b :: html -> Behavior;
 mouse_b :: html -> Behavior;
-extractValue_b :: htmlOrId -> Behavior;
-extractValue_e :: htmlOrId -> EventStream;
+extractValue_b :: or(htmlOrId,inputName) -> Behavior;
+extractValue_e :: or(htmlOrId,inputName) -> EventStream;
 // TODO: underspecified, behavior carries htmlOrId
 extractEvent_e :: or(BehaviorOf(htmlOrId),htmlOrId) string -> EventStream;
 clicks_e :: htmlOrId -> EventStream;
