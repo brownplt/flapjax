@@ -1407,10 +1407,6 @@ TagB.prototype = {
   }
 };
 
-createParameterizedTagB = function(tagName) {
-	return new TagB(tagName,slice(arguments,1)).resB;
-}
-
 enstyleStaticProperty = function (obj, props, index) {
   if (typeof(props[index]) == 'object') {
     for (var i in props[index]) {
@@ -1489,8 +1485,8 @@ forEach(function(tagName) {
   var upper = tagName.toUpperCase();
   //d.<TAG>B
   this[upper + 'B'] = function () { 
-    return createParameterizedTagB.apply(this, 
-      [tagName].concat(slice(arguments,0)));
+    var thisTagB = new TagB(tagName,slice(arguments,0));
+    return thisTagB.resB;
   };          
     
   //d.<TAG>
