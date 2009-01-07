@@ -1,7 +1,3 @@
-// TODO: mutually recursive named contracts (all vars on top)
-// method contracts that place conditions on this (for switch_e)
-// EventStream-of (how generically???)
-// arbitrary-length array contracts [ ctc, ... ]
 // Behavior contract is either a higher-order behavior or a flat (constant) 
 // value
 // remove cond_e it is stupid
@@ -43,6 +39,22 @@ var or = function(name) { return function(ctc1, ctc2) {
   }; 
 }; };
 
+var optional = function(name) { return function(valueContract) {
+  return {
+    flat: function(val) {
+      return val === undefined || valueContract.flat(val);
+    },
+    server: function(s,loc) { return function(val) {
+      if (val === undefined) { return val; }
+      else { return valueContract.server(s,loc)(val); }
+    }; },
+    client: function(s,loc) { return function(val) {
+      if (val === undefined) { return val; }
+      else { return valueContract.client(s,loc)(val); }
+    }; }
+  };
+}; };
+
 var EventStreamOf = function(name) { return function(eventValueContract) {
   return { 
     flat: function(val) {
@@ -71,13 +83,48 @@ var EventStreamOf = function(name) { return function(eventValueContract) {
   };
 }; };
 
+// Many Flapjax functions treat non-behavior values as constant behaviors.
+// However, BehaviorOf only accepts instances of Behavior.
+var BehaviorOf = function(name) { return function(valueContract) {
+  return { 
+    flat: function(val) {
+      return val instanceof impl.Behavior;
+    },
+    server: function(s,loc) { return function(val) {
+      if (val instanceof impl.Behavior) {
+        return val.lift_b(function(e) {
+           return valueContract.server(s,loc)(e);
+        });
+      }
+      else {
+        contracts.blame(s,name,val,"not a Behavior",loc);
+      }
+    }; },
+    client: function(s,loc) { return function(val) {
+      if (val instanceof impl.Behavior) {
+        return val.lift_b(function(e) {
+           return valueContract.client(s,loc)(e);
+        });
+      }
+      else {
+        return val;
+      }
+    }; }
+  };
+}; };
+
 }
 
 any = :function(x) { return true; };
+staticAttributes = any;
+
+anyBehavior = any; // or(any,Behavior) = any
 bool = any;
 object = any;
-elementMakerB = any;
-elementMaker = any;
+// The first argument may be an attribute object (any) or an html element.
+elementMaker = any or(html,string) ... -> html;
+elementMakerB = any or(string,or(html,BehaviorOf(or(string,html)))) ... 
+                -> BehaviorOf(html);
 
 anyFunction = :function(x) {
     return typeof x  == "function";
@@ -116,20 +163,21 @@ response = :function(x) {
 
 instance Behavior {
   changes : -> EventStream,
-  delay_b : Behavior -> Behavior,
-  blind_b : Behavior -> Behavior,
-  calm_b : Behavior -> Behavior,
+  delay_b : or(positiveInt,BehaviorOf(positiveInt)) -> Behavior,
+  blind_b : or(positiveInt,BehaviorOf(positiveInt)) -> Behavior,
+  calm_b : or(positiveInt,BehaviorOf(positiveInt)) -> Behavior,
   valueNow : -> any,
   switch_b : -> Behavior, // TODO: underspecified
   not_b : -> Behavior,
-  // TODO: underspecified (this carries fn)
-  lift_b : or(Behavior,anyFunction) any ... -> Behavior, 
+  // the rest arguments may be 
+  lift_b : or(BehaviorOf(anyFunction),anyFunction) anyBehavior ... -> Behavior, 
   if_b : Behavior Behavior -> Behavior
 };
 
 instance EventStream {
   lift_e : anyFunction -> EventStream,
-  switch_e : -> EventStream, // TODO: underspecified
+  // TODO: a better contract should restrict this
+  switch_e : -> EventStream,
   filter_e : anyFunction -> EventStream,
   if_e : EventStream EventStream -> EventStream,
   constant_e : any -> EventStream,
@@ -139,34 +187,34 @@ instance EventStream {
   snapshot_e : Behavior -> EventStream,
   once_e : -> EventStream,
   skipFirst_e : EventStream -> EventStream,
-  delay_e :  Behavior -> EventStream,
-  blind_e :  Behavior -> EventStream,
-  calm_e :  Behavior -> EventStream,
+  delay_e :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
+  blind_e :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
+  calm_e :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
   hold : any -> Behavior
 };
 
 
 constant_b :: any -> Behavior;
-delay_b :: Behavior or(Behavior,positiveInt) -> Behavior;
-calm_b :: Behavior Behavior -> Behavior;
-blind_b :: Behavior Behavior -> Behavior;
+delay_b :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
+calm_b :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
+blind_b :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
 valueNow :: Behavior -> any;
-switch_b :: Behavior -> Behavior;
+switch_b :: BehaviorOf(Behavior) -> Behavior;
 and_b :: Behavior ... -> Behavior;
 or_b :: Behavior ... -> Behavior;
 not_b :: Behavior -> Behavior;
-lift_b :: or(Behavior,anyFunction) Behavior ... -> Behavior;
+lift_b :: or(BehaviorOf(anyFunction),anyFunction) Behavior ... -> Behavior;
 cond_b :: [Behavior,Behavior] ... -> Behavior;
 if_b :: Behavior Behavior Behavior -> Behavior;
-timer_b :: Behavior -> Behavior;
-insertDomB :: Behavior htmlOrId location -> any;
+timer_b :: or(positiveInt,BehaviorOf(positiveInt)) -> Behavior;
+insertDomB :: or(html,BehaviorOf(html)) htmlOrId location -> any;
 mouseTop_b :: html -> Behavior;
 mouseLeft_b :: html -> Behavior;
 mouse_b :: html -> Behavior;
 extractValue_b :: htmlOrId -> Behavior;
 extractValue_e :: htmlOrId -> EventStream;
 // TODO: underspecified, behavior carries htmlOrId
-extractEvent_e :: or(Behavior,htmlOrId) string -> EventStream;
+extractEvent_e :: or(BehaviorOf(htmlOrId),htmlOrId) string -> EventStream;
 clicks_e :: htmlOrId -> EventStream;
 timer_e :: Behavior -> EventStream;
 extractValueOnEvent_e :: EventStream htmlOrId -> EventStream;
@@ -181,8 +229,8 @@ getWebServiceObject_e
      , request : request
      , response : response
      , fields : any
-     , body : any // optional(string)
-     , asynchronous : any // optional(bool)
+     , body : optional(string)
+     , asynchronous : optional(bool)
      }
   -> EventStream;
 evalForeignScriptVal_e :: EventStreamOf({ url: string, globalArg: string })
@@ -193,7 +241,7 @@ one_e :: any -> EventStream;
 zero_e :: -> EventStream;
 lift_e ::  anyFunction EventStream -> EventStream;
 merge_e :: EventStream ... -> EventStream;
-switch_e :: EventStream -> EventStream;
+switch_e :: EventStreamOf(EventStream) -> EventStream;
 filter_e :: EventStream anyFunction -> EventStream;
 if_e :: EventStream EventStream -> EventStream;
 constant_e :: EventStream any -> EventStream;
@@ -214,13 +262,12 @@ hold :: EventStream any -> Behavior;
 changes :: Behavior -> EventStream;
 
 // also $$
-getElementsByClass :: string any any -> [ html, ... ]; 
-// optional(html) optional(string) -> [ html, ... ];
+getElementsByClass :: string optional(html) optional(string) -> [ html, ... ];
 getObj :: htmlOrId -> html;
 $ :: htmlOrId -> html;
-readCookie :: string -> any; // optional(string);
+readCookie :: string -> optional(string); // may return undefined
 swapDom :: htmlOrId htmlOrId -> any;
-getURLParam :: string -> any; // optional(string);
+getURLParam :: string -> optional(string); // may return undefined
 cumulativeOffset :: html -> { left: int, top: int };
 
 // Flapjax's map works over arbitrarily many arrays.
