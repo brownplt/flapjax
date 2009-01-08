@@ -1089,6 +1089,7 @@ var swapDom = function(replaceMe, withMe) {
     var withMeD = getObj(withMe);
     if (!(withMeD.nodeType > 0)) { throw 'swapDom: can only swap with a DOM object'; } //SAFETY
     try {
+      if (replaceMeD.parentNode == null) { return withMeD; }
       if(withMeD != replaceMeD) replaceMeD.parentNode.replaceChild(withMeD, replaceMeD);
     } catch (e) {
       throw('swapDom error in replace call: withMeD: ' + withMeD + ', replaceMe Parent: ' + replaceMeD + ', ' + e + ', parent: ' + replaceMeD.parentNode);                    
