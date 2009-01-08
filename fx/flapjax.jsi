@@ -3,7 +3,7 @@
 // remove cond_e it is stupid
 // DOM contract list
 // dictionary contract (on $O)
-// Stop exporting generic functions
+
 {
   
 function isHtml(x) {
@@ -367,3 +367,9 @@ TRB :: elementMakerB;
 TTB :: elementMakerB;
 ULB ::elementMakerB;
 TEXTB :: elementMakerB;
+
+fold :: any;
+map :: any;
+filter :: any;
+member :: any;
+slice :: any;
