@@ -2360,3 +2360,65 @@ var cumulativeOffset = function(element) {
   } while (element);
   return { left: valueL, top: valueT };
 };
+
+var mixedSwitch_b = function(behaviourCreatorsB) {
+  var init = valueNow(behaviourCreatorsB);
+  
+  var prevSourceE = null;
+  
+  var receiverE = internal_e();
+
+  
+	//XXX could result in out-of-order propagation! Fix!
+  var makerE = 
+  createNode(
+    [changes(behaviourCreatorsB)],
+    function (_, p) {
+      if (prevSourceE != null) {
+        removeListener(prevSourceE, receiverE);
+        prevSourceE = null;
+      }
+      if (p.value instanceof Behavior) {
+        prevSourceE = changes(p.value);
+        attachListener(prevSourceE, receiverE);
+        sendEvent(receiverE, valueNow(p.value));
+      }
+      else {
+        sendEvent(receiverE, p.value);
+      }
+    });
+  
+  if (init instanceof Behavior) {
+    sendEvent(makerE, init);
+  }
+  
+  return hold(
+    receiverE,
+    init instanceof Behavior? valueNow(init) : init);
+};
+
+
+// Flapjax compiler support
+var compilerLift = function(f /* , args ... */) {
+  var i;
+
+  // Assume some argument is a behavior.  This should always work.  We can
+  // optimize later.
+  var resultE = internal_e();
+  return mixedSwitch_b(lift_b.apply(this,arguments));
+};
+
+var compilerCall = function(f /* , args ... */) {
+  return compilerLift.apply(this,arguments);
+};
+   
+
+var compilerIf = function(test,cons,alt) {
+  if (test instanceof Behavior) {
+    return test.lift_b(function(v) { return v ? cons : alt; }).switch_b();
+  }
+  else {
+    return test ? cons : alt;
+  }
+};
+  

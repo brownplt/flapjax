@@ -1,0 +1,27 @@
+Name:           Flapjax
+Version:        2.1
+Cabal-Version:	>= 1.2.3
+Copyright:      Copyright (c) 2006-2009 The Flapjax Team
+License:        BSD3
+License-file:   LICENSE
+Author:         Arjun Guha, Michael Greenberg
+Maintainer:     Arjun Guha <arjun@cs.brown.edu>
+Homepage:       http://www.flapjax-lang.org/
+Stability:      provisional
+Category:       Language
+Build-Type:     Custom
+Synopsis:       JavaScript program analysis
+Description:
+ 
+
+Executable fxc
+  Main-Is: Fxc.hs
+  Hs-Source-Dirs: src
+
+  Build-Depends:
+    base>=4, mtl>=1.1.0.1, parsec<3.0.0, pretty>=0.1, containers>=0.1, syb>=0.1,
+    random>=1.0.0.1,WebBits,directory
+  ghc-options:
+    -fwarn-incomplete-patterns
+  Extensions:     
+    Generics DeriveDataTypeable
