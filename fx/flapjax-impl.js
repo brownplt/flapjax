@@ -2423,26 +2423,62 @@ var compilerIf = function(test,cons,alt) {
 };
   
 
-var unBehavior = function(v) {
+var unBehavior = function(recompute) { return function(v) {
   if (v instanceof Behavior) {
-    return unBehavior(v.valueNow());
+    if (v.valueNow() instanceof Behavior) {
+      return unBehavior(recompute)(v.ValueNow());
+    }
+    else {
+      attachListener(v.changes(),recompute(v.changes()));
+      return unBehavior()(v.valueNow());
+    }
   }
   else if (typeof v == 'function') {
     return function() {
       var r = v.apply(this,arguments);
-      return unBehavior(r);
+      return unBehavior(recompute)(r);
     }
   }
   else {
     return v;
   };
+}};
+
+
+var map1 = function(f,src) { 
+  var dest = [ ];
+  for (var i = 0; i < src.length; i++) { dest.push(f(src[i])); }
+  return dest;
 };
 
 var compilerUnbehavior = function(v) {
   if (typeof v == 'function') {
     return function() {
-      var args = map(unBehavior,arguments);
-      return v.apply(this,args);
+      // These values may contain behaviors.
+      var originalArgs = slice(arguments,0);
+   
+      var srcs = [ ];
+
+      var recompute = function(src) {
+        srcs.push(src);
+        return recomputeE;
+      };
+
+      var resultE = internal_e();
+      
+      var recomputeE = createNode([],function(send,_) {
+        // Some argument changed.  We will recompute new values for all
+        // arguments.
+        map1(function(src) { removeListener(src,recomputeE); },srcs);
+        srcs = [ ];
+        
+        var args = map1(unBehavior(recompute),originalArgs);
+        var r = v.apply(this,args);
+        sendEvent(resultE,r);
+      });
+
+      return resultE.hold(v.apply(this,map1(unBehavior(recompute),
+                                              arguments)));
     }
   }
   else {

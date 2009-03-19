@@ -398,7 +398,6 @@ liftExprM fxenv opts expr = liftM expr where
       else warn "unlifted prefix operator" e p >> return e
   -- Strange treatment for assignment
   liftM e@(AssignExpr p op left right) = do
-    putStrLn $ "assign " ++ (render $ pp left)
     if isPureAssignOperator op
       then do left <- liftM left
               right <- liftM right
@@ -428,7 +427,6 @@ liftExprM fxenv opts expr = liftM expr where
         return $ CallExpr p f args'
     | otherwise = do 
         unless (S.member (unId id) fxenv) $
-          putStrLn $ "External " ++ unId id
         (f':args') <- mapM liftM (f:args)
         return $ mixedCall (f':args')
   -- obj.method(arg0, arg1, ...):
@@ -454,7 +452,6 @@ liftExprM fxenv opts expr = liftM expr where
   -- mutual-recursion to lift statements in expressions
   liftM (FuncExpr p ids stmt) = do
     let fxenv' = S.unions [localVars [stmt],S.fromList $ map unId ids,fxenv]
-    -- putStrLn $ (render $ pp  stmt)
     stmt' <- liftStmtM fxenv' opts stmt
     return $ FuncExpr p ids stmt'
   -- lifting a list of expressions
@@ -554,7 +551,6 @@ compileScripts opts page = do
   refUID <- newIORef 0
   -- top-level names defined in "text/flapjax" scripts
   let fxenv = fxScriptGlobalEnv page
-  putStrLn $ show fxenv
   page <- everywhereM (mkM (compile fxenv refUID opts)) page
   return $ everywhere (mkT flapjaxTagsToJavascript) page
 
