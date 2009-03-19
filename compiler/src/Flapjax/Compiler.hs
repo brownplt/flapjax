@@ -17,6 +17,8 @@ import qualified Flapjax.Symbols as Symbols
 import qualified WebBits.Html.Syntax as Html
 import qualified Flapjax.Builder as J
 import Computation hiding (warn)
+import WebBits.JavaScript.Env (localVars)
+import qualified Data.Set as S
 
 {-{{{ Structure of the compiler:
 
@@ -173,7 +175,7 @@ avoidNameClashes opts page =
 -- {! expression !} gets compiled to:
 --
 -- <script type="text/flapjax">
---         mixedInsertDom_eb(expression,uid,'over');
+--         insertDomB(expression,uid,'over');
 -- </script><span id=uid></span>
 
 mixedInsertDom opts = J.call (J.ref (J.id "insertDomB"))
@@ -209,7 +211,7 @@ compileInline opts page = do
 --
 --   <span>
 --     <script type="text/flapjax">
---       mixedInsertDom_eb(expr,uid,attrib);
+--       insertValue_b(expr,uid,attrib);
 --       ..
 --     </script>
 -- <tag id="uid" attrib="" ...> ... </tag>
@@ -270,7 +272,16 @@ compileInlineAtAttribs opts page = do
 -- wrapped in a loader function.  Therefore, they must be transformed into
 -- assignments.
 
-fixScopingM stmt = return (everywhere (mkT fixScope) stmt) where
+fixScopingM stmt = return $ everywhereBut (extQ (mkQ True stopFn) stopFnS) (mkT fixScope) stmt where
+
+  stopFn :: Expression SourcePos -> Bool
+  stopFn (FuncExpr{}) = False
+  stopFn _ = True
+
+  stopFnS :: Statement SourcePos -> Bool
+  stopFnS (FunctionStmt{}) = False
+  stopFnS _ = True
+
   fixScope:: Statement SourcePos -> Statement SourcePos
   fixScope (FunctionStmt p f args stmt) =
     ExprStmt p (AssignExpr p OpAssign (VarRef p f) (FuncExpr p args stmt))
@@ -318,8 +329,9 @@ isPurePrefixOperator op =
 isPureAssignOperator op =
   op `elem` [OpAssign]
 
-liftExprM:: CompilerOpts -> ParsedExpression -> IO ParsedExpression
-liftExprM opts expr = liftM expr where
+liftExprM :: S.Set String
+          -> CompilerOpts -> ParsedExpression -> IO ParsedExpression
+liftExprM fxenv opts expr = liftM expr where
   fj = VarRef noPos (Id noPos (flapjaxObject opts))
   cxt = DotRef noPos fj (Id noPos "maybeEmpty")
   mixedLift args = --J.call (J.ref (J.id "mixedLift_eb")) (cxt:args)
@@ -329,6 +341,13 @@ liftExprM opts expr = liftM expr where
   mixedIf test cons altr =
     CallExpr noPos (VarRef noPos (Id noPos "compilerIf"))
              [test,cons,altr]
+
+  unbehavior id = CallExpr noPos (VarRef noPos (Id noPos "compilerUnbehavior"))
+                    [id]
+
+  liftM e@(VarRef _ id) = case S.member (unId id) fxenv of
+    False -> return (unbehavior e)
+    True  -> return e 
   -- obj[prop]:
   --   mixedLift_eb(function(obj,prop) { return obj[prop]; },obj,prop);
   liftM (BracketRef p container key) =
@@ -378,7 +397,8 @@ liftExprM opts expr = liftM expr where
                    return $ mixedLift [lift,expr']
       else warn "unlifted prefix operator" e p >> return e
   -- Strange treatment for assignment
-  liftM e@(AssignExpr p op left right) =
+  liftM e@(AssignExpr p op left right) = do
+    putStrLn $ "assign " ++ (render $ pp left)
     if isPureAssignOperator op
       then do left <- liftM left
               right <- liftM right
@@ -402,12 +422,15 @@ liftExprM opts expr = liftM expr where
             return $ mixedLift [lift,e1',e2']
   -- funcId(arg ...):
   --   mixedCall_eb(f,arg ...)
-  liftM e@(CallExpr p f@(VarRef _ id) args) =
-    if isUnliftedFunction id
-      then do args' <- mapM liftM args
-              return $ CallExpr p f args'
-      else do (f':args') <- mapM liftM (f:args)
-              return $ mixedCall (f':args')
+  liftM e@(CallExpr p f@(VarRef _ id) args)
+    | isUnliftedFunction id = do
+        args' <- mapM liftM args
+        return $ CallExpr p f args'
+    | otherwise = do 
+        unless (S.member (unId id) fxenv) $
+          putStrLn $ "External " ++ unId id
+        (f':args') <- mapM liftM (f:args)
+        return $ mixedCall (f':args')
   -- obj.method(arg0, arg1, ...):
   --   mixedLift_eb(function(obj,arg0,arg1, ...)
   --                  { return obj.method(arg0, arg1, ...); },
@@ -430,7 +453,9 @@ liftExprM opts expr = liftM expr where
     return $ mixedCall (f':args')
   -- mutual-recursion to lift statements in expressions
   liftM (FuncExpr p ids stmt) = do
-    stmt' <- liftStmtM opts stmt
+    let fxenv' = S.unions [localVars [stmt],S.fromList $ map unId ids,fxenv]
+    -- putStrLn $ (render $ pp  stmt)
+    stmt' <- liftStmtM fxenv' opts stmt
     return $ FuncExpr p ids stmt'
   -- lifting a list of expressions
   liftM (ListExpr p exprs) = do
@@ -441,33 +466,41 @@ liftExprM opts expr = liftM expr where
   liftM e = do
     gmapM (mkM liftM) e
 
-liftStmtM:: CompilerOpts -> ParsedStatement -> IO ParsedStatement
-liftStmtM opts (ReturnStmt p (Just expr)) = do
-  expr' <- liftExprM opts expr
-  return (ReturnStmt p (Just expr'))
-liftStmtM opts (BlockStmt p stmts) = do
-  stmts' <- mapM (liftStmtM opts) stmts
-  return (BlockStmt p stmts')
-liftStmtM opts stmt@(ForStmt{}) = do
-  putStrLn "Ignoring forin"
-  return stmt
-liftStmtM opts stmt@(IfStmt{}) = return stmt
-liftStmtM opts stmt = do
-  -- Warn for impurities in this statement.
-  stmt <- warnImpureStmt stmt
-  -- Apply liftExprM to expressions in statements, without recursively
-  -- descending into expressions.  liftExprM is explicitly-recursive.
-  stmt <- gmapM (mkM (liftExprM opts)) stmt
-  -- recurse to immediate sub-statements
-  gmapM (mkM (liftStmtM opts)) stmt
+liftVarDecl fxenv opts decl = case decl of
+  VarDecl _ _ Nothing -> return decl
+  VarDecl p id (Just e) -> do
+    e' <- liftExprM fxenv opts e
+    return (VarDecl p id (Just e'))
 
+liftStmtM :: S.Set String
+          -> CompilerOpts -> ParsedStatement -> IO ParsedStatement
+liftStmtM fxenv opts stmt = case stmt of
+  ReturnStmt p (Just expr) -> do
+    expr' <- liftExprM fxenv opts expr
+    return (ReturnStmt p (Just expr'))
+  BlockStmt p stmts -> do
+    stmts' <- mapM (liftStmtM fxenv opts) stmts
+    return (BlockStmt p stmts')
+  VarDeclStmt p decls -> do
+    decls' <- mapM (liftVarDecl fxenv opts) decls
+    return (VarDeclStmt p decls')
+  otherwise -> do
+    -- Warn for impurities in this statement.
+    stmt <- warnImpureStmt stmt
+    -- Apply liftExprM to expressions in statements, without recursively
+    -- descending into expressions.  liftExprM is explicitly-recursive.
+    stmt <- gmapM (mkM (liftExprM fxenv opts)) stmt
+    -- recurse to immediate sub-statements
+    gmapM (mkM (liftStmtM fxenv opts)) stmt
+  
 --}}}
 
 
-compileStatement:: CompilerOpts -> ParsedStatement -> IO ParsedStatement
-compileStatement opts stmt = do
+compileStatement :: S.Set String 
+                 -> CompilerOpts -> ParsedStatement -> IO ParsedStatement
+compileStatement fxenv opts stmt = do
   stmt <- fixScopingM stmt
-  stmt <- liftStmtM opts stmt
+  stmt <- liftStmtM fxenv opts stmt
   -- stmt <- qualifyKeywordsM opts stmt
   return stmt
 
@@ -485,10 +518,11 @@ wrapScriptBlock pos loader statements =
   FunctionStmt pos loader [] (BlockStmt pos statements)
 
 -- Compiles a single <script lang="flapjax">...</script> script
-compile:: IORef Int -> CompilerOpts -> Flapjax -> IO Flapjax
-compile refUID opts (FlapjaxScript pos statements) = do
+compile :: S.Set String
+        -> IORef Int -> CompilerOpts -> Flapjax -> IO Flapjax
+compile fxenv refUID opts (FlapjaxScript pos statements) = do
   -- Compile each statement
-  statements <- mapM (compileStatement opts) statements
+  statements <- mapM (compileStatement fxenv opts) statements
   -- Generate the name of the loading function
   uid <- readIORef refUID
   thisLoader <- return $ Id pos (flapjaxLoader opts ++ show uid)
@@ -498,7 +532,7 @@ compile refUID opts (FlapjaxScript pos statements) = do
   return $ FlapjaxScript pos 
                          [wrapScriptBlock pos thisLoader statements,
                           pushLoader pos opts thisLoader]
-compile refUID opts other = 
+compile fxenv refUID opts other = 
   return other
 
 -- As an artifact of the parse tree, we have to change lang="flapjax" tags to
@@ -518,10 +552,25 @@ flapjaxTagsToJavascript other =
 compileScripts:: CompilerOpts -> Html -> IO Html
 compileScripts opts page = do
   refUID <- newIORef 0
-  page <- everywhereM (mkM (compile refUID opts)) page
+  -- top-level names defined in "text/flapjax" scripts
+  let fxenv = fxScriptGlobalEnv page
+  putStrLn $ show fxenv
+  page <- everywhereM (mkM (compile fxenv refUID opts)) page
   return $ everywhere (mkT flapjaxTagsToJavascript) page
 
 --}}}
+
+-- ----------------------------------------------------------------------------
+-- Names in Flapjax scripts
+
+fxScriptGlobalEnv :: Html -> S.Set String
+fxScriptGlobalEnv html = everything S.union (mkQ S.empty getEnv) html where
+  getEnv :: Flapjax -> S.Set String
+  getEnv (FlapjaxScript _ stmts) = localVars stmts
+  getEnv (Javascript _) = S.empty
+  getEnv (Inline _ _) = S.empty -- cannot declare global variables
+  getEnv (InlineAttribute _ _) = S.empty -- as above
+
 
 --------------------------------------------------------------------------------
 --{{{ Whole-page pass: add initialization
@@ -584,7 +633,7 @@ compileStandalone opts maybeLoader fx = do
             Nothing -> return opts
             (Just l) -> return $ opts { flapjaxLoader = l }
   refUID <- lift (newIORef 0)
-  fx <- lift (compile refUID opts fx)
+  fx <- lift (compile S.empty refUID opts fx)
   return fx
   
 --}}}

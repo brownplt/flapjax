@@ -2422,3 +2422,30 @@ var compilerIf = function(test,cons,alt) {
   }
 };
   
+
+var unBehavior = function(v) {
+  if (v instanceof Behavior) {
+    return unBehavior(v.valueNow());
+  }
+  else if (typeof v == 'function') {
+    return function() {
+      var r = v.apply(this,arguments);
+      return unBehavior(r);
+    }
+  }
+  else {
+    return v;
+  };
+};
+
+var compilerUnbehavior = function(v) {
+  if (typeof v == 'function') {
+    return function() {
+      var args = map(unBehavior,arguments);
+      return v.apply(this,args);
+    }
+  }
+  else {
+    return v;
+  }
+};
