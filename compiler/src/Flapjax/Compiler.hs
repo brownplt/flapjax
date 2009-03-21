@@ -426,7 +426,6 @@ liftExprM fxenv opts expr = liftM expr where
         args' <- mapM liftM args
         return $ CallExpr p f args'
     | otherwise = do 
-        unless (S.member (unId id) fxenv) $
         (f':args') <- mapM liftM (f:args)
         return $ mixedCall (f':args')
   -- obj.method(arg0, arg1, ...):
