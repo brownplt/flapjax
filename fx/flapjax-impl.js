@@ -942,8 +942,9 @@ var constant_b = function (val) {
 
 
 var lift_b = function (fn /* . behaves */) {
-  var args = slice(arguments, 1);
 
+  var args = slice(arguments, 1);
+  
   //dependencies
   var constituentsE =
     map(changes,
@@ -2405,7 +2406,13 @@ var compilerLift = function(f /* , args ... */) {
   // Assume some argument is a behavior.  This should always work.  We can
   // optimize later.
   var resultE = internal_e();
-  return mixedSwitch_b(lift_b.apply(this,arguments));
+  var r = lift_b.apply(this,arguments);
+  if (r.valueNow() instanceof EventStream) {
+    return r.valueNow();
+  }
+  else {
+    return mixedSwitch_b(r);
+  }
 };
 
 var compilerCall = function(f /* , args ... */) {
