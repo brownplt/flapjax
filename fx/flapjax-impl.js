@@ -154,6 +154,9 @@ var foldR = function (fn, init /* arrays */) {
 
 //Pulse: Stamp * Path * Obj
 var Pulse = function (stamp, value) {
+  // Timestamps are used by liftB (and ifE).  Since liftB may receive multiple
+  // update signals in the same run of the evaluator, it only propagates the 
+  // signal if it has a new stamp.
   this.stamp = stamp;
   this.value = value;
 };
@@ -212,14 +215,15 @@ var nextStamp = function () { return ++stamp; };
 //Send the pulse to each node 
 var propagatePulse = function (pulse, node) {
   var queue = new PQ(); //topological queue for current timestep
-queue.insert({k:node.rank,n:node,v:pulse});
-while(!(queue.isEmpty())) {
-	var qv = queue.pop();
-	qv.n.updater(function(nextPulse) {
-		for(var i=0; i<qv.n.sendsTo.length;i++)
-			queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
-	},new Pulse(qv.v.stamp,qv.v.value));
-}
+
+  queue.insert({k:node.rank,n:node,v:pulse});
+  while(!(queue.isEmpty())) {
+	  var qv = queue.pop();
+	  qv.n.updater(function(nextPulse) {
+		  for(var i=0; i<qv.n.sendsTo.length;i++)
+			  queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
+	  }, new Pulse(qv.v.stamp,qv.v.value));
+  }
 };
 
 //Event: Array Node b * ( (Pulse a -> Void) * Pulse b -> Void)

@@ -244,6 +244,15 @@ getWebServiceObject_e
      , asynchronous : optional(bool)
      }
   -> EventStream;
+getForeignWebServiceObject_e
+  :: { url : string
+     , request : request
+     , response : response
+     , fields : any
+     , body : optional(string)
+     , asynchronous : optional(bool)
+     }
+  -> EventStream;
 evalForeignScriptVal_e :: EventStreamOf({ url: string, globalArg: string })
                        -> EventStream;
 
