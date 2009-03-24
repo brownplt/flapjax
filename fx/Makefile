@@ -8,7 +8,7 @@ clean:
 	rm -f flapjax.js
 
 flapjax.debug.js: flapjax-impl.js flapjax.jsi $(JSCC) $(CONTRACTLIB)
-	$(JSCC) --interface flapjax.jsi flapjax-impl.js > flapjax.debug.js
+	$(JSCC) --namespace flapjax --interface flapjax.jsi flapjax-impl.js > flapjax.debug.js
 
 flapjax.js: flapjax-impl.js flapjax.jsi $(JSCC) $(CONTRACTLIB)
-	$(JSCC) --release --interface flapjax.jsi flapjax-impl.js > flapjax.js
+	$(JSCC) --release --namespace flapjax --interface flapjax.jsi flapjax-impl.js > flapjax.js
