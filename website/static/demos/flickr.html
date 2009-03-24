@@ -1,0 +1,61 @@
+<html>
+<head>
+<link rel="stylesheet" href="/demo.css"/>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript" src="/fx/fxws.js"></script>
+
+<title>Flapjax Demo: Flickr Search</title>
+<script type="text/javascript">
+
+// flickrSearchRequest :: String -> Request
+function flickrSearchRequest(text) {
+  return {
+    url: "http://api.flickr.com/services/rest/",
+    fields: { "method": "flickr.photos.search",
+              "format": "json",
+              "nojsoncallback": "1",
+              "api_key": "543eddef782d468ca90d07ccc5fbdfe8",
+              "text": text },
+    request: "get",
+    response: "json" };};
+
+function photoThumbnailUrl(photo) {
+  return "http://farm" + photo.farm + ".static.flickr.com/" + photo.server +
+    "/" + photo.id + "_" + photo.secret + "_t.jpg"; }
+
+// flickrSearchResponse :: Respose -> Listof(Url)
+function flickrResponseToUrls(response) {
+  return map(photoThumbnailUrl,response.photos.photo); }
+
+// makeImg :: Url -> Element
+function makeImg(url) {
+  return IMG_({ src: url }); }
+
+function loader() {
+  initFlapjaxForeignWSO('/fx');
+
+  var requestE = extractValueE("search").mapE(flickrSearchRequest);
+  var responseE = getForeignWebServiceObjectE(requestE);
+ 
+  var thumbsE = responseE.mapE(function(response) {
+    return DIV_(map(makeImg,flickrResponseToUrls(response)))});
+
+  insertDomE(thumbsE, "thumbnails");
+
+}
+
+</script>
+</head>
+
+<body onload="loader();">
+
+<div style="text-align: center">
+
+search: <input type="text" id="search"/><br/><br/>
+
+<div id="thumbnails">Search for something</div>
+  
+</div>
+</body>
+</html>
+
