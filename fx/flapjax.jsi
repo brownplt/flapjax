@@ -1,6 +1,6 @@
 // Behavior contract is either a higher-order behavior or a flat (constant) 
 // value
-// remove cond_e it is stupid
+// remove condE it is stupid
 // DOM contract list
 // dictionary contract (on $O)
 
@@ -62,7 +62,7 @@ var EventStreamOf = function(name) { return function(eventValueContract) {
     },
     server: function(s,loc) { return function(val) {
       if (val instanceof impl.EventStream) {
-        return val.lift_e(function(e) {
+        return val.liftE(function(e) {
            return eventValueContract.server(s,loc)(e);
         });
       }
@@ -72,7 +72,7 @@ var EventStreamOf = function(name) { return function(eventValueContract) {
     }; },
     client: function(s,loc) { return function(val) {
       if (val instanceof impl.EventStream) {
-        return val.lift_e(function(e) {
+        return val.liftE(function(e) {
            return eventValueContract.client(s,loc)(e);
         });
       }
@@ -92,7 +92,7 @@ var BehaviorOf = function(name) { return function(valueContract) {
     },
     server: function(s,loc) { return function(val) {
       if (val instanceof impl.Behavior) {
-        return val.lift_b(function(e) {
+        return val.liftB(function(e) {
            return valueContract.server(s,loc)(e);
         });
       }
@@ -102,7 +102,7 @@ var BehaviorOf = function(name) { return function(valueContract) {
     }; },
     client: function(s,loc) { return function(val) {
       if (val instanceof impl.Behavior) {
-        return val.lift_b(function(e) {
+        return val.liftB(function(e) {
            return valueContract.client(s,loc)(e);
         });
       }
@@ -172,70 +172,70 @@ response = :function(x) {
 
 instance Behavior {
   changes : -> EventStream,
-  delay_b : or(positiveInt,BehaviorOf(positiveInt)) -> Behavior,
-  blind_b : or(positiveInt,BehaviorOf(positiveInt)) -> Behavior,
-  calm_b : or(positiveInt,BehaviorOf(positiveInt)) -> Behavior,
+  delayB : or(positiveInt,BehaviorOf(positiveInt)) -> Behavior,
+  blindB : or(positiveInt,BehaviorOf(positiveInt)) -> Behavior,
+  calmB : or(positiveInt,BehaviorOf(positiveInt)) -> Behavior,
   valueNow : -> any,
-  switch_b : -> Behavior, // TODO: underspecified
-  not_b : -> Behavior,
+  switchB : -> Behavior, // TODO: underspecified
+  notB : -> Behavior,
   // the rest arguments may be 
-  lift_b : or(BehaviorOf(anyFunction),anyFunction) anyBehavior ... -> Behavior, 
-  if_b : Behavior Behavior -> Behavior
+  liftB : or(BehaviorOf(anyFunction),anyFunction) anyBehavior ... -> Behavior, 
+  ifB : Behavior Behavior -> Behavior
 };
 
 instance EventStream {
-  lift_e : anyFunction -> EventStream,
+  liftE : anyFunction -> EventStream,
   // TODO: a better contract should restrict this
-  switch_e : -> EventStream,
-  filter_e : anyFunction -> EventStream,
-  if_e : EventStream EventStream -> EventStream,
-  constant_e : any -> EventStream,
-  collect_e : any anyFunction -> EventStream,
-  not_e : -> EventStream,
-  filterRepeats_e : -> EventStream,
-  snapshot_e : Behavior -> EventStream,
-  once_e : -> EventStream,
-  skipFirst_e : EventStream -> EventStream,
-  delay_e :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
-  blind_e :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
-  calm_e :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
+  switchE : -> EventStream,
+  filterE : anyFunction -> EventStream,
+  ifE : EventStream EventStream -> EventStream,
+  constantE : any -> EventStream,
+  collectE : any anyFunction -> EventStream,
+  notE : -> EventStream,
+  filterRepeatsE : -> EventStream,
+  snapshotE : Behavior -> EventStream,
+  onceE : -> EventStream,
+  skipFirstE : EventStream -> EventStream,
+  delayE :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
+  blindE :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
+  calmE :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
   startsWith : any -> Behavior
 };
 
 notEventStream = :function(x) { return !(x instanceof impl.EventStream); };
 
-constant_b :: any -> Behavior;
-delay_b :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
-calm_b :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
-blind_b :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
+constantB :: any -> Behavior;
+delayB :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
+calmB :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
+blindB :: Behavior or(BehaviorOf(positiveInt),positiveInt) -> Behavior;
 valueNow :: Behavior -> any;
-switch_b :: BehaviorOf(Behavior) -> Behavior;
-and_b :: Behavior ... -> Behavior;
-or_b :: Behavior ... -> Behavior;
-not_b :: Behavior -> Behavior;
-lift_b :: or(BehaviorOf(anyFunction),anyFunction) Behavior ... -> Behavior;
-cond_b :: [Behavior,Behavior] ... -> Behavior;
-if_b :: Behavior Behavior Behavior -> Behavior;
-timer_b :: or(positiveInt,BehaviorOf(positiveInt)) -> Behavior;
+switchB :: BehaviorOf(Behavior) -> Behavior;
+andB :: Behavior ... -> Behavior;
+orB :: Behavior ... -> Behavior;
+notB :: Behavior -> Behavior;
+liftB :: or(BehaviorOf(anyFunction),anyFunction) Behavior ... -> Behavior;
+condB :: [Behavior,Behavior] ... -> Behavior;
+ifB :: Behavior Behavior Behavior -> Behavior;
+timerB :: or(positiveInt,BehaviorOf(positiveInt)) -> Behavior;
 // just about anything can be printed to the DOM
 insertDomB :: notEventStream htmlOrId location -> any;
-mouseTop_b :: html -> Behavior;
-mouseLeft_b :: html -> Behavior;
-mouse_b :: html -> Behavior;
-extractValue_b :: or(htmlOrId,inputName) -> Behavior;
-extractValue_e :: or(htmlOrId,inputName) -> EventStream;
+mouseTopB :: html -> Behavior;
+mouseLeftB :: html -> Behavior;
+mouseB :: html -> Behavior;
+extractValueB :: or(htmlOrId,inputName) -> Behavior;
+extractValueE :: or(htmlOrId,inputName) -> EventStream;
 // TODO: underspecified, behavior carries htmlOrId
-extractEvent_e :: or(BehaviorOf(htmlOrId),htmlOrId) string -> EventStream;
-clicks_e :: htmlOrId -> EventStream;
-timer_e :: Behavior -> EventStream;
-extractValueOnEvent_e :: EventStream htmlOrId -> EventStream;
-extractId_b :: string -> Behavior;
+extractEventE :: or(BehaviorOf(htmlOrId),htmlOrId) string -> EventStream;
+clicksE :: htmlOrId -> EventStream;
+timerE :: Behavior -> EventStream;
+extractValueOnEventE :: EventStream htmlOrId -> EventStream;
+extractIdB :: string -> Behavior;
 insertDomE :: EventStream htmlOrId location -> any;
 insertValueE :: EventStream htmlOrId string ... -> any;
 insertValueB :: Behavior htmlOrId string ... -> any;
 tagRec :: [ string, ... ] (EventStream ... -> Behavior)
        -> Behavior;
-getWebServiceObject_e
+getWebServiceObjectE
   :: { url : string
      , request : request
      , response : response
@@ -244,7 +244,7 @@ getWebServiceObject_e
      , asynchronous : optional(bool)
      }
   -> EventStream;
-getForeignWebServiceObject_e
+getForeignWebServiceObjectE
   :: { url : string
      , request : request
      , response : response
@@ -253,31 +253,31 @@ getForeignWebServiceObject_e
      , asynchronous : optional(bool)
      }
   -> EventStream;
-evalForeignScriptVal_e :: EventStreamOf({ url: string, globalArg: string })
+evalForeignScriptValE :: EventStreamOf({ url: string, globalArg: string })
                        -> EventStream;
 
 
-one_e :: any -> EventStream;
-zero_e :: -> EventStream;
-lift_e ::  anyFunction EventStream -> EventStream;
-merge_e :: EventStream ... -> EventStream;
-switch_e :: EventStreamOf(EventStream) -> EventStream;
-filter_e :: EventStream anyFunction -> EventStream;
-if_e :: EventStream EventStream -> EventStream;
-constant_e :: EventStream any -> EventStream;
-collect_e :: EventStream any anyFunction -> EventStream;
-and_e :: EventStream ... -> EventStream;
-or_e :: EventStream ... -> EventStream;
-not_e :: EventStream -> EventStream;
-filterRepeats_e :: EventStream -> EventStream;
-receiver_e :: -> EventStream;
+oneE :: any -> EventStream;
+zeroE :: -> EventStream;
+liftE ::  anyFunction EventStream -> EventStream;
+mergeE :: EventStream ... -> EventStream;
+switchE :: EventStreamOf(EventStream) -> EventStream;
+filterE :: EventStream anyFunction -> EventStream;
+ifE :: EventStream EventStream -> EventStream;
+constantE :: EventStream any -> EventStream;
+collectE :: EventStream any anyFunction -> EventStream;
+andE :: EventStream ... -> EventStream;
+orE :: EventStream ... -> EventStream;
+notE :: EventStream -> EventStream;
+filterRepeatsE :: EventStream -> EventStream;
+receiverE :: -> EventStream;
 sendEvent :: any EventStream -> any;
-snapshot_e :: EventStream Behavior -> EventStream;
-once_e :: EventStream -> EventStream;
-skipFirst_e :: EventStream -> EventStream;
-delay_e :: Behavior -> EventStream;
-blind_e :: Behavior -> EventStream;
-calm_e :: Behavior -> EventStream;
+snapshotE :: EventStream Behavior -> EventStream;
+onceE :: EventStream -> EventStream;
+skipFirstE :: EventStream -> EventStream;
+delayE :: Behavior -> EventStream;
+blindE :: Behavior -> EventStream;
+calmE :: Behavior -> EventStream;
 startsWith :: EventStream any -> Behavior;
 changes :: Behavior -> EventStream;
 
@@ -295,87 +295,87 @@ map :: anyFunction anyArray ... -> anyArray;
 
 // Element constructors
 
-A :: elementMaker;
-B :: elementMaker;
-BLOCKQUOTE :: elementMaker;
-BR :: elementMaker;
-BUTTON :: elementMaker;
-CANVAS :: elementMaker;
-DIV :: elementMaker;
-FIELDSET :: elementMaker;
-FORM :: elementMaker;
-FONT :: elementMaker;
-H1 :: elementMaker;
-H2 :: elementMaker;
-H3 :: elementMaker;
-H4 :: elementMaker;
-HR :: elementMaker;
-IMG :: elementMaker;
-IFRAME :: elementMaker;
-INPUT :: elementMaker;
-LABEL :: elementMaker;
-LEGEND :: elementMaker;
-LI :: elementMaker;
-OL :: elementMaker;
-OPTGROUP :: elementMaker;
-OPTION :: elementMaker;
-P :: elementMaker;
-PRE :: elementMaker;
-SELECT :: elementMaker;
-SPAN :: elementMaker;
-STRONG :: elementMaker;
-TABLE :: elementMaker;
-TBODY :: elementMaker;
-TD :: elementMaker;
-TEXTAREA :: elementMaker;
-TFOOT :: elementMaker;
-TH :: elementMaker;
-THEAD :: elementMaker;
-TR :: elementMaker;
-TT :: elementMaker;
-UL ::elementMaker;
-TEXT :: elementMaker;
+A :: elementMakerB;
+B :: elementMakerB;
+BLOCKQUOTE :: elementMakerB;
+BR :: elementMakerB;
+BUTTON :: elementMakerB;
+CANVAS :: elementMakerB;
+DIV :: elementMakerB;
+FIELDSET :: elementMakerB;
+FORM :: elementMakerB;
+FONT :: elementMakerB;
+H1 :: elementMakerB;
+H2 :: elementMakerB;
+H3 :: elementMakerB;
+H4 :: elementMakerB;
+HR :: elementMakerB;
+IMG :: elementMakerB;
+IFRAME :: elementMakerB;
+INPUT :: elementMakerB;
+LABEL :: elementMakerB;
+LEGEND :: elementMakerB;
+LI :: elementMakerB;
+OL :: elementMakerB;
+OPTGROUP :: elementMakerB;
+OPTION :: elementMakerB;
+P :: elementMakerB;
+PRE :: elementMakerB;
+SELECT :: elementMakerB;
+SPAN :: elementMakerB;
+STRONG :: elementMakerB;
+TABLE :: elementMakerB;
+TBODY :: elementMakerB;
+TD :: elementMakerB;
+TEXTAREA :: elementMakerB;
+TFOOT :: elementMakerB;
+TH :: elementMakerB;
+THEAD :: elementMakerB;
+TR :: elementMakerB;
+TT :: elementMakerB;
+UL ::elementMakerB;
+TEXT :: elementMakerB;
 
-AB :: elementMakerB;
-BB :: elementMakerB;
-BLOCKQUOTEB :: elementMakerB;
-BRB :: elementMakerB;
-BUTTONB :: elementMakerB;
-CANVASB :: elementMakerB;
-DIVB :: elementMakerB;
-FIELDSETB :: elementMakerB;
-FORMB :: elementMakerB;
-FONTB :: elementMakerB;
-H1B :: elementMakerB;
-H2B :: elementMakerB;
-H3B :: elementMakerB;
-H4B :: elementMakerB;
-HRB :: elementMakerB;
-IMGB :: elementMakerB;
-IFRAMEB :: elementMakerB;
-INPUTB :: elementMakerB;
-LABELB :: elementMakerB;
-LEGENDB :: elementMakerB;
-LIB :: elementMakerB;
-OLB :: elementMakerB;
-OPTGROUPB :: elementMakerB;
-OPTIONB :: elementMakerB;
-PB :: elementMakerB;
-PREB :: elementMakerB;
-SELECTB :: elementMakerB;
-SPANB :: elementMakerB;
-STRONGB :: elementMakerB;
-TABLEB :: elementMakerB;
-TBODYB :: elementMakerB;
-TDB :: elementMakerB;
-TEXTAREAB :: elementMakerB;
-TFOOTB :: elementMakerB;
-THB :: elementMakerB;
-THEADB :: elementMakerB;
-TRB :: elementMakerB;
-TTB :: elementMakerB;
-ULB ::elementMakerB;
-TEXTB :: elementMakerB;
+A_ :: elementMaker;
+B_ :: elementMaker;
+BLOCKQUOTE_ :: elementMaker;
+BR_ :: elementMaker;
+BUTTON_ :: elementMaker;
+CANVAS_ :: elementMaker;
+DIV_ :: elementMaker;
+FIELDSET_ :: elementMaker;
+FORM_ :: elementMaker;
+FONT_ :: elementMaker;
+H1_ :: elementMaker;
+H2_ :: elementMaker;
+H3_ :: elementMaker;
+H4_ :: elementMaker;
+HR_ :: elementMaker;
+IMG_ :: elementMaker;
+IFRAME_ :: elementMaker;
+INPUT_ :: elementMaker;
+LABEL_ :: elementMaker;
+LEGEND_ :: elementMaker;
+LI_ :: elementMaker;
+OL_ :: elementMaker;
+OPTGROUP_ :: elementMaker;
+OPTION_ :: elementMaker;
+P_ :: elementMaker;
+PRE_ :: elementMaker;
+SELECT_ :: elementMaker;
+SPAN_ :: elementMaker;
+STRONG_ :: elementMaker;
+TABLE_ :: elementMaker;
+TBODY_ :: elementMaker;
+TD_ :: elementMaker;
+TEXTAREA_ :: elementMaker;
+TFOOT_ :: elementMaker;
+TH_ :: elementMaker;
+THEAD_ :: elementMaker;
+TR_ :: elementMaker;
+TT_ :: elementMaker;
+UL_ ::elementMaker;
+TEXT_ :: elementMaker;
 
 fold :: any;
 map :: any;
