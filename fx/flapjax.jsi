@@ -199,7 +199,7 @@ instance EventStream {
   delay_e :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
   blind_e :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
   calm_e :  or(positiveInt,BehaviorOf(positiveInt)) -> EventStream,
-  hold : any -> Behavior
+  startsWith : any -> Behavior
 };
 
 notEventStream = :function(x) { return !(x instanceof impl.EventStream); };
@@ -278,7 +278,7 @@ skipFirst_e :: EventStream -> EventStream;
 delay_e :: Behavior -> EventStream;
 blind_e :: Behavior -> EventStream;
 calm_e :: Behavior -> EventStream;
-hold :: EventStream any -> Behavior;
+startsWith :: EventStream any -> Behavior;
 changes :: Behavior -> EventStream;
 
 // also $$

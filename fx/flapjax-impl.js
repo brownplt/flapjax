@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, the Flapjax Team All rights reserved.
+ * Copyright (c) 2006-2009, the Flapjax Team All rights reserved.
  *  
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -800,16 +800,16 @@ var blind_e = function(sourceE,interval) {
 };
 
 
-EventStream.prototype.hold = function(init) {
+EventStream.prototype.startsWith = function(init) {
   return new Behavior(this,init);
 };
 
 
-var hold = function(e,init) {
+var startsWith = function(e,init) {
   if (!(e instanceof EventStream)) {
-    throw 'hold: expected EventStream; received ' + e;
+    throw 'startsWith: expected EventStream; received ' + e;
   }
-  return e.hold(init); 
+  return e.startsWith(init); 
 };
 
 
@@ -855,7 +855,7 @@ Behavior.prototype.switch_b = function() {
     sendEvent(makerE, init);
   }
   
-  return hold(
+  return startsWith(
     receiverE,
     init instanceof Behavior? valueNow(init) : init);
 };
@@ -866,20 +866,20 @@ var switch_b = function (b) { return b.switch_b(); };
 
 //TODO test, signature
 var timer_b = function(interval) {
-  return hold(timer_e(interval), (new Date()).getTime());
+  return startsWith(timer_e(interval), (new Date()).getTime());
 };
 
 
 //TODO test, signature
 var delayStatic_b = function (triggerB, time, init) {
-  return hold(delayStatic_e(changes(triggerB), time), init);
+  return startsWith(delayStatic_e(changes(triggerB), time), init);
 };
 
 //TODO test, signature
 Behavior.prototype.delay_b = function (time, init) {
   var triggerB = this;
   if (time instanceof Behavior) {
-    return hold(
+    return startsWith(
       delay_e(
         changes(triggerB), 
         time),
@@ -1021,7 +1021,7 @@ var not_b = function(b) { return b.not_b(); };
 
 
 Behavior.prototype.blind_b = function (intervalB) {
-  return changes(this).blind_e(intervalB).hold(this.valueNow());
+  return changes(this).blind_e(intervalB).startsWith(this.valueNow());
 };
 
 
@@ -1031,7 +1031,7 @@ var blind_b = function(srcB,intervalB) {
 
 
 Behavior.prototype.calm_b = function (intervalB) {
-  return this.changes().calm_e(intervalB).hold(this.valueNow());
+  return this.changes().calm_e(intervalB).startsWith(this.valueNow());
 };
 
 
@@ -1240,7 +1240,7 @@ var TagB = function(tagName,args) {
       sendEvent(ctx.resE, ctx.currentTag);
 	});
 	this.enstyle(this.currentTag,this.attribs);
-  this.resB = hold(this.resE, this.currentTag);
+  this.resB = startsWith(this.resE, this.currentTag);
 };
 
 TagB.prototype = {
@@ -1504,7 +1504,7 @@ TEXTB = function (strB) {
   //      if (!(strB instanceof Behavior || typeof(strB) == 'string')) { throw 'TEXTB: expected Behavior as second arg'; } //SAFETY
   if (!(strB instanceof Behavior)) { strB = constant_b(strB); }
   
-  return hold(
+  return startsWith(
     changes(strB).lift_e(
       function (txt) { return document.createTextNode(txt); }),
     document.createTextNode(valueNow(strB)));
@@ -1658,7 +1658,7 @@ extractValueStatic_b = function (domObj, triggerE) {
     //TODO: checkbox.value instead of status?
   case 'checkbox': 
     
-    return hold(
+    return startsWith(
       filterRepeats_e(
         extractDomFieldOnEvent_e(
           triggerE ? triggerE : 
@@ -1679,7 +1679,7 @@ extractValueStatic_b = function (domObj, triggerE) {
 		    : undefined;
       };
       
-      return hold(
+      return startsWith(
         filterRepeats_e(
             (triggerE ? triggerE :
             extractEvents_e(
@@ -1701,7 +1701,7 @@ extractValueStatic_b = function (domObj, triggerE) {
         };
         
         
-        return hold(
+        return startsWith(
             (triggerE ? triggerE : 
             extractEvents_e(
               objD,
@@ -1713,7 +1713,7 @@ extractValueStatic_b = function (domObj, triggerE) {
         case 'hidden':
         case 'password':
           
-          return hold(
+          return startsWith(
             filterRepeats_e(
               extractDomFieldOnEvent_e(
                 triggerE ? triggerE :
@@ -1726,7 +1726,7 @@ extractValueStatic_b = function (domObj, triggerE) {
           
           case 'button': //same as above, but don't filter repeats
             
-            return hold(
+            return startsWith(
               extractDomFieldOnEvent_e(
                 triggerE ? triggerE :
                 extractEvents_e(
@@ -1777,7 +1777,7 @@ extractValueStatic_b = function (domObj, triggerE) {
                   'click', 'keyup', 'change'); },
                     radiosAD));
               
-              return hold(
+              return startsWith(
                 filterRepeats_e(
                     actualTriggerE.lift_e(getter),getter()),
                 getter());
@@ -1998,7 +1998,7 @@ insertDomB = function (initTriggerB, optID, optPosition) {
     initD, 
     optPosition);
   
-  var resB = hold(
+  var resB = startsWith(
     insertDomE(
       changes(triggerB),
       initD), 
@@ -2010,7 +2010,7 @@ insertDomB = function (initTriggerB, optID, optPosition) {
 
 extractId_b = function (id, start)
 {
-  return hold(
+  return startsWith(
     createNode( start instanceof Behavior? [changes(start)] :
       [],
       function (s, p) {
@@ -2037,7 +2037,7 @@ var mouse_e = function(elem) {
 };
 
 var mouse_b = function(elem) {
-  return mouse_e(elem).hold({ left: 0, top: 0 });
+  return mouse_e(elem).startsWith({ left: 0, top: 0 });
 }
 
 
@@ -2397,7 +2397,7 @@ var mixedSwitch_b = function(behaviourCreatorsB) {
     sendEvent(makerE, init);
   }
   
-  return hold(
+  return startsWith(
     receiverE,
     init instanceof Behavior? valueNow(init) : init);
 };
@@ -2488,7 +2488,7 @@ var compilerUnbehavior = function(v) {
         sendEvent(resultE,r);
       });
 
-      return resultE.hold(v.apply(this,map1(unBehavior(recompute),
+      return resultE.startsWith(v.apply(this,map1(unBehavior(recompute),
                                               arguments)));
     }
   }
