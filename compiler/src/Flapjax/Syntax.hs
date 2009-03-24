@@ -3,7 +3,6 @@ module Flapjax.Syntax where
 import WebBits.JavaScript
 import Text.ParserCombinators.Parsec(SourcePos)
 import Data.Generics(Data,Typeable)
-import Misc
 import qualified Text.PrettyPrint.HughesPJ as Pp
 
 data Flapjax

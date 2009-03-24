@@ -1,4 +1,12 @@
-module Flapjax.Compiler where
+module Flapjax.Compiler 
+  ( compilePage
+  , CompilerMessage
+  , defaults
+  , CompilerOpts (..)
+  ) where
+
+import Control.Monad.State.Strict
+import Control.Monad.Writer
 
 import Data.List(partition)
 import System.Random(randomRIO)
@@ -6,8 +14,7 @@ import Flapjax.Syntax
 import WebBits.Common -- pretty-printable
 import WebBits.JavaScript.Syntax
 import Flapjax.HtmlEmbedding() -- just instances
-import Misc
-import Text.ParserCombinators.Parsec(SourcePos)
+import Text.ParserCombinators.Parsec.Pos (initialPos,SourcePos)
 import Text.PrettyPrint.HughesPJ(render)
 import Control.Monad
 import Control.Monad.Trans
@@ -15,22 +22,16 @@ import Data.Generics hiding (GT)
 import Data.IORef -- awful!
 import qualified WebBits.Html.Syntax as Html
 import qualified Flapjax.Builder as J
-import Computation hiding (warn)
 import WebBits.JavaScript.Env (localVars)
 import qualified Data.Set as S
 import BrownPLT.Flapjax.Interface
+
+noPos = initialPos ""
 
 {-{{{ Structure of the compiler:
 
   Full-page compilation passes:
   
-   + avoidNameClashes:: CompilerOpts -> Html -> IO CompilerOpts
-     
-     This phase collects all Javascript identifiers on the page and ensures that
-     the names used for compiler-introduced variables are unique.  Due to
-     Javascript's reflection capabilities, it is possible for a page to violate
-     these, but any sane programmer should not have such problems.
-     
    + compileInline:: CompilerOpts -> Html -> IO Html
      
      This phase transforms all inline expressions into vanilla Flapjax scripts.
@@ -68,7 +69,14 @@ type ParsedStatement = Statement SourcePos
 type Html = Html.Html SourcePos Flapjax
 type Attribute = Html.Attribute SourcePos Flapjax
 
-type Compiler a = CompT CompilerWarning IO a
+type Compiler = Writer [CompilerMessage]
+
+data CompilerMessage
+  = Warning String String SourcePos
+
+instance Show CompilerMessage where
+  show (Warning desc expr pos) =
+    show pos ++ ": " ++ desc ++ "\nOffending expression:\n" ++ expr
 
 data CompilerOpts = CompilerOpts {
   flapjaxObject:: String,
@@ -83,26 +91,20 @@ data CompilerOpts = CompilerOpts {
   flapjaxFunctions :: [String]
 }
 
-data CompilerWarning
-  = ImpureStatement ParsedStatement String
-  | ImpureExpression ParsedExpression String
-
 defaults = CompilerOpts
   {  flapjaxObject = "flapjax"
-  , flapjaxLoader = "loader"
+  , flapjaxLoader = "fxcode"
   , flapjaxIdBase = "flapjaxsuid"
   , flapjaxAttributeIdBase = "flapjaxattribsuid"
-  , flapjaxPath = "flapjax.js"
+  , flapjaxPath = error "flapjax.js not set"
   , flapjaxMethods = error "flapjaxMethods not initialized"
   , flapjaxFunctions = error "flapjaxFunctions not initialized"
   }
 
-warn:: PrettyPrintable a => String -> a -> SourcePos -> IO () 
-warn desc ast pos = do
-  putStr $ "Warning: " ++ desc ++ " at " ++ (show pos) ++ "\n"
-  putStr $ "Offending expression:\n"
-  putStr $ render (pp ast)
-  putStr $ "\n"
+warn :: PrettyPrintable a 
+     => String -> a -> SourcePos 
+     -> Compiler () 
+warn desc ast pos = tell [Warning desc (render $ pp ast) pos]
 
 isUnliftedFunction :: CompilerOpts -> (Id SourcePos) -> Bool
 isUnliftedFunction opts id = 
@@ -112,101 +114,42 @@ isUnliftedMethod:: CompilerOpts -> (Id SourcePos) -> Bool
 isUnliftedMethod opts id =
   (unId id) `elem` (flapjaxMethods opts)
 
-
---------------------------------------------------------------------------------
---{{{ Whole-page pass: avoid name clashes
-
--- Merge two lists of lists that are sorted, by the lengths of the lists first,
--- and then the natural ordering of the elements.
---   E.g.: merge ["aaa"] ["zz"] => ["zz","aaa"]
---         merge ["zz","aaa"] ["a"] => ["a","zz","aaa"]
-merge:: (Ord a) => [[a]] -> [[a]] -> [[a]]
-merge [] ys = ys
-merge xs [] = xs
-merge (x:xs) (y:ys) =
-  let cmp a b =
-       case compare (length a) (length b) of
-         LT -> LT
-         GT -> GT
-         EQ -> compare a b
-    in case cmp x y of
-         LT -> x:(merge xs (y:ys))
-         GT -> y:(merge (x:xs) ys)
-         EQ -> x:(merge xs ys)
-
-idName:: Id SourcePos -> [String]
-idName (Id p s) = [s]
-
-allNames:: Data a => a -> [String]
-allNames = everything merge ([] `mkQ` idName)
-
-idAttribute:: Attribute -> [String]
-idAttribute (Html.Attribute "id" id p) = [id]
-idAttribute _                          = []
-
-allIds:: Data a => a -> [String]
-allIds = everything merge ([] `mkQ` idAttribute)
-
-generateUniqueName:: String -> [String] -> IO String
-generateUniqueName base used =
-  if base `elem` used
-    then do randomChar <- randomRIO ('a','z')
-            generateUniqueName (base ++ [randomChar]) used
-    else return base
-
-avoidNameClashes:: CompilerOpts -> Html -> Compiler CompilerOpts
-avoidNameClashes opts page =
-  let names = allNames page
-      ids   = allIds page
-    in do obj <- lift $ generateUniqueName "flapjax" names
-          loader <- lift $ generateUniqueName "loader" names
-          idBase <- lift $ generateUniqueName "flapjaxId" ids
-          attributeIdBase <- lift $ generateUniqueName "flapjaxId" (idBase:ids)
-          return $ opts { flapjaxObject = obj, flapjaxLoader = loader, 
-                          flapjaxIdBase = idBase, 
-                          flapjaxAttributeIdBase = attributeIdBase }
-
---}}}
-
---------------------------------------------------------------------------------
---{{{ Whole-page pass: Compile Inline Flapjax-scripts
+-- -----------------------------------------------------------------------------
+-- Whole-page pass: Compile Inline Flapjax-scripts
 --
--- {! expression !} gets compiled to:
+-- {! expression !} is transformed to:
 --
 -- <script type="text/flapjax">
---         insertDomB(expression,uid,'over');
+--         insertDomB(expression,uidN,'over');
 -- </script><span id=uid></span>
 
 mixedInsertDom opts = J.call (J.ref (J.id "insertDomB"))
 
-inlineToScript:: CompilerOpts -> IORef Int -> Html -> Compiler Html
-inlineToScript opts refId (Html.InlineScript (Inline p e) _ init) = do
-  id <- lift (readIORef refId)
-  let uid = (flapjaxIdBase opts) ++ show id
-      e' = ExprStmt p $ mixedInsertDom opts 
-                          [e,StringLit p uid,StringLit p "over"]
-    in do lift $ writeIORef refId (id+1)
-          return $ Html.HtmlSeq
-                     [Html.Element "script" 
-                                   [Html.Attribute "lang" "flapjax" p]
-                                   [Html.Script (FlapjaxScript p [e']) p] p,
-                      Html.Element "span"
-                                   [Html.Attribute "id" uid p]
-                                   [Html.Text init p] p]
-inlineToScript _ _ other =
+inlineToScript:: CompilerOpts -> Html -> State Int Html
+inlineToScript opts (Html.InlineScript (Inline p e) _ init) = do
+  id <- get
+  let uid = flapjaxIdBase opts ++ show id
+  let e' = ExprStmt p $ (J.call (J.ref (J.id "insertDomB")))
+                        [e,StringLit p uid,StringLit p "over"]
+  put (id+1)
+  return $ Html.HtmlSeq
+             [Html.Element "script" 
+                           [Html.Attribute "lang" "flapjax" p]
+                           [Html.Script (FlapjaxScript p [e']) p] p,
+              Html.Element "span"
+                           [Html.Attribute "id" uid p]
+                           [Html.Text init p] p]
+inlineToScript _ other =
   return other
 
-compileInline:: CompilerOpts -> Html -> Compiler Html
-compileInline opts page = do
-  refId <- lift (newIORef 0) -- We sequentially number each span.
-  everywhereM (mkM (inlineToScript opts refId)) page  
+compileInline :: CompilerOpts -> Html -> Html
+compileInline opts page = 
+  evalState (everywhereM (mkM $ inlineToScript opts) page) 0
 
---}}}
-
---------------------------------------------------------------------------------
---{{{ Whole-page pass: Compile attribute-inline Flapjax-expressions
+-- -----------------------------------------------------------------------------
+-- Whole-page pass: Compile attribute-inline Flapjax-expressions
 --
--- <tag attrib={! expr !} ... > ... </tag> gets compiled to:
+-- <tag attrib={! expr !} ... > ... </tag> is transformed to:
 --
 --   <span>
 --     <script type="text/flapjax">
@@ -219,51 +162,49 @@ compileInline opts page = do
 -- id.
 
 -- Return the Flapjax-free attribute and Flapjax code for the expression
-compileAttributeExpr:: String -> CompilerOpts -> Attribute -> 
-                       IO (Attribute,ParsedStatement)
+compileAttributeExpr :: String -> CompilerOpts -> Attribute
+                     -> (Attribute,ParsedStatement)
 compileAttributeExpr elemId opts 
                      (Html.AttributeExpr p id (InlineAttribute p' e) i) =
-  let mixedInsert = J.call (J.ref (J.id "mixedInsertValue_eb"))
-    in return (Html.Attribute id i p,
-               ExprStmt p (mixedInsert [e,StringLit p elemId,StringLit p id]))
+  (Html.Attribute id i p,
+   ExprStmt p (mixedInsert [e,StringLit p elemId,StringLit p id])) where
+     mixedInsert = J.call (J.ref (J.id "mixedInsertValue_eb"))
 
 containsInlineExprs [] = False
 containsInlineExprs ((Html.AttributeExpr _ _ _ _):rest) = True
 containsInlineExprs (_:rest) = containsInlineExprs rest
 
 -- Return the value of the id attribute, inserting one if necessary.
-insertIdAttribute:: String -> IORef Int -> [Attribute] -> IO (String,[Attribute])
-insertIdAttribute base refCounter attrs =
-  case Html.attributeValue "id" attrs of
-    (Just id) -> return (id,attrs)
-    Nothing   -> do counter <- readIORef refCounter
-                    newId <- return $ base ++ show counter
-                    writeIORef refCounter (counter+1)
-                    return (newId,(Html.Attribute "id" newId noPos):attrs)
+insertIdAttribute:: String -> [Attribute] -> State Int (String,[Attribute])
+insertIdAttribute base attrs = case Html.attributeValue "id" attrs of
+  Just id -> return (id,attrs)
+  Nothing   -> do 
+    counter <- get
+    put (counter+1)
+    let newId = show counter
+    return (newId,(Html.Attribute "id" newId noPos):attrs)
 
 
-compileAttribs:: CompilerOpts -> IORef Int -> Html -> IO Html
-compileAttribs opts refId element@(Html.Element tag attrs children p)
+compileAttribs:: CompilerOpts -> Html -> State Int Html
+compileAttribs opts element@(Html.Element tag attrs children p)
   | containsInlineExprs attrs == False = return element
   | otherwise = do
-      (id,attrs) <- insertIdAttribute (flapjaxAttributeIdBase opts) refId attrs
-      (exprs,nonExprs) <- return $ partition Html.isAttributeExpr attrs
-      (eAttrs,eStmts) <- liftM unzip (mapM (compileAttributeExpr id opts) exprs)
+      (id,attrs) <- insertIdAttribute (flapjaxAttributeIdBase opts) attrs
+      let (exprs,nonExprs) = partition Html.isAttributeExpr attrs
+      let (eAttrs,eStmts) = unzip $ map (compileAttributeExpr id opts) exprs
       return $ Html.Element "span" []
                  [Html.Element "script" [Html.Attribute "lang" "flapjax" p]
                     [Html.Script (FlapjaxScript p eStmts) p] p,
                   Html.Element tag (eAttrs ++ nonExprs) children p] p
-compileAttribs opts refId v = return v
+compileAttribs opts v = return v
 
-compileInlineAtAttribs:: CompilerOpts -> Html -> IO Html
-compileInlineAtAttribs opts page = do
-  refId <- newIORef 0
-  everywhereM (mkM (compileAttribs opts refId)) page
+compileInlineAtAttribs:: CompilerOpts -> Html -> Html
+compileInlineAtAttribs opts page =
+  evalState (everywhereM (mkM $ compileAttribs opts) page) 0
 
---}}}
 
---------------------------------------------------------------------------------
---{{{ Whole-page pass: Compile scripts
+-- -----------------------------------------------------------------------------
+-- Whole-page pass: Compile scripts
 
 --{{{ Pass: fix scoping
 --
@@ -299,7 +240,7 @@ mkIds:: SourcePos -> [a] -> [Id SourcePos]
 mkIds pos xs = take (length xs) (map mkId [0..]) where
   mkId n = Id pos ("arg" ++ show n)
 
-warnImpureStmt:: ParsedStatement -> IO ParsedStatement
+warnImpureStmt:: ParsedStatement -> Compiler ParsedStatement
 warnImpureStmt s@(IfStmt p _ _ _) = 
   warn "unlifted if" s p >> return s
 warnImpureStmt s@(IfSingleStmt p _ _) =
@@ -329,7 +270,8 @@ isPureAssignOperator op =
   op `elem` [OpAssign]
 
 liftExprM :: S.Set String
-          -> CompilerOpts -> ParsedExpression -> IO ParsedExpression
+          -> CompilerOpts -> ParsedExpression
+          -> Compiler ParsedExpression
 liftExprM fxenv opts expr = liftM expr where
   fj = VarRef noPos (Id noPos (flapjaxObject opts))
   cxt = DotRef noPos fj (Id noPos "maybeEmpty")
@@ -468,7 +410,8 @@ liftVarDecl fxenv opts decl = case decl of
     return (VarDecl p id (Just e'))
 
 liftStmtM :: S.Set String
-          -> CompilerOpts -> ParsedStatement -> IO ParsedStatement
+          -> CompilerOpts -> ParsedStatement 
+          -> Compiler ParsedStatement
 liftStmtM fxenv opts stmt = case stmt of
   ReturnStmt p (Just expr) -> do
     expr' <- liftExprM fxenv opts expr
@@ -492,7 +435,8 @@ liftStmtM fxenv opts stmt = case stmt of
 
 
 compileStatement :: S.Set String 
-                 -> CompilerOpts -> ParsedStatement -> IO ParsedStatement
+                 -> CompilerOpts -> ParsedStatement 
+                 -> Compiler ParsedStatement
 compileStatement fxenv opts stmt = do
   stmt <- fixScopingM stmt
   stmt <- liftStmtM fxenv opts stmt
@@ -514,20 +458,21 @@ wrapScriptBlock pos loader statements =
 
 -- Compiles a single <script lang="flapjax">...</script> script
 compile :: S.Set String
-        -> IORef Int -> CompilerOpts -> Flapjax -> IO Flapjax
-compile fxenv refUID opts (FlapjaxScript pos statements) = do
+        -> CompilerOpts -> Flapjax 
+        -> StateT Int Compiler Flapjax
+compile fxenv opts (FlapjaxScript pos statements) = do
   -- Compile each statement
-  statements <- mapM (compileStatement fxenv opts) statements
+  statements <- lift $ mapM (compileStatement fxenv opts) statements
   -- Generate the name of the loading function
-  uid <- readIORef refUID
+  uid <- get
   thisLoader <- return $ Id pos (flapjaxLoader opts ++ show uid)
   -- The returned script contains the wrapped code and pushes the loader into
   -- the loader array.
-  writeIORef refUID (uid+1)
+  put (uid+1)
   return $ FlapjaxScript pos 
                          [wrapScriptBlock pos thisLoader statements,
                           pushLoader pos opts thisLoader]
-compile fxenv refUID opts other = 
+compile fxenv opts other = 
   return other
 
 -- As an artifact of the parse tree, we have to change lang="flapjax" tags to
@@ -544,15 +489,13 @@ flapjaxTagsToJavascript (Html.Element "script" attrs children pos) =
 flapjaxTagsToJavascript other =
   other
 
-compileScripts:: CompilerOpts -> Html -> IO Html
+compileScripts:: CompilerOpts -> Html -> Compiler Html
 compileScripts opts page = do
-  refUID <- newIORef 0
   -- top-level names defined in "text/flapjax" scripts
   let fxenv = fxScriptGlobalEnv page
-  page <- everywhereM (mkM (compile fxenv refUID opts)) page
+  page <- evalStateT (everywhereM (mkM (compile fxenv opts)) page) 0
   return $ everywhere (mkT flapjaxTagsToJavascript) page
 
---}}}
 
 -- ----------------------------------------------------------------------------
 -- Names in Flapjax scripts
@@ -566,71 +509,48 @@ fxScriptGlobalEnv html = everything S.union (mkQ S.empty getEnv) html where
   getEnv (InlineAttribute _ _) = S.empty -- as above
 
 
---------------------------------------------------------------------------------
---{{{ Whole-page pass: add initialization
+-- -----------------------------------------------------------------------------
+-- Whole-page pass: add initialization
 
--- TODO: no guarantee that head exists and certainly no guarantee that multiple
--- head elements exist
-installInit:: CompilerOpts -> Html -> IO Html
+-- TODO: no guarantee that head exists
+installInit:: CompilerOpts -> Html -> Html
 installInit compilerOpts (Html.Element "head" attributes children p) =
-  let script = Html.Element "script" 
-                            [Html.Attribute "lang" "text/javascript" p] 
-                            [Html.Script (Javascript js) p] p
-      flapjaxSrc = flapjaxPath compilerOpts
-      fjScript = Html.Element "script"
-                              [Html.Attribute "lang" "text/javascript" p,
-                               Html.Attribute "src" flapjaxSrc p]
-                               [] p
-      fj = Id noPos (flapjaxObject compilerOpts)
-      loader = Id noPos (flapjaxLoader compilerOpts)
-      js = Script p [VarDeclStmt p [VarDecl p loader (Just $ ArrayLit p [])]]
-    in do return $ Html.Element "head" attributes (fjScript:script:children) p
-installInit _ e = return e
+  Html.Element "head" attributes (fjScript:script:children) p where
+    script = Html.Element "script" 
+                           [Html.Attribute "lang" "text/javascript" p] 
+                           [Html.Script (Javascript js) p] p
+    flapjaxSrc = flapjaxPath compilerOpts
+    fjScript = Html.Element "script"
+                             [Html.Attribute "lang" "text/javascript" p,
+                              Html.Attribute "src" flapjaxSrc p]
+                              [] p
+    fj = Id noPos (flapjaxObject compilerOpts)
+    loader = Id noPos (flapjaxLoader compilerOpts)
+    js = Script p [VarDeclStmt p [VarDecl p loader (Just $ ArrayLit p [])]]
+installInit _ e = e
 
-addInitCode:: CompilerOpts -> Html -> IO Html
-addInitCode opts page = do
-  everywhereM (mkM (installInit opts)) page
+addInitCode:: CompilerOpts -> Html -> Html
+addInitCode opts page = everywhere (mkT (installInit opts)) page
 
---}}}
-
---------------------------------------------------------------------------------
---{{{ Whole-page pass: add loading code
+-- -----------------------------------------------------------------------------
+-- Whole-page pass: add loading code
 
 -- Adds the loading code to the body element
--- TODO: Optimize for efficiency
-addLoaderToBody:: CompilerOpts -> Html -> IO Html
+addLoaderToBody :: CompilerOpts -> Html -> Html
 addLoaderToBody opts (Html.Element "body" attrs children p) =
-  let loader = flapjaxLoader opts
-      flapjax = flapjaxObject opts
-      code = "forEach(function(l){ l(); }, " ++ loader ++ ")"
-      attrs' = Html.attributeUpdate -- does not clobber existing loading code
-                 "onload" (\c -> if c == "" then code else c ++ "; " ++ code)
-                           -- c is the existing content of the onload attribute
-                 attrs
-    in return $ Html.Element "body" attrs' children p
-addLoaderToBody _ e = 
-  return e
+  Html.Element "body" attrs' children p where
+    loader = flapjaxLoader opts
+    flapjax = flapjaxObject opts
+    code = "forEach(function(l){ l(); }, " ++ loader ++ ")"
+    attrs' = Html.attributeUpdate -- does not clobber existing loading code
+               "onload" (\c -> if c == "" then code else c ++ "; " ++ code)
+                         -- c is the existing content of the onload attribute
+               attrs
+addLoaderToBody _ e = e
 
-addLoader:: CompilerOpts -> Html -> IO Html
-addLoader opts page = do
-  everywhereM (mkM (addLoaderToBody opts)) page
-
---}}}
-
---------------------------------------------------------------------------------
---{{{ Compiler: Standalone compiler
-
-compileStandalone:: CompilerOpts -> Maybe String -> Flapjax -> Compiler Flapjax
-compileStandalone opts maybeLoader fx = do
-  opts <- avoidNameClashes opts (Html.Script fx noPos) -- inclusion
-  opts <- case maybeLoader of
-            Nothing -> return opts
-            (Just l) -> return $ opts { flapjaxLoader = l }
-  refUID <- lift (newIORef 0)
-  fx <- lift (compile S.empty refUID opts fx)
-  return fx
-  
---}}}
+-- TODO: A generic traversal is a litle unnecessary. It's easy to find <body>.
+addLoader :: CompilerOpts -> Html ->  Html
+addLoader opts page = everywhere (mkT (addLoaderToBody opts)) page
 
 -- |The compiler does not lift the names and methods specified in flapjax.jsi.
 -- It is possible that a developer has intentionally redefined a Flapjax name
@@ -645,13 +565,10 @@ setupUnlifted opts = do
 -- Compiler: Whole-page compiler
 
 
-compilePage:: CompilerOpts -> Html -> Compiler Html
-compilePage opts page = do
-  opts <- avoidNameClashes opts page
-  opts <- lift $ setupUnlifted opts
-  page <- compileInline opts page
-  page <- lift $ compileInlineAtAttribs opts page
-  page <- lift $ compileScripts opts page
-  page <- lift $ addInitCode opts page
-  page <- lift $ addLoader opts page
-  return page
+compilePage:: CompilerOpts -> Html -> IO ([CompilerMessage],Html)
+compilePage opts page' = do
+  opts <- setupUnlifted opts
+  let (page,msgs) = runWriter $ compileScripts opts
+                      $ compileInlineAtAttribs opts 
+                      $ compileInline opts page'
+  return (msgs,addInitCode opts $ (addLoader opts page))

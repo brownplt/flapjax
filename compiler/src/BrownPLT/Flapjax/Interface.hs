@@ -2,6 +2,8 @@
 -- methods are not lifted.
 module BrownPLT.Flapjax.Interface
   ( getFlapjaxNames
+  , getFlapjaxInterfacePath
+  , getInstalledFlapjaxPath
   ) where
 
 import System.FilePath
@@ -14,6 +16,11 @@ getFlapjaxInterfacePath :: IO FilePath
 getFlapjaxInterfacePath = do
   dataDir <- getDataDir
   return $ dataDir </> "flapjax.jsi"
+
+getInstalledFlapjaxPath :: IO FilePath
+getInstalledFlapjaxPath = do
+  dataDir <- getDataDir
+  return $ dataDir </> "flapjax.js"
 
 interfaceNames :: [InterfaceItem] -> [String]
 interfaceNames names  = map unExport (filter isInterfaceExport names) where

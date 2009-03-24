@@ -2,153 +2,103 @@
 -- information.
 module Main where
 
+import Control.Monad
+import qualified Data.List as L
+import System.Exit
 import System.IO
 import System.Console.GetOpt
 import System.Environment hiding (withArgs)
 import System.Directory
-import Data.List as List
 import WebBits.Common
-import WebBits.Html.Html ()
+import WebBits.Html.Html()
 import Text.PrettyPrint.HughesPJ
 import Text.ParserCombinators.Parsec(ParseError,parseFromFile)
 import Flapjax.HtmlEmbedding()
 import Flapjax.Parser(parseScript) -- for standalone mode
-import WebBits.Html.PermissiveParser(parseHtmlFromFile)
-import Flapjax.Compiler(compilePage,compileStandalone,defaults,CompilerOpts(..))
-import Computation
+import WebBits.Html.PermissiveParser (parseHtmlFromString)
+import Flapjax.Compiler(compilePage,defaults,CompilerOpts(..))
 
-data CmdLineOpts
-  = Flapjax String
+import BrownPLT.Flapjax.Interface
+
+data Option
+  = Usage
+  | Flapjax String
+  | Stdin
   | Output String
-  | Standalone
-  | Loader String
+  | Stdout
   | WebMode
-  deriving (Eq,Ord) -- Ord lets us avoid permutations.
-  
-isFlapjaxPath (Flapjax _) = True
-isFlapjaxPath _           = False
+  deriving (Eq,Ord)
 
-isWebMode WebMode = True
-isWebMode _       = False
-
-isOutputPath (Output _) = True
-isOutputPath _           = False
-
-options:: [OptDescr CmdLineOpts]
+options:: [OptDescr Option]
 options =
- [Option ['f'] ["flapjax-path"] (ReqArg Flapjax "URL") "url of flapjax.js",
-  Option ['o'] ["output"]       (ReqArg Output "FILE") "output path",
-  Option []    ["web-mode"]     (NoArg WebMode)        "web-compiler mode",
-  Option []    ["standalone"]   (NoArg Standalone)     "standalone mode",
-  Option []    ["loader"]       (ReqArg Loader "NAME") "loader name (standalone mode)"]
+ [ Option ['f'] ["flapjax-path"] (ReqArg Flapjax "URL") "url of flapjax.js"
+ , Option ['o'] ["output"] (ReqArg Output "FILE") "output path"
+ , Option [] ["stdout"] (NoArg Stdout) "write to standard output"
+ , Option [] ["stdin"] (NoArg Stdin) "read from standard input"
+ , Option [] ["web-mode"] (NoArg WebMode) "web-compiler mode"
+ ]
 
--- |Attempts to get the default Flapjax path from the environment, if it is
--- defined.
-getFlapjaxPath args =
-  case List.find isFlapjaxPath args of
-    (Just (Flapjax path)) -> return path
-    Nothing               -> do env <- getEnvironment
-                                case lookup "FLAPJAXPATH" env of
-                                  (Just path) -> return path
-                                  Nothing     -> return "flapjax.js"
-
--- |Gets the output file, if specified.
-getOutputPath args =
-  case List.find isOutputPath args of
-    (Just (Output path)) -> return (Just path)
-    Nothing              -> return Nothing
-
--- |Indicates whether the compiler is being run in web-mode.
-getWebMode args =
-  case List.find isWebMode args of
-    (Just WebMode) -> return True
-    Nothing        -> return False
-
--- |Indicates whether the compiler is being run in standalone mode.  In 
---  standalone mode, the compiler expects only Javascript.
-getStandalone args =
-  let pred Standalone = True
-      pred _          = False
-    in case List.find pred args of
-         (Just Standalone) -> return True
-         Nothing           -> return False
-
--- |Returns the name of the loader, if specified.
-getLoaderName args =
-  let pred (Loader _) = True
-      pred _          = False
-    in case List.find pred args of
-         (Just (Loader s)) -> return (Just s)
-         Nothing           -> return Nothing
-      
+checkUsage (Usage:_) = do
+  putStrLn "Flapjax Compiler (fxc-3.0)"
+  putStrLn (usageInfo "Usage: fxc [OPTION ...] file" options)
+  exitSuccess
+checkUsage _ = return ()
   
-    
--- |Indicates whether the argument list is well-formed.
-validateArgs args = v (List.sort args) where
-  v ([Output o, Standalone, Loader l]) = True
-  v ([Standalone, Loader l]) = True
-  v ([Output o, Standalone]) = True
-  v ([Standalone]) = True
-  v ([Flapjax fj, Output o, WebMode]) = True
-  v ([Flapjax fj, Output o]) = True
-  v ([Output o, WebMode]) = True
-  v ([Flapjax fj, WebMode]) = True
-  v ([WebMode]) = True
-  v ([Output o]) = True
-  v ([Flapjax fj]) = True
-  v ([]) = True
-  v _ = False
+getFlapjaxPath :: [Option] -> IO (String,[Option])
+getFlapjaxPath ((Flapjax s):rest) = return (s,rest)
+getFlapjaxPath rest = do
+  s <- getInstalledFlapjaxPath
+  return ("file://" ++ s,rest)
 
--- |Validates the arguments and calls the specified continuation.  If the
--- arguments are invalid, displays a usage message and terminates.
-withArgs args cont =
-  case validateArgs args of
-    False -> showUsage []
-    True  -> do flapjaxPath  <- getFlapjaxPath args
-                maybeOutFile <- getOutputPath args
-                isWebMode    <- getWebMode args
-                isStandalone <- getStandalone args
-                loader       <- getLoaderName args
-                cont (flapjaxPath,maybeOutFile,isWebMode,isStandalone,loader)
+getInput :: [String] -> [Option] -> IO (Handle,String,[Option])
+getInput [] (Stdin:rest) = return (stdin,"stdin",rest)
+getInput [path] options = do
+  h <- openFile path ReadMode
+  return (h,path,options)
+getInput [] _ = do
+  hPutStrLn stderr "neither --stdin nor an input file was specified"
+  exitFailure
+getInput (_:_) _ = do
+  hPutStrLn stderr "multiple input files specified"
+  exitFailure
 
--- |This is what is head of the generated HTML when there are errors or warnings
--- (that are reported as errors) in web-compiler mode.
-webHeader =
-  "<html>\n<head><title>Flapjax Compiler</title></head><\nbody>\n"
-
-webFooter = "</body></html>\n"
-
--- |Displays usage information and argument errors.
-showUsage errors = do
-  putStr "Flapjax Compiler (fxc) 2009-03-19\n"
-  putStr (concat errors)
-  putStr (usageInfo "Usage: fxc [OPTION ...] file" options)
-
-output Nothing html = putStr (render $ pp html)
-output (Just outFile) html = writeFile outFile (render $ pp html)
-
-compile inFile (flapjaxPath,maybeOutFile,webMode,False,loader) = do -- page mode
-  htmlOrError <- parseHtmlFromFile inFile
-  case htmlOrError of
-    (Left error) -> putStr $ "Parse error:\n" ++ show error
-    (Right (html,warnings)) -> do 
-      result <- runComputation $
-        compilePage (defaults { flapjaxPath = flapjaxPath }) html
-      case result of
-        (Success ws v) -> output maybeOutFile v
-        (Failure ws e) -> putStr "errors"
-compile inFile (flapjaxPath,maybeOutFile,webmode,True,loader) = do -- standalone
-  fxOrError <- parseFromFile parseScript inFile
-  case fxOrError of
-    (Left error) -> putStr $ "Parse error:\n" ++ show error
-    (Right fx) -> do 
-      result <- do runComputation (compileStandalone defaults loader fx)
-      case result of
-        (Success ws v) -> output maybeOutFile v
-        (Failure ws e) -> putStr "errors"
+getOutput :: String -> [Option] -> IO (Handle,[Option])
+getOutput _ (Stdout:rest) = return (stdout,rest)
+getOutput _ ((Output outputName):rest) = do
+  h <- openFile outputName WriteMode
+  return (h,rest)
+getOutput inputName options = do
+  h <- openFile (inputName ++ ".html") WriteMode
+  return (h,options)
 
 main = do
   argv <- getArgs
-  case getOpt Permute options argv of
-     (args,[file],[]) -> withArgs args (compile file)
-     (_,_,errors)      -> showUsage errors
+  let (permutedArgs,files,errors) = getOpt Permute options argv
+  unless (null errors) $ do
+    mapM_ (hPutStrLn stderr) errors
+    exitFailure
+  let args = L.sort permutedArgs
+  checkUsage args
+
+  (fxPath,args) <- getFlapjaxPath args
+  (inputHandle,inputName,args) <- getInput files args
+  (outputHandle,args) <- getOutput inputName args
+
+  unless (null args) $ do
+    hPutStrLn stderr "invalid arguments, use -h for help"
+    exitFailure
+
+  inputText <- hGetContents inputHandle
+  case parseHtmlFromString inputName inputText of
+    Left err -> do -- TODO: web mode is different
+      hPutStrLn stderr (show err)
+      exitFailure
+    Right (html,_) -> do -- ignoring all warnings
+      (msgs,outHtml) <- compilePage (defaults { flapjaxPath = fxPath })  html
+      
+      -- TODO: web mode is different
+      mapM_ (hPutStrLn stderr . show) msgs
+
+      hPutStrLn outputHandle (render $ pp outHtml)
+      hClose outputHandle
+      exitSuccess
