@@ -13,12 +13,12 @@ import Control.Monad
 import Control.Monad.Trans
 import Data.Generics hiding (GT)
 import Data.IORef -- awful!
-import qualified Flapjax.Symbols as Symbols
 import qualified WebBits.Html.Syntax as Html
 import qualified Flapjax.Builder as J
 import Computation hiding (warn)
 import WebBits.JavaScript.Env (localVars)
 import qualified Data.Set as S
+import BrownPLT.Flapjax.Interface
 
 {-{{{ Structure of the compiler:
 
@@ -78,20 +78,24 @@ data CompilerOpts = CompilerOpts {
   -- unique prefix used for ids on DOM nodes created while compiling attribute
   -- expressions.
   flapjaxAttributeIdBase:: String,
-  flapjaxPath:: String
+  flapjaxPath:: String,
+  flapjaxMethods :: [String],
+  flapjaxFunctions :: [String]
 }
 
 data CompilerWarning
   = ImpureStatement ParsedStatement String
   | ImpureExpression ParsedExpression String
 
-defaults = CompilerOpts {
-  flapjaxObject = "flapjax",
-  flapjaxLoader = "loader",
-  flapjaxIdBase = "flapjaxsuid",
-  flapjaxAttributeIdBase = "flapjaxattribsuid",
-  flapjaxPath = "flapjax.js"
-}
+defaults = CompilerOpts
+  {  flapjaxObject = "flapjax"
+  , flapjaxLoader = "loader"
+  , flapjaxIdBase = "flapjaxsuid"
+  , flapjaxAttributeIdBase = "flapjaxattribsuid"
+  , flapjaxPath = "flapjax.js"
+  , flapjaxMethods = error "flapjaxMethods not initialized"
+  , flapjaxFunctions = error "flapjaxFunctions not initialized"
+  }
 
 warn:: PrettyPrintable a => String -> a -> SourcePos -> IO () 
 warn desc ast pos = do
@@ -100,19 +104,14 @@ warn desc ast pos = do
   putStr $ render (pp ast)
   putStr $ "\n"
 
-isCompilerFunction:: (Id a) -> Bool
-isCompilerFunction (Id p v) = v `elem` Symbols.flapjaxCompilerFuns
+isUnliftedFunction :: CompilerOpts -> (Id SourcePos) -> Bool
+isUnliftedFunction opts id = 
+  (unId id) `elem` (flapjaxFunctions opts)
 
-isCoreFunction:: (Id a) -> Bool
-isCoreFunction (Id p v) = v `elem` Symbols.flapjaxCoreFuns
+isUnliftedMethod:: CompilerOpts -> (Id SourcePos) -> Bool
+isUnliftedMethod opts id =
+  (unId id) `elem` (flapjaxMethods opts)
 
-isUnliftedFunction:: (Id a) -> Bool
-isUnliftedFunction (Id _ v) = v `elem` Symbols.flapjaxNoliftFuns
-
-isUnliftedMethod:: Id a -> Bool
-isUnliftedMethod (Id _ v) = v `elem` Symbols.flapjaxNoliftMethods
-
---}}}
 
 --------------------------------------------------------------------------------
 --{{{ Whole-page pass: avoid name clashes
@@ -422,7 +421,7 @@ liftExprM fxenv opts expr = liftM expr where
   -- funcId(arg ...):
   --   mixedCall_eb(f,arg ...)
   liftM e@(CallExpr p f@(VarRef _ id) args)
-    | isUnliftedFunction id = do
+    | isUnliftedFunction opts id = do
         args' <- mapM liftM args
         return $ CallExpr p f args'
     | otherwise = do 
@@ -433,7 +432,7 @@ liftExprM fxenv opts expr = liftM expr where
   --                  { return obj.method(arg0, arg1, ...); },
   --                obj, arg0, arg1, ....);
   liftM (CallExpr p ref@(DotRef p' obj method) args) =
-    if isUnliftedMethod method
+    if isUnliftedMethod opts method
       then do (obj':args') <-  mapM liftM (obj:args)
               return $ CallExpr p (DotRef p' obj' method) args'
       else let (objId:argIds) = mkIds p (obj:args)
@@ -633,18 +632,26 @@ compileStandalone opts maybeLoader fx = do
   
 --}}}
 
---------------------------------------------------------------------------------
---{{{ Compiler: Whole-page compiler
+-- |The compiler does not lift the names and methods specified in flapjax.jsi.
+-- It is possible that a developer has intentionally redefined a Flapjax name
+-- and expects it to be lifted.  Alternatively, a developer may have used a
+-- Flapjax method name in their own objects.
+setupUnlifted :: CompilerOpts -> IO CompilerOpts
+setupUnlifted opts = do
+  (functions,methods) <- getFlapjaxNames
+  return opts { flapjaxFunctions = functions, flapjaxMethods = methods }
+
+-- -----------------------------------------------------------------------------
+-- Compiler: Whole-page compiler
 
 
 compilePage:: CompilerOpts -> Html -> Compiler Html
 compilePage opts page = do
   opts <- avoidNameClashes opts page
+  opts <- lift $ setupUnlifted opts
   page <- compileInline opts page
   page <- lift $ compileInlineAtAttribs opts page
   page <- lift $ compileScripts opts page
   page <- lift $ addInitCode opts page
   page <- lift $ addLoader opts page
   return page
-
---}}}
