@@ -283,24 +283,24 @@ var removeListener = function (node, dependent)
   return foundSending;
 };
 
-// An internal_e is a node that simply propagates all pulses it receives.  It's used internally by various 
+// An internalE is a node that simply propagates all pulses it receives.  It's used internally by various 
 // combinators.
-var internal_e = function(dependsOn) {
+var internalE = function(dependsOn) {
   return createNode(dependsOn || [ ],function(send,pulse) { send(pulse); });
 }
 
-var zero_e = function() {
+var zeroE = function() {
   return createNode([],function(send,pulse) {
-      throw ('zero_e : received a value; zero_e should not receive a value; the value was ' + pulse.value);
+      throw ('zeroE : received a value; zeroE should not receive a value; the value was ' + pulse.value);
   });
 };
 
 
-var one_e = function(val) {
+var oneE = function(val) {
   var sent = false;
   var evt = createNode([],function(send,pulse) {
     if (sent) {
-      throw ('one_e : received an extra value');
+      throw ('oneE : received an extra value');
     }
     sent = true;
     send(pulse);
@@ -310,26 +310,26 @@ var one_e = function(val) {
 };
 
 
-// a.k.a. mplus; merge_e(e1,e2) == merge_e(e2,e1)
-var merge_e = function() {
+// a.k.a. mplus; mergeE(e1,e2) == mergeE(e2,e1)
+var mergeE = function() {
   if (arguments.length == 0) {
-    return zero_e();
+    return zeroE();
   }
   else {
     var deps = slice(arguments,0);
-    return internal_e(deps);
+    return internalE(deps);
   }
 };
 
 
-EventStream.prototype.merge_e = function() {
+EventStream.prototype.mergeE = function() {
   var deps = slice(arguments,0);
   deps.push(this);
-  return internal_e(deps);
+  return internalE(deps);
 };
 
 
-EventStream.prototype.constant_e = function(constantValue) {
+EventStream.prototype.constantE = function(constantValue) {
   return createNode([this],function(send,pulse) {
     pulse.value = constantValue;
     send(pulse);
@@ -337,7 +337,7 @@ EventStream.prototype.constant_e = function(constantValue) {
 };
 
 
-var constant_e = function(e) { return e.constant_e(); };
+var constantE = function(e) { return e.constantE(); };
 
 
 var createTimeSyncNode = function(nodes) {
@@ -379,8 +379,8 @@ Behavior.prototype = new Object();
 
 
 
-var receiver_e = function() {
-  var evt = internal_e();
+var receiverE = function() {
+  var evt = internalE();
   evt.sendEvent = function(value) {
     propagatePulse(new Pulse(nextStamp(), value),evt);
   };
@@ -395,42 +395,42 @@ var sendEvent = function (node, value) {
   propagatePulse(new Pulse(nextStamp(), value),node);
 };
 
-// bind_e :: EventStream a * (a -> EventStream b) -> EventStream b
-EventStream.prototype.bind_e = function(k) {
-  /* m.sendsTo result_e
-   * result_e.sendsTo prev_e
-   * prev_e.sendsTo return_e
+// bindE :: EventStream a * (a -> EventStream b) -> EventStream b
+EventStream.prototype.bindE = function(k) {
+  /* m.sendsTo resultE
+   * resultE.sendsTo prevE
+   * prevE.sendsTo returnE
    */
   var m = this;
-  var prev_e = false;
+  var prevE = false;
   
-  var out_e = createNode([],function(send,pulse) { send(pulse); });
-  out_e.name = "bind out_e";
+  var outE = createNode([],function(send,pulse) { send(pulse); });
+  outE.name = "bind outE";
   
-  var in_e = createNode([m], function (send,pulse) {
-    if (prev_e) { 
-      removeListener(prev_e,out_e);
+  var inE = createNode([m], function (send,pulse) {
+    if (prevE) { 
+      removeListener(prevE,outE);
     }
-    prev_e = k(pulse.value);
-    if (prev_e instanceof EventStream) {
-      attachListener(prev_e,out_e);
+    prevE = k(pulse.value);
+    if (prevE instanceof EventStream) {
+      attachListener(prevE,outE);
     }
     else {
-      throw "bind_e : expected EventStream";
+      throw "bindE : expected EventStream";
     }
   });
-  in_e.name = "bind in_e";
+  inE.name = "bind inE";
   
-  return out_e;
+  return outE;
 };
 
 /* Could be written as:
  *
- * e.bind_e(function(v) { return one_e(f(v)); })
+ * e.bindE(function(v) { return oneE(f(v)); })
  */
-EventStream.prototype.lift_e = function(f) {
+EventStream.prototype.mapE = function(f) {
   if (!(f instanceof Function)) {
-    throw ('lift_e : expected a function as the first argument; received ' + f);
+    throw ('mapE : expected a function as the first argument; received ' + f);
   };
   
   return createNode([this],function(send,pulse) {
@@ -440,18 +440,18 @@ EventStream.prototype.lift_e = function(f) {
 };
 
 
-EventStream.prototype.not_e = function() { return this.lift_e(function(v) { return !v; }); };
+EventStream.prototype.notE = function() { return this.mapE(function(v) { return !v; }); };
 
 
-var not_e = function(e) { return e.not_e(); };
+var notE = function(e) { return e.notE(); };
 
 
-EventStream.prototype.filter_e = function(pred) {
+EventStream.prototype.filterE = function(pred) {
   if (!(pred instanceof Function)) {
-    throw ('filter_e : expected predicate; received ' + pred);
+    throw ('filterE : expected predicate; received ' + pred);
   };
   
-  // Can be a bind_e
+  // Can be a bindE
   return createNode([this],
     function(send,pulse) {
       if (pred(pulse.value)) { send(pulse); }
@@ -459,23 +459,23 @@ EventStream.prototype.filter_e = function(pred) {
 };
 
 
-var filter_e = function(e,p) { return e.filter_e(p); };
+var filterE = function(e,p) { return e.filterE(p); };
 
 
 // Fires just once.
-EventStream.prototype.once_e = function() {
+EventStream.prototype.onceE = function() {
   var done = false;
-  // Alternately: this.collect_e(0,\n v -> (n+1,v)).filter_e(\(n,v) -> n == 1).lift_e(fst)
+  // Alternately: this.collectE(0,\n v -> (n+1,v)).filterE(\(n,v) -> n == 1).mapE(fst)
   return createNode([this],function(send,pulse) {
     if (!done) { done = true; send(pulse); }
   });
 };
 
 
-var once_e = function(e) { return e.once_e(); };
+var onceE = function(e) { return e.onceE(); };
 
 
-EventStream.prototype.skipFirst_e = function() {
+EventStream.prototype.skipFirstE = function() {
   var skipped = false;
   return createNode([this],function(send,pulse) {
     if (skipped)
@@ -486,12 +486,12 @@ EventStream.prototype.skipFirst_e = function() {
 };
 
 
-var skipFirst_e = function(e) { return e.skipFirst_e(); };
+var skipFirstE = function(e) { return e.skipFirstE(); };
 
 
-EventStream.prototype.collect_e = function(init,fold) {
+EventStream.prototype.collectE = function(init,fold) {
   var acc = init;
-  return this.lift_e(
+  return this.mapE(
     function (n) {
       var next = fold(n, acc);
       acc = next;
@@ -500,66 +500,66 @@ EventStream.prototype.collect_e = function(init,fold) {
 };
 
 
-var collect_e = function(e,i,f) { return e.collect_e(i,f); };
+var collectE = function(e,i,f) { return e.collectE(i,f); };
 
 
 // a.k.a. join
-EventStream.prototype.switch_e = function() {
-  return this.bind_e(function(v) { return v; });
+EventStream.prototype.switchE = function() {
+  return this.bindE(function(v) { return v; });
 };
 
 
-var switch_e = function(e) { return e.switch_e(); };
+var switchE = function(e) { return e.switchE(); };
 
 
-EventStream.prototype.if_e = function(thenE,elseE) {
+EventStream.prototype.ifE = function(thenE,elseE) {
   var testStamp = -1;
   var testValue = false;
   
   createNode([this],function(_,pulse) { testStamp = pulse.stamp; testValue = pulse.value; });
   
-  return merge_e(
+  return mergeE(
     createNode([thenE],function(send,pulse) { if (testValue && (testStamp == pulse.stamp)) { send(pulse); } }),
     createNode([elseE],function(send,pulse) { if (!testValue && (testStamp == pulse.stamp)) { send(pulse); } }));
 };
 
 
-var if_e = function(test,thenE,elseE) {
+var ifE = function(test,thenE,elseE) {
   if (test instanceof EventStream)
-    { return test.if_e(thenE,elseE); }
+    { return test.ifE(thenE,elseE); }
   else
     { return test ? thenE : elseE; }
 };
 
     
-var and_e = function (/* . nodes */) {
+var andE = function (/* . nodes */) {
   var nodes = slice(arguments, 0);
   
   var acc = (nodes.length > 0)? 
-  nodes[nodes.length - 1] : one_e(true);
+  nodes[nodes.length - 1] : oneE(true);
   
   for (var i = nodes.length - 2; i > -1; i--) {
-    acc = if_e(
+    acc = ifE(
       nodes[i], 
       acc, 
-      nodes[i].constant_e(false));
+      nodes[i].constantE(false));
   }
   return acc;
 };
 
 
-EventStream.prototype.and_e = function( /* others */ ) {
+EventStream.prototype.andE = function( /* others */ ) {
   var deps = [this].concat(slice(arguments,0));
-  return and_e.apply(this,deps);
+  return andE.apply(this,deps);
 };
 
 
-var or_e = function () {
+var orE = function () {
   var nodes = slice(arguments, 0);
   var acc = (nodes.length > 2)? 
-  nodes[nodes.length - 1] : one_e(false); 
+  nodes[nodes.length - 1] : oneE(false); 
   for (var i = nodes.length - 2; i > -1; i--) {
-    acc = if_e(
+    acc = ifE(
       nodes[i],
       nodes[i],
       acc);
@@ -568,15 +568,15 @@ var or_e = function () {
 };
 
 
-EventStream.prototype.or_e = function(/*others*/) {
+EventStream.prototype.orE = function(/*others*/) {
   var deps = [this].concat(slice(arguments,0));
-  return or_e.apply(this,deps);
+  return orE.apply(this,deps);
 };
 
 
-var delayStatic_e = function (event, time) {
+var delayStaticE = function (event, time) {
   
-  var resE = internal_e();
+  var resE = internalE();
   
   createNode(
     [event],
@@ -588,17 +588,17 @@ var delayStatic_e = function (event, time) {
   return resE;
 };
 
-//delay_e: Event a * [Behavior] Number ->  Event a
-EventStream.prototype.delay_e = function (time) {
+//delayE: Event a * [Behavior] Number ->  Event a
+EventStream.prototype.delayE = function (time) {
   var event = this;
   
   if (time instanceof Behavior) {
     
-    var receiverEE = internal_e();
+    var receiverEE = internalE();
     var link = 
     {
       from: event, 
-      towards: delayStatic_e(event, valueNow(time))
+      towards: delayStaticE(event, valueNow(time))
     };
     
 		//TODO: Change semantics such that we are always guaranteed to get an event going out?
@@ -610,28 +610,28 @@ EventStream.prototype.delay_e = function (time) {
         link =
         {
           from: event, 
-          towards: delayStatic_e(event, p.value)
+          towards: delayStaticE(event, p.value)
         };
         sendEvent(receiverEE, link.towards);
       });
     
-    var resE = receiverEE.switch_e();
+    var resE = receiverEE.switchE();
     
     sendEvent(switcherE, valueNow(time));
     return resE;
     
-      } else { return delayStatic_e(event, time); }
+      } else { return delayStaticE(event, time); }
 };
 
 
-var delay_e = function(sourceE,interval) {
-  return sourceE.delay_e(interval);
+var delayE = function(sourceE,interval) {
+  return sourceE.delayE(interval);
 };
 
 
-//lift_e: ([Event] (. Array a -> b)) . Array [Event] a -> [Event] b
-var lift_e = function (fn /*, [node0 | val0], ...*/) {
-  //      if (!(fn instanceof Function)) { throw 'lift_e: expected fn as second arg'; } //SAFETY
+//mapE: ([Event] (. Array a -> b)) . Array [Event] a -> [Event] b
+var mapE = function (fn /*, [node0 | val0], ...*/) {
+  //      if (!(fn instanceof Function)) { throw 'mapE: expected fn as second arg'; } //SAFETY
   
   var valsOrNodes = slice(arguments, 0);
   //selectors[i]() returns either the node or real val, optimize real vals
@@ -662,9 +662,9 @@ var lift_e = function (fn /*, [node0 | val0], ...*/) {
 	var nofnodes = slice(selectors,1);
   
   if (nodes.length === 0) {
-    return one_e(fn.apply(context, valsOrNodes));
+    return oneE(fn.apply(context, valsOrNodes));
   } else if ((nodes.length === 1) && (fn instanceof Function)) {
-    return nodes[0].lift_e(
+    return nodes[0].mapE(
       function () {
         var args = arguments;
         return fn.apply(
@@ -672,7 +672,7 @@ var lift_e = function (fn /*, [node0 | val0], ...*/) {
           map(function (s) {return s(args);}, nofnodes));
       });
   } else if (nodes.length === 1) {
-    return fn.lift_e(
+    return fn.mapE(
       function (v) {
         var args = arguments;
         return v.apply(
@@ -680,24 +680,24 @@ var lift_e = function (fn /*, [node0 | val0], ...*/) {
           map(function (s) {return s(args);}, nofnodes));
       });                
   } else if (fn instanceof Function) {
-    return createTimeSyncNode(nodes).lift_e(
+    return createTimeSyncNode(nodes).mapE(
       function (arr) {
         return fn.apply(
           this,
           map(function (s) { return s(arr); }, nofnodes));
       });
   } else if (fn instanceof EventStream) {
-    return createTimeSyncNode(nodes).lift_e(
+    return createTimeSyncNode(nodes).mapE(
       function (arr) {
         return arr[0].apply(
           this, 
           map(function (s) {return s(arr); }, nofnodes));
       });
-      } else {throw 'unknown lift_e case';}
+      } else {throw 'unknown mapE case';}
 };
 
 
-EventStream.prototype.snapshot_e = function (valueB) {
+EventStream.prototype.snapshotE = function (valueB) {
   return createNode(
     [this],
     function (s, p) {
@@ -708,16 +708,16 @@ EventStream.prototype.snapshot_e = function (valueB) {
 };
 
 
-var snapshot_e = function(triggerE,valueB) {
-  return triggerE.snapshot_e(valueB);
+var snapshotE = function(triggerE,valueB) {
+  return triggerE.snapshotE(valueB);
 };
 
 
-EventStream.prototype.filterRepeats_e = function(optStart) {
+EventStream.prototype.filterRepeatsE = function(optStart) {
   var hadFirst = optStart === undefined ? false : true;
   var prev = optStart;
 
-  return this.filter_e(function (v) {
+  return this.filterE(function (v) {
     if (!hadFirst || !(isEqual(prev,v))) {
       hadFirst = true;
       prev = v;
@@ -730,14 +730,14 @@ EventStream.prototype.filterRepeats_e = function(optStart) {
 };
 
 
-var filterRepeats_e = function(sourceE,optStart) {
-  return sourceE.filterRepeats_e(optStart);
+var filterRepeatsE = function(sourceE,optStart) {
+  return sourceE.filterRepeatsE(optStart);
 };
 
 
 //credit Pete Hopkins
-var calmStatic_e = function (triggerE, time) {
-	var out = internal_e();
+var calmStaticE = function (triggerE, time) {
+	var out = internalE();
   createNode(
     [triggerE],
     function() {
@@ -750,10 +750,10 @@ var calmStatic_e = function (triggerE, time) {
 	return out;
 };
 
-//calm_e: Event a * [Behavior] Number -> Event a
-EventStream.prototype.calm_e = function(time) {
+//calmE: Event a * [Behavior] Number -> Event a
+EventStream.prototype.calmE = function(time) {
   if (time instanceof Behavior) {
-		var out = internal_e();
+		var out = internalE();
     createNode(
       [this],
       function() {
@@ -765,17 +765,17 @@ EventStream.prototype.calm_e = function(time) {
       }());
 		return out;
   } else {
-    return calmStatic_e(this,time);       
+    return calmStaticE(this,time);       
   }
 };
 
 
-var calm_e = function(sourceE,interval) {
-  return sourceE.calm_e(interval);
+var calmE = function(sourceE,interval) {
+  return sourceE.calmE(interval);
 };
 
 
-EventStream.prototype.blind_e = function (time) {
+EventStream.prototype.blindE = function (time) {
   return createNode(
     [this],
     function () {
@@ -795,8 +795,8 @@ EventStream.prototype.blind_e = function (time) {
 };
 
 
-var blind_e = function(sourceE,interval) {
-  return sourceE.blind_e(interval);
+var blindE = function(sourceE,interval) {
+  return sourceE.blindE(interval);
 };
 
 
@@ -827,20 +827,20 @@ Behavior.prototype.changes = function() {
 var changes = function (behave) { return behave.changes(); }
 
 
-Behavior.prototype.switch_b = function() {
+Behavior.prototype.switchB = function() {
   var behaviourCreatorsB = this;
   var init = valueNow(behaviourCreatorsB);
   
   var prevSourceE = null;
   
-  var receiverE = new internal_e();
+  var receiverE = new internalE();
   
 	//XXX could result in out-of-order propagation! Fix!
   var makerE = 
   createNode(
     [changes(behaviourCreatorsB)],
     function (_, p) {
-      if (!(p.value instanceof Behavior)) { throw 'switch_b: expected Behavior as value of Behavior of first argument'; } //SAFETY
+      if (!(p.value instanceof Behavior)) { throw 'switchB: expected Behavior as value of Behavior of first argument'; } //SAFETY
       if (prevSourceE != null) {
         removeListener(prevSourceE, receiverE);
       }
@@ -861,31 +861,31 @@ Behavior.prototype.switch_b = function() {
 };
 
 
-var switch_b = function (b) { return b.switch_b(); };
+var switchB = function (b) { return b.switchB(); };
 
 
 //TODO test, signature
-var timer_b = function(interval) {
-  return startsWith(timer_e(interval), (new Date()).getTime());
+var timerB = function(interval) {
+  return startsWith(timerE(interval), (new Date()).getTime());
 };
 
 
 //TODO test, signature
-var delayStatic_b = function (triggerB, time, init) {
-  return startsWith(delayStatic_e(changes(triggerB), time), init);
+var delayStaticB = function (triggerB, time, init) {
+  return startsWith(delayStaticE(changes(triggerB), time), init);
 };
 
 //TODO test, signature
-Behavior.prototype.delay_b = function (time, init) {
+Behavior.prototype.delayB = function (time, init) {
   var triggerB = this;
   if (time instanceof Behavior) {
     return startsWith(
-      delay_e(
+      delayE(
         changes(triggerB), 
         time),
       arguments.length > 3 ? init : valueNow(triggerB));
   } else {
-    return delayStatic_b(
+    return delayStaticB(
       triggerB, 
       time,
       arguments.length > 3 ? init : valueNow(triggerB));
@@ -893,8 +893,8 @@ Behavior.prototype.delay_b = function (time, init) {
 };
 
 
-var delay_b = function(srcB, timeB, init) { 
-  return srcB.delay_b(timeB,init); 
+var delayB = function(srcB, timeB, init) { 
+  return srcB.delayB(timeB,init); 
 };
 
 
@@ -909,27 +909,27 @@ var sendBehavior = function (b,v) { b.sendBehavior(v); };
 
 
 
-Behavior.prototype.if_b = function(trueB,falseB) {
+Behavior.prototype.ifB = function(trueB,falseB) {
   var testB = this;
   //TODO auto conversion for behaviour funcs
-  if (!(trueB instanceof Behavior)) { trueB = constant_b(trueB); }
-  if (!(falseB instanceof Behavior)) { falseB = constant_b(falseB); }
-  return lift_b(function(te,t,f) { return te ? t : f; },testB,trueB,falseB);
+  if (!(trueB instanceof Behavior)) { trueB = constantB(trueB); }
+  if (!(falseB instanceof Behavior)) { falseB = constantB(falseB); }
+  return liftB(function(te,t,f) { return te ? t : f; },testB,trueB,falseB);
 };
 
 
-var if_b = function(test,cons,altr) {
-  if (!(test instanceof Behavior)) { test = constant_b(test); };
+var ifB = function(test,cons,altr) {
+  if (!(test instanceof Behavior)) { test = constantB(test); };
   
-  return test.if_b(cons,altr);
+  return test.ifB(cons,altr);
 };
 
 
 
-//cond_b: . [Behavior boolean, Behavior a] -> Behavior a
-var cond_b = function (/* . pairs */ ) {
+//condB: . [Behavior boolean, Behavior a] -> Behavior a
+var condB = function (/* . pairs */ ) {
   var pairs = slice(arguments, 0);
-return lift_b.apply({},[function() {
+return liftB.apply({},[function() {
 		for(var i=0;i<pairs.length;i++) {
 			if(arguments[i]) return arguments[pairs.length+i];
 		}
@@ -940,12 +940,12 @@ return lift_b.apply({},[function() {
 
 //TODO optionally append to objects
 //createConstantB: a -> Behavior a
-var constant_b = function (val) {
-  return new Behavior(internal_e(), val);
+var constantB = function (val) {
+  return new Behavior(internalE(), val);
 };
 
 
-var lift_b = function (fn /* . behaves */) {
+var liftB = function (fn /* . behaves */) {
 
   var args = slice(arguments, 1);
   
@@ -980,63 +980,63 @@ var lift_b = function (fn /* . behaves */) {
 };
 
 
-Behavior.prototype.lift_b = function(/* args */) {
+Behavior.prototype.liftB = function(/* args */) {
   var args= slice(arguments,0).concat([this]);
-  return lift_b.apply(this,args);
+  return liftB.apply(this,args);
 };
 
 
-var and_b = function (/* . behaves */) {
-return lift_b.apply({},[function() {
+var andB = function (/* . behaves */) {
+return liftB.apply({},[function() {
 		for(var i=0; i<arguments.length; i++) {if(!arguments[i]) return false;}
 		return true;
 }].concat(slice(arguments,0)));
 };
 
 
-Behavior.prototype.and_b = function() {
-  return and_b([this].concat(arguments));
+Behavior.prototype.andB = function() {
+  return andB([this].concat(arguments));
 };
 
 
-var or_b = function (/* . behaves */ ) {
-return lift_b.apply({},[function() {
+var orB = function (/* . behaves */ ) {
+return liftB.apply({},[function() {
 		for(var i=0; i<arguments.length; i++) {if(arguments[i]) return true;}
 		return false;
 }].concat(slice(arguments,0)));
 };
 
 
-Behavior.prototype.or_b = function () {
-  return or_b([this].concat(arguments));
+Behavior.prototype.orB = function () {
+  return orB([this].concat(arguments));
 };
 
 
-Behavior.prototype.not_b = function() {
-  return this.lift_b(function(v) { return !v; });
+Behavior.prototype.notB = function() {
+  return this.liftB(function(v) { return !v; });
 };
 
 
-var not_b = function(b) { return b.not_b(); };
+var notB = function(b) { return b.notB(); };
 
 
-Behavior.prototype.blind_b = function (intervalB) {
-  return changes(this).blind_e(intervalB).startsWith(this.valueNow());
+Behavior.prototype.blindB = function (intervalB) {
+  return changes(this).blindE(intervalB).startsWith(this.valueNow());
 };
 
 
-var blind_b = function(srcB,intervalB) {
-  return srcB.blind_b(intervalB);
+var blindB = function(srcB,intervalB) {
+  return srcB.blindB(intervalB);
 };
 
 
-Behavior.prototype.calm_b = function (intervalB) {
-  return this.changes().calm_e(intervalB).startsWith(this.valueNow());
+Behavior.prototype.calmB = function (intervalB) {
+  return this.changes().calmE(intervalB).startsWith(this.valueNow());
 };
 
 
-var calm_b = function (srcB,intervalB) { 
-  return srcB.calm_b(intervalB);
+var calmB = function (srcB,intervalB) { 
+  return srcB.calmB(intervalB);
 };
 
   
@@ -1178,7 +1178,7 @@ var disableTimer = function (v) {
 
 
 var createTimerNodeStatic = function (interval) {
-  var node = internal_e();
+  var node = internalE();
   node.__timerId = __getTimerId();
   var fn = function () { sendEvent(node, (new Date()).getTime());};
   var timer = setInterval(fn, interval);
@@ -1186,12 +1186,12 @@ var createTimerNodeStatic = function (interval) {
   return node;
 };
 
-var timer_e = function (interval) {
+var timerE = function (interval) {
   if (interval instanceof Behavior) {
-    var receiverE = internal_e();
+    var receiverE = internalE();
     
     //the return
-    var res = receiverE.switch_e();
+    var res = receiverE.switchE();
     
     //keep track of previous timer to disable it
     var prevE = createTimerNodeStatic(valueNow(interval));
@@ -1222,14 +1222,14 @@ var timer_e = function (interval) {
 
 
 var TagB = function(tagName,args) {
-	this.resE = internal_e();
+	this.resE = internalE();
 	this.currentTag = document.createElement(tagName);
 	this.extractParameters(args);
 	this.insertChildrenNodes();
 	this.styleHooks = [];
-	this.styleChangedE = internal_e();
+	this.styleChangedE = internalE();
 	var ctx = this;
-  this.styleChangedE.lift_e(function(_) {
+  this.styleChangedE.mapE(function(_) {
 			var oldTag = ctx.currentTag;
 			ctx.currentTag = document.createElement(tagName);
       while (oldTag.firstChild) {
@@ -1308,15 +1308,15 @@ TagB.prototype = {
 		var lnodes = map(function() {return [];},this.arrs);
 		var arrLastVals = map(unBehaviorize,unBehaviorize(this.arrs));
     
-		var arrChangesE = internal_e();
-		var nodeChangesE = internal_e();
+		var arrChangesE = internalE();
+		var nodeChangesE = internalE();
 		
 		function attachNodes(i,arr) {
 			for(var j=0;j<arr.length;j++) {
 				var cnode = arr[j];
 				if(cnode instanceof Behavior) {
 					var newnode = (function(jj) {
-              return changes(cnode).lift_e(function(n) {return {index:i,jdex:jj,val:n};});
+              return changes(cnode).mapE(function(n) {return {index:i,jdex:jj,val:n};});
 					})(j);
 					lnodes[i].push(newnode);
 					attachListener(newnode,nodeChangesE);
@@ -1325,9 +1325,9 @@ TagB.prototype = {
 			}
 		}
     
-		var childChangesE = merge_e(
+		var childChangesE = mergeE(
 			// Behavior arrays change
-			arrChangesE.lift_e(function(ai) {
+			arrChangesE.mapE(function(ai) {
           var i = ai.index;
           var newarr = ai.val;
           while(lnodes[i].length) {
@@ -1351,7 +1351,7 @@ TagB.prototype = {
           return ctx.currentTag;
 			}),
 			// Behavior nodes change
-			nodeChangesE.lift_e(function(ni) {
+			nodeChangesE.mapE(function(ni) {
           var i = ni.index;
           var j = ni.jdex;
           var newnode = quickNode(ni.val);
@@ -1359,7 +1359,7 @@ TagB.prototype = {
           arrLastVals[i][j] = newnode;
           return ctx.currentTag;
 			}));
-		childChangesE.lift_e(function(cc) {sendEvent(ctx.resE,cc);});
+		childChangesE.mapE(function(cc) {sendEvent(ctx.resE,cc);});
     
 		for(var i=0; i<this.arrs.length;i++) {
 			for(var j=0; j<arrLastVals[i].length; j++) {
@@ -1368,7 +1368,7 @@ TagB.prototype = {
 			}
 			if(this.arrs[i] instanceof Behavior) {
 				attachNodes(i,valueNow(this.arrs[i]));
-				var newnode = (function(ii) {return changes(ctx.arrs[ii]).lift_e(function(na) {return {index:ii,val:na};});})(i);
+				var newnode = (function(ii) {return changes(ctx.arrs[ii]).mapE(function(na) {return {index:ii,val:na};});})(i);
 				attachListener(newnode,arrChangesE);
 			}
 			else {
@@ -1400,7 +1400,7 @@ TagB.prototype = {
       }
 			else {
         obj[i] = valueNow(vals[i]);
-				changes(vals[i]).lift_e(function(v) {obj[i] = v;});
+				changes(vals[i]).mapE(function(v) {obj[i] = v;});
 			}
 		}
 		else {
@@ -1489,23 +1489,23 @@ var generatedTags =
 
 forEach(function(tagName) {
   var upper = tagName.toUpperCase();
-  //d.<TAG>B
+  //d.<TAG>
   this[upper] = function () { 
     var thisTagB = new TagB(tagName,slice(arguments,0));
     return thisTagB.resB;
   };          
     
-  //d.<TAG>
+  //d.<TAG>_
   this[upper + '_'] = staticTagMaker(tagName); // faster constructor
 }, generatedTags);
 
 //TEXTB: Behavior a -> Behavior Dom TextNode    
 TEXTB = function (strB) {
   //      if (!(strB instanceof Behavior || typeof(strB) == 'string')) { throw 'TEXTB: expected Behavior as second arg'; } //SAFETY
-  if (!(strB instanceof Behavior)) { strB = constant_b(strB); }
+  if (!(strB instanceof Behavior)) { strB = constantB(strB); }
   
   return startsWith(
-    changes(strB).lift_e(
+    changes(strB).mapE(
       function (txt) { return document.createTextNode(txt); }),
     document.createTextNode(valueNow(strB)));
 };
@@ -1527,8 +1527,8 @@ var tagRec = function (eventNames, maker) {
   var internals = [ ];
   var switches = [ ];
   for (var i = 0; i < numEvents; i++) {
-    internals[i] = internal_e();
-    switches[i] = internals[i].switch_e();
+    internals[i] = internalE();
+    switches[i] = internals[i].switchE();
   };
   
   var domB = maker.apply(this,switches);
@@ -1540,7 +1540,7 @@ var tagRec = function (eventNames, maker) {
     
     prevValue = p.value;
     for (var i = 0; i < numEvents; i++) {
-      sendEvent(internals[i],extractEvent_e(prevValue,eventNames[i]));
+      sendEvent(internals[i],extractEventE(prevValue,eventNames[i]));
     };
   });
   
@@ -1550,14 +1550,14 @@ var tagRec = function (eventNames, maker) {
 };
 
 
-//extractEventStatic_e: Dom * String -> Event
-var extractEventStatic_e = function (domObj, eventName) {
-  if (!eventName) { throw 'extractEvent_e : no event name specified'; }
-  if (!domObj) { throw 'extractEvent_e : no DOM element specified'; }
+//extractEventStaticE: Dom * String -> Event
+var extractEventStaticE = function (domObj, eventName) {
+  if (!eventName) { throw 'extractEventE : no event name specified'; }
+  if (!domObj) { throw 'extractEventE : no DOM element specified'; }
   
   domObj = getObj(domObj);
   
-  var primEventE = internal_e();
+  var primEventE = internalE();
   addEvent(domObj,eventName,function(evt) {
      sendEvent(primEventE, evt || window.event);
      // Important for IE; false would prevent things like a checkbox actually
@@ -1568,19 +1568,19 @@ var extractEventStatic_e = function (domObj, eventName) {
   return primEventE;
 };
 
-//extractEvent_e: [Behavior] Dom * String -> Event
-var extractEvent_e = function (domB, eventName) {
+//extractEventE: [Behavior] Dom * String -> Event
+var extractEventE = function (domB, eventName) {
   if (!(domB instanceof Behavior)) {
-    return extractEventStatic_e(domB,eventName);
+    return extractEventStaticE(domB,eventName);
   }
   else {
     var domE = domB.changes();
     
-    var eventEE = domE.lift_e(function(dom) {
-      return extractEventStatic_e(dom,eventName);
+    var eventEE = domE.mapE(function(dom) {
+      return extractEventStaticE(dom,eventName);
     });
     
-    var resultE = eventEE.switch_e();
+    var resultE = eventEE.switchE();
     
     sendEvent(domE,domB.valueNow());
     
@@ -1589,55 +1589,55 @@ var extractEvent_e = function (domB, eventName) {
 };
 
 
-//extractEvents_e: 
+//extractEventsE: 
 //      [Behavior] Dom  
 //      . Array String
 //      -> Event
-// ex: extractEvents_e(m, 'body', 'mouseover', 'mouseout')
-extractEvents_e = function (domObj /* . eventNames */) {
+// ex: extractEventsE(m, 'body', 'mouseover', 'mouseout')
+extractEventsE = function (domObj /* . eventNames */) {
   var eventNames = slice(arguments, 1);
   
   var events = map(
     function (eventName) {
-      return extractEvent_e(domObj, eventName); 
+      return extractEventE(domObj, eventName); 
     },
     eventNames.length === 0 ? [] : eventNames);
   
-  return merge_e.apply(this, events);
+  return mergeE.apply(this, events);
 };
 
 //value of dom form object during trigger
-extractValueOnEvent_e = function (triggerE, domObj) {
-  if (!(triggerE instanceof EventStream)) { throw 'extractValueOnEvent_e: expected Event as first arg'; } //SAFETY
+extractValueOnEventE = function (triggerE, domObj) {
+  if (!(triggerE instanceof EventStream)) { throw 'extractValueOnEventE: expected Event as first arg'; } //SAFETY
   
-  return changes(extractValueOnEvent_b.apply(this, arguments));
+  return changes(extractValueOnEventB.apply(this, arguments));
   
 };
 
-//extractDomFieldOnEvent_e: Event * Dom U String . Array String -> Event a
-extractDomFieldOnEvent_e = function (triggerE, domObj /* . indices */) {
-  if (!(triggerE instanceof EventStream)) { throw 'extractDomFieldOnEvent_e: expected Event as first arg'; } //SAFETY
+//extractDomFieldOnEventE: Event * Dom U String . Array String -> Event a
+extractDomFieldOnEventE = function (triggerE, domObj /* . indices */) {
+  if (!(triggerE instanceof EventStream)) { throw 'extractDomFieldOnEventE: expected Event as first arg'; } //SAFETY
   var indices = slice(arguments, 2);
   var res =
-  triggerE.lift_e(
+  triggerE.mapE(
     function () { return getDomVal(domObj, indices); });
   return res;
 };
 
-extractValue_e = function (domObj) {
-  return changes(extractValue_b.apply(this, arguments));
+extractValueE = function (domObj) {
+  return changes(extractValueB.apply(this, arguments));
 };
-$E = extractValue_e;
+$E = extractValueE;
 
-//extractValueOnEvent_b: Event * DOM -> Behavior
+//extractValueOnEventB: Event * DOM -> Behavior
 // value of a dom form object, polled during trigger
-extractValueOnEvent_b = function (triggerE, domObj) {
-  return extractValueStatic_b(domObj, triggerE);
+extractValueOnEventB = function (triggerE, domObj) {
+  return extractValueStaticB(domObj, triggerE);
 };
 
-//extractValueStatic_b: DOM [ * Event ] -> Behavior a
+//extractValueStaticB: DOM [ * Event ] -> Behavior a
 //If no trigger for extraction is specified, guess one
-extractValueStatic_b = function (domObj, triggerE) {
+extractValueStaticB = function (domObj, triggerE) {
   
   var objD;
   try {
@@ -1659,10 +1659,10 @@ extractValueStatic_b = function (domObj, triggerE) {
   case 'checkbox': 
     
     return startsWith(
-      filterRepeats_e(
-        extractDomFieldOnEvent_e(
+      filterRepeatsE(
+        extractDomFieldOnEventE(
           triggerE ? triggerE : 
-          extractEvents_e(
+          extractEventsE(
             objD, 
             'click', 'keyup', 'change'),
           objD,
@@ -1680,11 +1680,11 @@ extractValueStatic_b = function (domObj, triggerE) {
       };
       
       return startsWith(
-        filterRepeats_e(
+        filterRepeatsE(
             (triggerE ? triggerE :
-            extractEvents_e(
+            extractEventsE(
               objD,
-              'click', 'keyup', 'change')).lift_e(getter)),getter(),
+              'click', 'keyup', 'change')).mapE(getter)),getter(),
         getter());
       
       case 'select-multiple':
@@ -1703,9 +1703,9 @@ extractValueStatic_b = function (domObj, triggerE) {
         
         return startsWith(
             (triggerE ? triggerE : 
-            extractEvents_e(
+            extractEventsE(
               objD,
-              'click', 'keyup', 'change')).lift_e(getter),
+              'click', 'keyup', 'change')).mapE(getter),
           getter());
         
         case 'text':
@@ -1714,10 +1714,10 @@ extractValueStatic_b = function (domObj, triggerE) {
         case 'password':
           
           return startsWith(
-            filterRepeats_e(
-              extractDomFieldOnEvent_e(
+            filterRepeatsE(
+              extractDomFieldOnEventE(
                 triggerE ? triggerE :
-                extractEvents_e(
+                extractEventsE(
                   objD, 
                   'click', 'keyup', 'change'),
                 objD,
@@ -1727,9 +1727,9 @@ extractValueStatic_b = function (domObj, triggerE) {
           case 'button': //same as above, but don't filter repeats
             
             return startsWith(
-              extractDomFieldOnEvent_e(
+              extractDomFieldOnEventE(
                 triggerE ? triggerE :
-                extractEvents_e(
+                extractEventsE(
                   objD, 
                   'click', 'keyup', 'change'),
                 objD,
@@ -1768,36 +1768,36 @@ extractValueStatic_b = function (domObj, triggerE) {
               };
               
               var actualTriggerE = triggerE ? triggerE :
-              merge_e.apply(
+              mergeE.apply(
                 this,
                 map(
                   function (radio) { 
-                    return extractEvents_e(
+                    return extractEventsE(
                       radio, 
                   'click', 'keyup', 'change'); },
                     radiosAD));
               
               return startsWith(
-                filterRepeats_e(
-                    actualTriggerE.lift_e(getter),getter()),
+                filterRepeatsE(
+                    actualTriggerE.mapE(getter),getter()),
                 getter());
               
               default:
                 
-                throw ('extractValueStatic_b: unknown value type "' + objD.type + '"');
+                throw ('extractValueStaticB: unknown value type "' + objD.type + '"');
   }
 };
 
-extractValue_b = function (domObj) {
+extractValueB = function (domObj) {
   if (domObj instanceof Behavior) {
-    return lift_b(function (dom) { return extractValueStatic_b(dom); },
+    return liftB(function (dom) { return extractValueStaticB(dom); },
                   domObj)
-           .switch_b();
+           .switchB();
   } else {
-    return extractValueStatic_b(domObj);
+    return extractValueStaticB(domObj);
   }
 };
-$B = extractValue_b;
+$B = extractValueB;
 
 
 //into[index] = deepValueNow(from) via descending from object and mutating each field
@@ -1858,7 +1858,7 @@ insertValueE = function (triggerE, domObj /* . indices */) {
   var indices = slice(arguments, 2);
   var parent = getMostDom(domObj, indices);
   
-    triggerE.lift_e(function (v) {
+    triggerE.mapE(function (v) {
       deepStaticUpdate(parent, v, indices? indices[indices.length - 1] : undefined);
     });
 };
@@ -1887,7 +1887,7 @@ insertDomE = function (triggerE, domObj) {
   
   var objD = getObj(domObj);
   
-  var res = triggerE.lift_e(
+  var res = triggerE.mapE(
     function (newObj) {
       //TODO safer check
       if (!((typeof(newObj) == 'object') && (newObj.nodeType == 1))) { 
@@ -1974,11 +1974,11 @@ insertDom = function (replaceWithD, hook, optPosition) {
 insertDomB = function (initTriggerB, optID, optPosition) {
   
   if (!(initTriggerB instanceof Behavior)) { 
-    initTriggerB = constant_b(initTriggerB);
+    initTriggerB = constantB(initTriggerB);
   }
   
   var triggerB = 
-  lift_b(
+  liftB(
     function (d) { 
       if ((typeof(d) == 'object') && (d.nodeType >  0)) {
         return d;
@@ -2008,7 +2008,7 @@ insertDomB = function (initTriggerB, optID, optPosition) {
 };
 
 
-extractId_b = function (id, start)
+extractIdB = function (id, start)
 {
   return startsWith(
     createNode( start instanceof Behavior? [changes(start)] :
@@ -2020,9 +2020,9 @@ extractId_b = function (id, start)
     getObj(id));
 };
 
-var mouse_e = function(elem) {
-  return extractEvent_e(elem,'mousemove')
-  .lift_e(function(evt) {
+var mouseE = function(elem) {
+  return extractEventE(elem,'mousemove')
+  .mapE(function(evt) {
       if (evt.pageX | evt.pageY) {
         return { left: evt.pageX, top: evt.pageY };
       }
@@ -2036,24 +2036,24 @@ var mouse_e = function(elem) {
   });
 };
 
-var mouse_b = function(elem) {
-  return mouse_e(elem).startsWith({ left: 0, top: 0 });
+var mouseB = function(elem) {
+  return mouseE(elem).startsWith({ left: 0, top: 0 });
 }
 
 
-var mouseLeft_b = function(elem) {
-  return lift_b(function(v) { return v.left; },mouse_b(elem));
+var mouseLeftB = function(elem) {
+  return liftB(function(v) { return v.left; },mouseB(elem));
 };
 
 
-var mouseTop_b = function(elem) {
-  return mouse_b(elem).lift_b(function(v) { return v.top; });
+var mouseTopB = function(elem) {
+  return mouseB(elem).liftB(function(v) { return v.top; });
 };
 
 
 
-var clicks_e = function(elem) {
-  return extractEvent_e(elem,'click');
+var clicksE = function(elem) {
+  return extractEventE(elem,'click');
 };
 
 
@@ -2137,9 +2137,9 @@ var runScript = function (url, fn, param) {
 
 // Node {url, globalArg} -> Node a
 //load script @ url and poll until param is set, then pass it along
-var evalForeignScriptVal_e = function(urlArg_e) {
-  var result = receiver_e();
-  urlArg_e.lift_e(function(urlArg) {
+var evalForeignScriptValE = function(urlArgE) {
+  var result = receiverE();
+  urlArgE.mapE(function(urlArg) {
       runScript(urlArg.url,
         function(val) { result.sendEvent(val); }, 
         urlArg.globalArg);
@@ -2287,10 +2287,10 @@ var toJSONString = (function() {
   };
 })();
  
-var serverRequest_e = function(useFlash,requestE) {
-  var response_e = receiver_e();
+var serverRequestE = function(useFlash,requestE) {
+  var responseE = receiverE();
   
-  requestE.lift_e(function (obj) {
+  requestE.mapE(function (obj) {
       var body = '';
       var method = 'GET';
       var url = obj.url;
@@ -2323,19 +2323,19 @@ var serverRequest_e = function(useFlash,requestE) {
       if (obj.response == 'json') {
         xhr = ajaxRequest(method,url,body,async,useFlash,
           function(xhr) {
-            response_e.sendEvent(parseJSON(xhr.responseText)); 
+            responseE.sendEvent(parseJSON(xhr.responseText)); 
           });
       }
       else if (obj.response == 'xml') {
         ajaxRequest(method,url,body,async,useFlash,
           function(xhr) {
-            response_e.sendEvent(xhr.responseXML);
+            responseE.sendEvent(xhr.responseXML);
           });
       }
       else if (obj.response == 'plain' || !obj.response) {
         ajaxRequest(method,url,body,async,useFlash,
           function(xhr) {
-            response_e.sendEvent(xhr.responseText);
+            responseE.sendEvent(xhr.responseText);
         });
       }
       else {
@@ -2343,16 +2343,16 @@ var serverRequest_e = function(useFlash,requestE) {
       }
   });
   
-  return response_e;
+  return responseE;
 };
 
-var getWebServiceObject_e = function(requestE) {
-  return serverRequest_e(false,requestE);
+var getWebServiceObjectE = function(requestE) {
+  return serverRequestE(false,requestE);
 };
 
 
-var getForeignWebServiceObject_e = function(requestE) {
-  return serverRequest_e(true,requestE);
+var getForeignWebServiceObjectE = function(requestE) {
+  return serverRequestE(true,requestE);
 };
 
 
@@ -2366,12 +2366,12 @@ var cumulativeOffset = function(element) {
   return { left: valueL, top: valueT };
 };
 
-var mixedSwitch_b = function(behaviourCreatorsB) {
+var mixedSwitchB = function(behaviourCreatorsB) {
   var init = valueNow(behaviourCreatorsB);
   
   var prevSourceE = null;
   
-  var receiverE = internal_e();
+  var receiverE = internalE();
 
   
 	//XXX could result in out-of-order propagation! Fix!
@@ -2409,13 +2409,13 @@ var compilerLift = function(f /* , args ... */) {
 
   // Assume some argument is a behavior.  This should always work.  We can
   // optimize later.
-  var resultE = internal_e();
-  var r = lift_b.apply(this,arguments);
+  var resultE = internalE();
+  var r = liftB.apply(this,arguments);
   if (r.valueNow() instanceof EventStream) {
     return r.valueNow();
   }
   else {
-    return mixedSwitch_b(r);
+    return mixedSwitchB(r);
   }
 };
 
@@ -2426,7 +2426,7 @@ var compilerCall = function(f /* , args ... */) {
 
 var compilerIf = function(test,cons,alt) {
   if (test instanceof Behavior) {
-    return test.lift_b(function(v) { return v ? cons : alt; }).switch_b();
+    return test.liftB(function(v) { return v ? cons : alt; }).switchB();
   }
   else {
     return test ? cons : alt;
@@ -2475,7 +2475,7 @@ var compilerUnbehavior = function(v) {
         return recomputeE;
       };
 
-      var resultE = internal_e();
+      var resultE = internalE();
       
       var recomputeE = createNode([],function(send,_) {
         // Some argument changed.  We will recompute new values for all
