@@ -1,0 +1,4 @@
+# These files are copied here by the Flapjax library build process
+flapjax.jsi
+flapjax.debug.js
+flapjax.js
