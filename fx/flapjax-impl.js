@@ -1490,13 +1490,13 @@ var generatedTags =
 forEach(function(tagName) {
   var upper = tagName.toUpperCase();
   //d.<TAG>B
-  this[upper + 'B'] = function () { 
+  this[upper] = function () { 
     var thisTagB = new TagB(tagName,slice(arguments,0));
     return thisTagB.resB;
   };          
     
   //d.<TAG>
-  this[upper] = staticTagMaker(tagName); // faster constructor
+  this[upper + '_'] = staticTagMaker(tagName); // faster constructor
 }, generatedTags);
 
 //TEXTB: Behavior a -> Behavior Dom TextNode    
