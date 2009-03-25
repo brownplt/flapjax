@@ -1,6 +1,7 @@
 <html>
 
 <head>
+<link rel="stylesheet" href="/style.css"/>
 <script type="text/javascript" lang="javascript" src="/fx/flapjax.js">
 </script>
 <script type="text/javascript" src="/demos/prototype.js"></script>
@@ -46,16 +47,30 @@ function loadInitial(onLoadE) {
   var textE = getWebServiceObjectE(onLoadE.mapE(makeDownload(editUrl)));
   insertValueE(textE,$("usersrc"),"value"); }
 
-function compileE(src) {
-  return getWebServiceObjectE(clicksE($("compile")).snapshotE(src)
+function compileE(doE,src) {
+  return getWebServiceObjectE(doE.snapshotE(src)
                               .mapE(makeCompileRequest)); }
 
 function loader() {
 
   var src = $B('usersrc');
+  var doE = clicksE($("compile"));
 
-  compileE(src).mapE(function(compileResult) {
+  var compileResultE = compileE(doE,src);
+
+  var displayB = mergeE(clicksE("hideMsgs").constantE("none"),
+                        compileResultE.mapE(function(msg) {
+                          return !msg ? "none" : "block" }))
+                 .startsWith("none");
+
+  insertValueB(displayB,$("compilerMessages"),"style","display");
+
+
+  insertValueE(compileResultE,$("msgs"),"innerHTML"); // security police
+
+  compileResultE.mapE(function(compileResult) {
     window.parent.output.location.href = "/fxserver/getobj/tryFlapjax";
+    window.parent.output.location.reload();
      });
   
   loadInitial(oneE(true)); }
@@ -75,9 +90,20 @@ document.observe("dom:loaded",loader);
 <a href="javascript:undefined" id="compile">Compile and Run</a>
 </p>
 
-<textarea id="usersrc" cols="80" rows="40">
+<div>
+
+<div id="compilerMessages"
+     style="font-size: small; border: 1px solid black; margin: 3px; 
+            padding: 3px">
+<a id="hideMsgs" href="javascript:undefined">Hide</a>
+<div id="msgs"></div>
+</div>
+
+<textarea id="usersrc" cols="80" rows="40" style="width: 100%">
 Loading, please wait ...
 </textarea>
+
+</div>
 
 </body>
 

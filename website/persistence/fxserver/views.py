@@ -8,7 +8,8 @@ if settings.host == "peabody":
 else:
   fxc = "/home/flapjax/compiler/bin/fxc"
 
-flapjaxCmd = [fxc,"--flapjax","/fx/flapjax.js","--stdin","--stdout"]
+flapjaxCmd = [fxc,"--flapjax","/fx/flapjax.js","--stdin","--stdout",
+              "--web-mode"]
 
 # The "Try Flapjax" page uses setobj to store the page at setobj/tryFlapjax.
 # The compiler does the same.  The result is a bunch of warnings.

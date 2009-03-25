@@ -18,7 +18,10 @@ import Flapjax.Parser(parseScript) -- for standalone mode
 import WebBits.Html.PermissiveParser (parseHtmlFromString)
 import Flapjax.Compiler(compilePage,defaults,CompilerOpts(..))
 
+import BrownPLT.Flapjax.CompilerMessage
 import BrownPLT.Flapjax.Interface
+
+import Text.XHtml (showHtml,toHtml,HTML)
 
 data Option
   = Usage
@@ -72,6 +75,10 @@ getOutput inputName options = do
   h <- openFile (inputName ++ ".html") WriteMode
   return (h,options)
 
+getWebMode :: [Option] -> IO (Bool,[Option])
+getWebMode (WebMode:rest) = return (True,rest)
+getWebMode options = return (False,options)
+
 main = do
   argv <- getArgs
   let (permutedArgs,files,errors) = getOpt Permute options argv
@@ -84,21 +91,26 @@ main = do
   (fxPath,args) <- getFlapjaxPath args
   (inputHandle,inputName,args) <- getInput files args
   (outputHandle,args) <- getOutput inputName args
+  (isWebMode,args) <- getWebMode args
 
   unless (null args) $ do
     hPutStrLn stderr "invalid arguments, use -h for help"
     exitFailure
 
+  -- monomorphism restriction, I think
+  let showErr :: (Show a, HTML a) => a -> String
+      showErr = if isWebMode then showHtml.toHtml else show
+
   inputText <- hGetContents inputHandle
   case parseHtmlFromString inputName inputText of
     Left err -> do -- TODO: web mode is different
-      hPutStrLn stderr (show err)
+      hPutStrLn stderr (showErr err)
       exitFailure
     Right (html,_) -> do -- ignoring all warnings
       (msgs,outHtml) <- compilePage (defaults { flapjaxPath = fxPath })  html
       
       -- TODO: web mode is different
-      mapM_ (hPutStrLn stderr . show) msgs
+      mapM_ (hPutStrLn stderr . showErr) msgs
 
       hPutStrLn outputHandle (render $ pp outHtml)
       hClose outputHandle

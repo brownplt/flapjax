@@ -1,6 +1,5 @@
 module Flapjax.Compiler 
   ( compilePage
-  , CompilerMessage
   , defaults
   , CompilerOpts (..)
   ) where
@@ -25,6 +24,7 @@ import qualified Flapjax.Builder as J
 import WebBits.JavaScript.Env (localVars)
 import qualified Data.Set as S
 import BrownPLT.Flapjax.Interface
+import BrownPLT.Flapjax.CompilerMessage
 
 noPos = initialPos ""
 
@@ -70,13 +70,6 @@ type Html = Html.Html SourcePos Flapjax
 type Attribute = Html.Attribute SourcePos Flapjax
 
 type Compiler = Writer [CompilerMessage]
-
-data CompilerMessage
-  = Warning String String SourcePos
-
-instance Show CompilerMessage where
-  show (Warning desc expr pos) =
-    show pos ++ ": " ++ desc ++ "\nOffending expression:\n" ++ expr
 
 data CompilerOpts = CompilerOpts {
   flapjaxObject:: String,

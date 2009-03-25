@@ -22,7 +22,7 @@ Executable fxc
 
   Build-Depends:
     base>=4, mtl>=1.1.0.1, parsec<3.0.0, pretty>=0.1, containers>=0.1, syb>=0.1,
-    filepath>=1.1.0.1,random>=1.0.0.1,WebBits,directory,JsContracts>=0.3
+    filepath>=1.1.0.1,random>=1.0.0.1,WebBits,directory,JsContracts>=0.3,xhtml
   ghc-options:
     -fwarn-incomplete-patterns
   Extensions:     
