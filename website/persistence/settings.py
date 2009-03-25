@@ -1,5 +1,5 @@
 # Django settings for persistence project.
-
+import os
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -9,15 +9,19 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'sqlite3' # 'mysql'
-if DEBUG:
-	DATABASE_NAME = '/Users/arjun/Projects/flapjax/website/persistence/persistent-sqlitedb'
-else:
-	DATABASE_NAME = '/home/flapjax/web/persistence/persistent-sqlitedb'
-# DATABASE_USER = 'fxserver'
-# DATABASE_PASSWORD = 'fxserver'
-# DATABASE_HOST = '' # empty = localhost
-# DATABASE_PORT = '' # empty = default
+host = os.uname()[1]
+
+if host == "peabody":
+  DATABASE_ENGINE = "sqlite3"
+  DATABASE_NAME = "/home/arjun/Projects/flapjax/website/persistence/sqlite3.db"
+elif host == "wanderlust":
+  DATABASE_ENGINE = "sqlite3"
+  DATABASE_NAME = "/Users/arjun/Projects/flapjax/website/persistence/sqlite3.db"
+else: # Assume deployment
+  DATABASE_ENGINE = "mysql"
+  DATABASE_NAME = "flapjax"
+  DATABASE_USER = "flapjax"
+  DATABASE_PASSWORD = "flapjax"
  
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
