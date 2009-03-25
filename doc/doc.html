@@ -1,68 +1,17 @@
 <document title="Flapjax Framework API Documentation">
 
-<chapter title="Initialization">
-
-<article title="flapjaxInit">
-
-<programlisting>
-flapjaxInit()
-flapjaxInit(False)
-flapjaxInit({
-  includeSynonyms: Bool,
-  exportMisc: Bool,
-  exportCore: Bool,
-  exportDOM: Bool,
-  exportDOMMisc: Bool,
-  exportWS: Bool,
-  hide: Array String,
-  show: Array String,
-  redefine: Bool
-});
-
-</programlisting>
-
-<p>Initializes the Flapjax framework, returning an object whose fields
-are the functions defined below.  If no arguments are specified, all
-Flapjax functions are exported to <code>window</code>. If a function is
-already defined, it is not exported.</p>
-
-<p>If <code>False</code> is supplied,
-nothing is exported.  (However, all of Flapjax is still accessible from
-the returned object.)</p>
-
-<p>Flapjax's functions may be selectively exported as well.  If
-<code>includeSynonyms</code> is set to <code>False</code>, synonyms for
-methods are not exported.  <code>exportMisc</code>,
-<code>exportCore</code>, <code>exportDOM</code>,
-<code>exportDOMMisc</code> or <code>exportWS</code> are set, categories
-of functions can be selectively exported.</p>
-
-<p>By default, Flapjax will not export functions that are already
-defined.  For example, the Prototype Framework defines <code>$</code>,
-<code>$A</code>, etc.  Flapjax will not redefine these functions.
-However, if <code>redefine</code> is set, Flapjax will overwrite
-Prototype's bindings.</p>
-
-<p>Finally, <code>hide</code> and <code>show</code> can be used to
-selectively export specific functions.</p>
-
-
-</article>
-
-</chapter>
-
 <chapter title="Event Streams">
 
-<article title="one_e">
+<article title="oneE">
 
 <programlisting>
-one_e(val) -> EventStream val
+oneE(val) -> EventStream val
 </programlisting>
 
 <p>Create an event stream that fires just one event with the value
 <code>val</code>.</p>
 
-<p>Note that <code>one_e</code> does not immediately fire <code>val</code>.  The event is queued and fired after the current event has finished propagating.</p>
+<p>Note that <code>oneE</code> does not immediately fire <code>val</code>.  The event is queued and fired after the current event has finished propagating.</p>
 
 <example>
 
@@ -70,7 +19,7 @@ one_e(val) -> EventStream val
 
 <programlisting>
 console.log('first');
-lift_e(function(val) { console.log(val); },one_e('third'));
+mapE(function(val) { console.log(val); },oneE('third'));
 console.log('second');
 </programlisting>
 
@@ -80,56 +29,54 @@ console.log('second');
 
 </article>
 
-<article title="zero_e">
+<article title="zeroE">
 
 <programlisting>
-zero_e() -> EventStream a
+zeroE() -> EventStream a
 </programlisting>
 
 <p>Create an event stream that never fires any events.</p>
 
 </article>
 
-<article title="lift_e">
+<article title="mapE">
 
 <programlisting>
-lift_e(f, argE_1, ... , argE_n) -> EventStream b
+mapE(f, argE) -> EventStream b
 
-argE_1 :: EventStream a_1
-...
-argE_n :: EventStream a_n
-f :: a_1 ... a_n -> b
+argE :: EventStream a
+f :: a -> b
 </programlisting>
 
 <p>Transforms a stream of events.</p>
 
 <example>
 
-<p><code>timer_e(1000)</code> is an event stream that fires an event every
+<p><code>timerE(1000)</code> is an event stream that fires an event every
 second. The event value is the current time, in milliseconds. The following
 expression transforms the event stream to return the current time plus one
 second:</p>
 
 <programlisting>
-lift_e(timer_e(1000),function(t) { return t + 1; })
+mapE(timerE(1000),function(t) { return t + 1; })
 </programlisting>
 
-<p>Alternatively, we can use the <code>lift_e</code> method of the event
+<p>Alternatively, we can use the <code>mapE</code> method of the event
 object to achieve the same effect.</p>
 
 <programlisting>
-timer_e(1000).lift_e(function(t) { return t + 1; })
+timerE(1000).mapE(function(t) { return t + 1; })
 </programlisting>
 
 </example>
 
-<synonyms>transform_e apply_e map_e argE_1.lift(f) argE_1.transform(f) argE_1.apply(f)</synonyms>
+<synonyms>argE.mapE(f)</synonyms>
 </article>
 
-<article title="merge_e">
+<article title="mergeE">
 
 <programlisting>
-merge_e(event_1, ..., event_n) -> EventStream a
+mergeE(event_1, ..., event_n) -> EventStream a
 
 event_1 :: EventStream a
 ...
@@ -146,22 +93,20 @@ propagated into the merged event stream.</p>
 the document every 60 seconds, and when the user clicks the save button:</p>
 
 <programlisting>
-var saveTimer = timer_e(60000);
-var saveClicked = extractEvent_e('save-button','click');
-var save = merge_e(saveTimer,saveClicked);
+var saveTimer = timerE(60000);
+var saveClicked = extractEventE('save-button','click');
+var save = mergeE(saveTimer,saveClicked);
 save.transform(doSave); // doSave does the real work
 </programlisting>
 
 </example>
 
-<synonyms>merge</synonyms> 
-
 </article>
 
-<article title="switch_e">
+<article title="switchE">
 
 <programlisting>
-switch_e(anyEE) -> EventStream a
+switchE(anyEE) -> EventStream a
 
 anyEE :: EventStream (EventStream a)
 </programlisting>
@@ -172,23 +117,23 @@ event stream.</p>
 <example>
 
 <programlisting>
-var domStreamE = receiver_e(); // every event is a DOM object
+var domStreamE = receiverE(); // every event is a DOM object
 domStreamE.
-	switch_e().
-	extractEvent_e('mouseover').
-	transform_e(function(_) { alert('hit!'); });
+	switchE().
+	extractEventE('mouseover').
+	transformE(function(_) { alert('hit!'); });
 </programlisting>
 
 </example>
 
-<synonyms>anyEE.forwardLatest anyEE.switch_e</synonyms>
+<synonyms>anyEE.switchE</synonyms>
 
 </article>
 
-<article title="cond_e">
+<article title="condE">
 
 <programlisting>
-cond_e([boolE,resultE], ...) -> EventStream a
+condE([boolE,resultE], ...) -> EventStream a
 
 boolE :: EventStream Bool
 resultE :: EventStream a
@@ -202,10 +147,10 @@ second event will propagate. No value needs to propagate every time step.</p>
 
 </article>
 
-<article title="filter_e">
+<article title="filterE">
 
 <programlisting>
-filter_e(sourceE,pred) -> EventStream a
+filterE(sourceE,pred) -> EventStream a
 
 sourceE :: EventStream a
 pred :: a -> Bool
@@ -219,19 +164,19 @@ satisfy the predicate.</p>
 <p>The following event stream only contains positive numbers:</p>
 
 <programlisting>
-numbers.filter_e(function (v) { return v > 0; })
+numbers.filterE(function (v) { return v > 0; })
 </programlisting>
 
 </example>
 
-<synonyms>sourceE.filter sourceE.filter_e</synonyms>
+<synonyms>sourceE.filterE</synonyms>
 
 </article>
 
-<article title="if_e">
+<article title="ifE">
 
 <programlisting>
-if_e(testE,trueE,falseE) -> EventStream a
+ifE(testE,trueE,falseE) -> EventStream a
 
 testE :: EventStream Bool
 trueE :: EventStream a
@@ -245,14 +190,14 @@ timestep an event occurs and the false branch, propagate that event. If either
 no event occurs in the test position or no event occurs in the enabled branch,
 do not send an event.  </p>
 
-<synonyms>choose_e testE.if_e testE.choose_e testE.choose</synonyms>
+<synonyms>testE.ifE</synonyms>
 
 </article>
 
-<article title="constant_e">
+<article title="constantE">
 
 <programlisting>
-constant_e(sourceE,val) -> EventStream val
+constantE(sourceE,val) -> EventStream val
 
 sourceE :: EventStream a
 </programlisting>
@@ -266,21 +211,21 @@ a constant value.</p>
 </p>
 
 <programlisting>
-var clicks = extractValue_e('form-button','click');
-clicks.constant_e(function() { alert('Do not press this button.'); });
+var clicks = extractValueE('form-button','click');
+clicks.constantE(function() { alert('Do not press this button.'); });
 </programlisting>
 
 </example>
 
-<synonyms>sourceE.constant sourceE.replaceValue replaceValue_e sourceE.constant_e
+<synonyms>sourceE.constantE
 </synonyms>
 
 </article>
 
-<article title="collect_e">
+<article title="collectE">
 
 <programlisting>
-collect_e(sourceE,init,f) -> EventStream b
+collectE(sourceE,init,f) -> EventStream b
 
 sourceE :: EventStream a
 init :: b
@@ -296,7 +241,7 @@ an event stream of accumulated results.</p>
 to accumulate an array of events:</p>
 
 <programlisting>
-original.collect_e([],function(new,arr) { return [new].concat(arr); });
+original.collectE([],function(new,arr) { return [new].concat(arr); });
 </programlisting>
 
 <p>Note that the initial value is the empty array. In the resultant event
@@ -307,19 +252,19 @@ value, effectively counting the number of events that occur.  Naturally, the
 initial value is <code>0</code>:</p>
 
 <programlisting>
-original.collect_e(0,function(_,count) { return count + 1; });
+original.collectE(0,function(_,count) { return count + 1; });
 </programlisting>
 
 </example>
 
-<synonyms>sourceE.collect sourceE.transformWithMemory</synonyms>
+<synonyms>sourceE.collectE</synonyms>
 
 </article>
 
-<article title="and_e">
+<article title="andE">
 
 <programlisting>
-and_e(sourceE, ...) -> EventStream True
+andE(sourceE, ...) -> EventStream True
 
 sourceE :: EventStream Bool
 </programlisting>
@@ -328,38 +273,36 @@ sourceE :: EventStream Bool
 
 </article>
 
-<article title="or_e">
+<article title="orE">
 
 <programlisting>
-or_e(sourceE, ...) -> EventStream True
+orE(sourceE, ...) -> EventStream True
 
 sourceE :: EventStream Bool
 </programlisting>
 
 <p>Fires an event when any of its arguments fire <code>True</code>.</p>
 
-<synonyms>or_e or</synonyms>
-
 </article>
 
-<article title="not_e">
+<article title="notE">
 
 <programlisting>
-not_e(sourceE) -> EventStream Bool
+notE(sourceE) -> EventStream Bool
 
 sourceE :: EventStream Bool
 </programlisting>
 
 <p>Negates each event in the event stream.</p>
 
-<synonyms>sourceE.not</synonyms>
+<synonyms>sourceE.notE</synonyms>
 
 </article>
 
-<article title="filterRepeats_e">
+<article title="filterRepeatsE">
 
 <programlisting>
-filterRepeats_e(sourceE) -> EventStream a
+filterRepeatsE(sourceE) -> EventStream a
 
 sourceE :: EventStream a
 </programlisting>
@@ -373,33 +316,33 @@ equal.</p>
 time in seconds.</p>
 
 <programlisting>
-var sec_e = timer_e(100).lift_e(function (ms)
+var secE = timerE(100).mapE(function (ms)
               { return Math.floor (ms / 1000) % 10; });
 </programlisting>
 
-<p><code>filterRepeats_e</code> removes the duplicate events from the event stream:</p>
+<p><code>filterRepeatsE</code> removes the duplicate events from the event stream:</p>
 
 <programlisting>
-sec_e.filterRepeats_e()
+secE.filterRepeatsE()
 </programlisting>
 </example>
 
-<synonyms>sourceE.filterRepeats_e sourceE.filterRepeats
+<synonyms>sourceE.filterRepeatsE
 </synonyms>
 
 </article>
 
-<article title="receiver_e and sendEvent">
+<article title="receiverE and sendEvent">
 
 <programlisting>
-receiver_e() -> Event a
+receiverE() -> Event a
 
 sendEvent(a,EventStream a);
 </programlisting>
 
-<p><code>receiver_e</code> creates an event stream that does not receive
+<p><code>receiverE</code> creates an event stream that does not receive
 events from any other event source.  However, <code>sendEvent</code> may be
-used to send an event to a <code>receiver_e</code> event source.</p>
+used to send an event to a <code>receiverE</code> event source.</p>
 
 <example>
 
@@ -408,8 +351,8 @@ event-based Javascript code.  For example, here is a simplified
 timer:</p>
 
 <programlisting>
-function simple_timer_e(interval_ms) {
-  var evt = receiver_e();
+function simple_timerE(interval_ms) {
+  var evt = receiverE();
   // create and install a callback
   var f = function() { evt.sendEvent((new Date()).getTime()); };
   window.setInterval(f,interval_ms);
@@ -420,10 +363,10 @@ function simple_timer_e(interval_ms) {
 
 </article>
 
-<article title="snapshot_e">
+<article title="snapshotE">
 
 <programlisting>
-snapshot_e(sourceE,valueB) -> EventStream b
+snapshotE(sourceE,valueB) -> EventStream b
 
 sourceE :: EventStream a
 valueB :: Behavior b
@@ -432,14 +375,14 @@ valueB :: Behavior b
 <p>Returns an event stream carrying values from <i>valueB</i>. Values are captured when <i>sourceE</i> fires an
 event.</p>
 
-<synonyms>sourceE.snapshot_e sourceE.snapshot sourceE.takeSnapshot</synonyms>
+<synonyms>sourceE.snapshotE</synonyms>
 
 </article>
 
-<article title="once_e">
+<article title="onceE">
 
 <programlisting>
-once_e(sourceE) -> EventStream a
+onceE(sourceE) -> EventStream a
 
 sourceE : EventStream a
 </programlisting>
@@ -447,14 +390,14 @@ sourceE : EventStream a
 <p>Given a stream of events, create a new stream that will send only the first event sent by the original event stream.
 </p>
 
-<synonyms>sourceE.once sourceE.once_e</synonyms>
+<synonyms>sourceE.onceE</synonyms>
 
 </article>
 
-<article title="skipFirst_e">
+<article title="skipFirstE">
 
 <programlisting>
-skipFirst_e(sourceE) -> EventStream a
+skipFirstE(sourceE) -> EventStream a
 
 sourceE : EventStream a
 </programlisting>
@@ -462,17 +405,17 @@ sourceE : EventStream a
 <p>Skips the first event in <i>sourceE</i>.</p>
 
 <example>
-<p>The expression <code>skipFirst_e(skipFirst_e(sourceE))</code> skips the first two events from <i>sourceE</i>.</p>
+<p>The expression <code>skipFirstE(skipFirstE(sourceE))</code> skips the first two events from <i>sourceE</i>.</p>
 </example>
 
-<synonyms>sourceE.skipFirst sourceE.skipFirst_e</synonyms>
+<synonyms>sourceE.skipFirstE</synonyms>
 
 </article>
 
-<article title="delay_e">
+<article title="delayE">
 
 <programlisting>
-delay_e(sourceE,intervalB) -> EventStream a
+delayE(sourceE,intervalB) -> EventStream a
 
 sourceE :: EventStream a
 intervalB :: Behavior milliseconds
@@ -480,14 +423,14 @@ intervalB :: Behavior milliseconds
 
 <p>Delays propagation of the events from <i>sourceE</i> by <i>intervalB</i> milliseconds.</p>
 
-<synonyms>sourceE.delay</synonyms>
+<synonyms>sourceE.delayE</synonyms>
 
 </article>
 
-<article title="blind_e">
+<article title="blindE">
 
 <programlisting>
-blind_e(sourceE,intervalB) -> EventStream a
+blindE(sourceE,intervalB) -> EventStream a
 
 sourceE : EventStream a
 intervalB : Behavior Int
@@ -496,15 +439,15 @@ intervalB : Behavior Int
 <p>Ignores events that fire less than <i>intervalB</i> milliseconds apart. All other events are propagated. Note that
 <i>intervalB</i> may be time-varying.</p>
 
-<synonyms>sourceE.blind_e sourceE.blind</synonyms>
+<synonyms>sourceE.blindE</synonyms>
 
 </article>
 
 
-<article title="calm_e">
+<article title="calmE">
 
 <programlisting>
-calm_e(sourceE,intervalB) -> EventStream a
+calmE(sourceE,intervalB) -> EventStream a
 
 sourceE : EventStream a
 intervalB : Behavior Int
@@ -514,7 +457,7 @@ intervalB : Behavior Int
 sooner are delayed to ocur <i>intervalB</i> milliseconds after the most recently-fired event.  Only the most recent
 event is delayed.  So, if multiple events fire within <i>intervalB</i>, only the last event will be propagated.</p>
 
-<synonyms>sourceE.calm sourceE.calm_e</synonyms>
+<synonyms>sourceE.calmE</synonyms>
 
 </article>
 
@@ -522,10 +465,10 @@ event is delayed.  So, if multiple events fire within <i>intervalB</i>, only the
 
 <chapter title="Behaviors">
 
-<article title="hold">
+<article title="startsWith">
 
 <programlisting>
-hold(sourceE,initialVal) -> Behavior a
+startsWith(sourceE,initialVal) -> Behavior a
 
 sourceE :: Behavior a
 initialVal :: a
@@ -534,7 +477,7 @@ initialVal :: a
 <p>Given an event stream and an initial value, create a time varying value that starts as the initial value and changes
 value whenever an event occurs, taking on the value of that event.</p>
 
-<synonyms>sourceE.hold sourceE.toBehavior sourceE.startsWith</synonyms>
+<synonyms>sourceE.startsWith</synonyms>
 
 </article>
 
@@ -548,25 +491,25 @@ behavior :: Behavior a
 
 <p>Given a time varying value, make an event steam whose events are the values of the behaviour whenever it changes.</p>
 
-<synonyms>behavior.changes behavior.toEvent</synonyms>
+<synonyms>behavior.changes</synonyms>
 
 </article>
 
-<article title="constant_b">
+<article title="constantB">
 
 <programlisting>
-constant_b(val) -> Behavior val
+constantB(val) -> Behavior val
 </programlisting>
 
 <p>Create a behavior with a constant value.</p>
 
 </article>
 
-<article title="delay_b">
+<article title="delayB">
 
 <programlisting>
-delay_b(sourceB,delay) -> Behavior a
-delay_b(sourceB,delayB) -> Behavior a
+delayB(sourceB,delay) -> Behavior a
+delayB(sourceB,delayB) -> Behavior a
 
 sourceB :: Behavior a
 delayB :: Behavior milliseconds
@@ -581,7 +524,7 @@ program initialization, there is also an optional initialization. Both the
 initialization argument and amount of time to delay may be time varying
 values.</p>
 
-<synonyms>sourceB.delay_b sourceB.delay</synonyms>
+<synonyms>sourceB.delayB</synonyms>
 
 </article>
 
@@ -594,49 +537,49 @@ sourceB :: Behavior a
 </programlisting>
 
 <p>Returns the current value of <i>sourceB</i>.  This is a primitive method
-that should not be used under normal circumstances.  <link>lift_b</link> or
-<link>snapshot_e</link> may be more appropriate.</p>
+that should not be used under normal circumstances.  <link>liftB</link> or
+<link>snapshotE</link> may be more appropriate.</p>
 
 </article>
 
-<article title="switch_b">
+<article title="switchB">
 
 <programlisting>
-switch_b(sourceBB) -> Behavior a
+switchB(sourceBB) -> Behavior a
 
 sourceBB :: Behavior (Behavior a)
 </programlisting>
 
 <p>When the value of a time varying value is time varying itself, which is common when dealing DOM objects.</p>
 
-<synonyms>sourceBB.switch_b sourceBB.forwardLatest</synonyms>
+<synonyms>sourceBB.switchB</synonyms>
 
 </article>
 
-<article title="and_b">
+<article title="andB">
 
 <programlisting>
-and_b(valueB, ...) -> Behavior Bool
+andB(valueB, ...) -> Behavior Bool
 </programlisting>
 
 <p>Returns <code>True</code> when all arguments are <code>True</code> and <code>False</code> otherwise.</p>
 
 </article>
 
-<article title="or_b">
+<article title="orB">
 
 <programlisting>
-or_b(valueB, ...) -> Behavior Bool
+orB(valueB, ...) -> Behavior Bool
 </programlisting>
 
 <p>Returns <code>True</code> when any argument is <code>True</code> and <code>False</code> otherwise.</p>
 
 </article>
 
-<article title="not_b">
+<article title="notB">
 
 <programlisting>
-not_b(valueB) -> Behavior Bool
+notB(valueB) -> Behavior Bool
 
 valueB = Behavior a
 </programlisting>
@@ -644,15 +587,15 @@ valueB = Behavior a
 <p>This function is short for:</p>
 
 <programlisting>
-valueB.lift_b(function(v) { return !v; })
+valueB.liftB(function(v) { return !v; })
 </programlisting>
 
 </article>
 
-<article title="lift_b">
+<article title="liftB">
 
 <programlisting>
-lift_b(f,arg_1, ..., arg_n) -> Behavior result
+liftB(f,arg_1, ..., arg_n) -> Behavior result
 
 
 f = (arg_1 ... arg_n -> result) or Behavior (arg_1 ... arg_n -> result)
@@ -664,14 +607,12 @@ arg_n = a_n or Behavior a_n
 <p>Create a time varying value that is a function of other time varying values. The function itself may be a
 time-varying value.</p>
 
-<synonyms>apply_b transform_b transform apply</synonyms>
-
 </article>
 
-<article title="cond_b">
+<article title="condB">
 
 <programlisting>
-cond_b([conditionB,resultB], ...) -> Behavior a
+condB([conditionB,resultB], ...) -> Behavior a
 
 conditionB = Behavior Bool
 resultB = Behavior a
@@ -681,10 +622,10 @@ resultB = Behavior a
 
 </article>
 
-<article title="if_b">
+<article title="ifB">
 
 <programlisting>
-if_b(conditionB,trueB,falseB) -> Behavior a
+ifB(conditionB,trueB,falseB) -> Behavior a
 
 conditionB = Behavior Bool
 trueB = Behavior a
@@ -697,26 +638,26 @@ and <code>false</code>.</p>
 <example>
 
 <programlisting>
-var t = timer_b(1000);
-var t1 = t.lift_b(function(v) { return v + 1; });
-var less_than = function(xB,yB) { return lift_b(function(x,y) { return x &lt; y; },xB,yB) };
+var t = timerB(1000);
+var t1 = t.liftB(function(v) { return v + 1; });
+var less_than = function(xB,yB) { return liftB(function(x,y) { return x &lt; y; },xB,yB) };
 
-trueB = if_b(less_than(t,t1),true,false);
+trueB = ifB(less_than(t,t1),true,false);
 </programlisting>
 
 <p>Since <code>t &lt; t1</code> is always <code>true</code>, <i>trueB</i> is always <code>true</code>.</p>
 
 </example>
 
-<synonyms>choose choose_b</synonyms>
+<synonyms>chooseB</synonyms>
 
 </article>
 
-<article title="timer_b">
+<article title="timerB">
 
 <programlisting>
-timer_b(interval) -> Behavior Int
-timer_b(intervalB) -> Behavior Int
+timerB(interval) -> Behavior Int
+timerB(intervalB) -> Behavior Int
 
 interval :: milliseconds
 intervalB :: Behavior milliseconds
@@ -725,37 +666,35 @@ intervalB :: Behavior milliseconds
 <p>Create a time varying value with the current time in milliseconds, updated
 by an interval argument (that may be time varying).</p>
 
-<synonyms>asTimer_b</synonyms>
-
 </article>
 
-<article title="blind_b">
+<article title="blindB">
 
 <programlisting>
-blind_b(sourceB,intervalB) -> Behavior a
+blindB(sourceB,intervalB) -> Behavior a
 
 sourceB : Behavior a
 intervalB : Behavior Int
 </programlisting>
 
-<p>Similar to <link>blind_e</link> but for behaviors.</p>
+<p>Similar to <link>blindE</link> but for behaviors.</p>
 
-<synonyms>sourceB.blind sourceB.blind_b</synonyms>
+<synonyms>sourceB.blindB</synonyms>
 
 </article>
 
-<article title="calm_b">
+<article title="calmB">
 
 <programlisting>
-calm_b(sourceB,intervalB) -> Behavior a
+calmB(sourceB,intervalB) -> Behavior a
 
 sourceB : Behavior a
 intervalB : Behavior Int
 </programlisting>
 
-<p>Similar to <link>calm_e</link>, but for behaviors.</p>
+<p>Similar to <link>calmE</link>, but for behaviors.</p>
 
-<synonyms>sourceB.calm_b sourceB.calm</synonyms>
+<synonyms>sourceB.calmB</synonyms>
 
 </article>
 
@@ -797,7 +736,7 @@ function with the same name, suffixed with &quot;B&quot;, that constructions the
 
 <example>
 <programlisting>
-var secondsB = timer_e(1000).collect_e(0,function(_,x) { return x + 1; }).hold(0);
+var secondsB = timerE(1000).collectE(0,function(_,x) { return x + 1; }).startsWith(0);
 var spanB = SPANB("We've been running for ",secondsB," seconds");
 </programlisting>
 
@@ -819,10 +758,10 @@ insertDomB(Behavior HTMLElement,HTMLElement or id [, location]) -> void
 
 </article>
 
-<article title="mouseTop_b">
+<article title="mouseTopB">
 
 <programlisting>
-mouseTop_b(Element) -> Behavior y-coordinate
+mouseTopB(Element) -> Behavior y-coordinate
 </programlisting>
 
 <p>A behavior carrying the y-coordinate of the mouse, relative to the specified element.</p>
@@ -830,7 +769,7 @@ mouseTop_b(Element) -> Behavior y-coordinate
 <example>
 
 <programlisting>
-var yB = mouseTop_b(document);
+var yB = mouseTopB(document);
 </programlisting>
 
 <p><code>yB</code> is the coordinate of the mouse, relative to the entire document.</p>
@@ -839,20 +778,20 @@ var yB = mouseTop_b(document);
 
 </article>
 
-<article title="mouseLeft_b">
+<article title="mouseLeftB">
 
 <programlisting>
-mouseLeft_b(Element) -> Behavior x-coordinate
+mouseLeftB(Element) -> Behavior x-coordinate
 </programlisting>
 
 <p>A behavior carrying the x-coordinate of the mouse, relative to the specified element.</p>
 
 </article>
 
-<article title="mouse_b">
+<article title="mouseB">
 
 <programlisting>
-mouse_b(Element) -> Behavior xy
+mouseB(Element) -> Behavior xy
 
 xy = { left: Int; top: Int }
 </programlisting>
@@ -861,10 +800,10 @@ xy = { left: Int; top: Int }
 
 </article>
 
-<article title="extractValue_b">
+<article title="extractValueB">
 
 <programlisting>
-extractValue_b(formElement) -> Behavior value
+extractValueB(formElement) -> Behavior value
 
 formElement = Element or Element-id
 </programlisting>
@@ -875,10 +814,10 @@ formElement = Element or Element-id
 
 </article>
 
-<article title="extractValue_e">
+<article title="extractValueE">
 
 <programlisting>
-extractValue_e(formElement) -> EventStream value
+extractValueE(formElement) -> EventStream value
 
 formElement = Element or Element-id
 </programlisting>
@@ -886,15 +825,13 @@ formElement = Element or Element-id
 <p>Returns an event stream that carries the value of <i>formElement</i>. A new event fires whenever the value
 changes.</p>
 
-<synonyms>$E</synonyms>
-
 </article>
 
-<article title="extractEvent_e">
+<article title="extractEventE">
 
 <programlisting>
-extractEvent_e(element,eventName) -> EventStream DOMEvent
-extractEvent_e(elementB,eventName) -> EventStream DOMEvent
+extractEventE(element,eventName) -> EventStream DOMEvent
+extractEventE(elementB,eventName) -> EventStream DOMEvent
 
 element = Element or Element-id
 elementB = Behavior element
@@ -905,24 +842,26 @@ eventName = String
 <i>DOMEvent</i> is a browser-dependent data-structure, derived from the <a
 href="http://www.w3.org/TR/2003/NOTE-DOM-Level-3-Events-20031107/">DOM Event Specification</a>.</p>
 
+<synonyms>$E</synonyms>
+
 </article>
 
-<article title="clicks_e">
+<article title="clicksE">
 
 <programlisting>
-clicks_e(element) -> EventStream ClickEvent
+clicksE(element) -> EventStream ClickEvent
 </programlisting>
 
-<p><code>clicks_e(element)</code> is shorthand for
-<code>extractEvent_e(element,'click')</code>.</p>
+<p><code>clicksE(element)</code> is shorthand for
+<code>extractEventE(element,'click')</code>.</p>
 
 </article>
 
-<article title="timer_e">
+<article title="timerE">
 
 <programlisting>
-timer_e(milliseconds) -> EventStream Int
-timer_e(millisecondsB) -> EventStream Int
+timerE(milliseconds) -> EventStream Int
+timerE(millisecondsB) -> EventStream Int
 
 milliseconds : Int
 millisecondsB : Behavior milliseconds
@@ -942,26 +881,24 @@ function formatDate(t) {
   return (new Date(t)).toLocaleString();
 }
 
-timer_e(1000).lift_e(formatDate)
+timerE(1000).mapE(formatDate)
 </programlisting>
 
 <p>Note that the interval may be a behavior.  The following expression's
 interval changes as the user enters a different interval:</p>
 
 <programlisting>
-timer_e(extractValue_b('interval-text-box')).lift_e(formatDate)
+timerE(extractValueB('interval-text-box')).mapE(formatDate)
 </programlisting>
 
-<p><code>timer_e</code> is a method of behavior objects.  The preceding
+<p><code>timerE</code> is a method of behavior objects.  The preceding
 expression may be written as:</p>
 
 <programlisting>
-extractValue_b('interval-text-box').timer_e().lift_e(formatDate)
+extractValueB('interval-text-box').timerE().mapE(formatDate)
 </programlisting>
 
 </example>
-
-<synonyms>millisecondsB.asTimer_e</synonyms>
 
 </article>
 
@@ -975,10 +912,10 @@ disableTimer(timer);
 
 </article>
 
-<article title="extractValueOnEvent_e">
+<article title="extractValueOnEventE">
 
 <programlisting>
-extractValueOnEvent_e(anyE,formElement) -> EventStream value
+extractValueOnEventE(anyE,formElement) -> EventStream value
 
 anyE = EventStream
 formElement = Element or Element-id
@@ -988,10 +925,10 @@ formElement = Element or Element-id
 
 </article>
 
-<article title="extractId_b">
+<article title="extractIdB">
 
 <programlisting>
-extractId_b(id [, changes]) -> Behavior Element
+extractIdB(id [, changes]) -> Behavior Element
 
 id = String
 changes = Behavior DOM
@@ -1037,7 +974,7 @@ var button = BUTTON();
 
 function getDate() { return (new Date()).toString(); };
 
-insertValueE(extractEvent_e(button, 'click').lift_e(getDate), textField, 'value');
+insertValueE(extractEventE(button, 'click').mapE(getDate), textField, 'value');
 </programlisting>
 
 <p>This code inserts the current date and time into <i>textField</i> whenever <i>button</i> is clicked.</p>
@@ -1080,7 +1017,7 @@ tagRec(
     return DIVB(
       { style: {
         color:
-          merge(overE.constant_e('#FFF'), outE.constant_e('#000')).
+          merge(overE.constantE('#FFF'), outE.constantE('#000')).
           startsWith('#000')}},
       'mouse over me to change color!');
   });
@@ -1096,7 +1033,7 @@ tagRec(
 
 <chapter title="Web Services">
 
-<article title="getWebServiceObject_e">
+<article title="getWebServiceObjectE">
 
 <programlisting>
 getWebServiceObjectE(requestE) -> EventStream response
@@ -1116,7 +1053,7 @@ request = {
 responses.</p>
 
 <p><code>url</code> is the address of the web service.
-<code>getWebServiceObject_e</code> is based on
+<code>getWebServiceObjectE</code> is based on
 <code>XMLHttpRequest</code>, so the service must be on the same server
 as your application.</p>
 
@@ -1148,10 +1085,10 @@ response is XML.</p>
 
 </article>
 
-<article title="getForeignWebServiceObject_e">
+<article title="getForeignWebServiceObjectE">
 
 <programlisting>
-getForeignWebServiceObject_e(requestE) -> responseE
+getForeignWebServiceObjectE(requestE) -> responseE
 </programlisting>
 
 <p><i>Note:</i> You must call
@@ -1159,7 +1096,7 @@ getForeignWebServiceObject_e(requestE) -> responseE
 function.</p>
 
 <p>This function has the same interface as
-<code><link>getWebServiceObject_e</link></code>.  Requests are made
+<code><link>getWebServiceObjectE</link></code>.  Requests are made
 through a Flash object, so the <code>url</code> is subject to the Flash
 Player's <a
 href="http://www.adobe.com/devnet/flashplayer/articles/cross_domain_policy.html">cross-domain
@@ -1167,10 +1104,10 @@ policy</a>.</p>
 
 </article>
 
-<article title="evalForeignScriptVal_e">
+<article title="evalForeignScriptValE">
 
 <programlisting>
-evalForeignScriptVal_e(urlArgE) -> EventStream result
+evalForeignScriptValE(urlArgE) -> EventStream result
 
 urlArgE = EventStream { url: string, globalArg: string }
 </programlisting>
@@ -1198,7 +1135,7 @@ baseUrl : url
 </programlisting>
 
 <p>This function must be called before
-<code><link>getForeignWebServiceObject_e</link></code> is called.
+<code><link>getForeignWebServiceObjectE</link></code> is called.
 <code>baseUrl</code> must be base URL of the Flapjax library.</p>
 
 <example>
