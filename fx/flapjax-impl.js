@@ -2313,7 +2313,7 @@ var serverRequestE = function(useFlash,requestE) {
         method = 'POST';
       }
       else {
-        raise ("Invalid request type: " + obj.request);
+        throw("Invalid request type: " + obj.request);
       }
       
       var async = obj.async;
@@ -2340,7 +2340,7 @@ var serverRequestE = function(useFlash,requestE) {
         });
       }
       else {
-        raise('Unknown response format: ' + obj.response);
+        throw('Unknown response format: ' + obj.response);
       }
   });
   

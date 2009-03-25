@@ -3,10 +3,12 @@ from django.http import HttpResponse
 import settings
 import subprocess
 
+flapjaxCmd = ["fxc","--flapjax","/fx/flapjax.js","--stdin","--stdout"]
+
 # The "Try Flapjax" page uses setobj to store the page at setobj/tryFlapjax.
 # The compiler does the same.  The result is a bunch of warnings.
 def compile(request):
-  p = subprocess.Popen(["fxc","--stdin","--stdout"],stdout=subprocess.PIPE,
+  p = subprocess.Popen(flapjaxCmd,stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE,stdin=subprocess.PIPE,
                        close_fds=True)
   p.stdin.write(request.raw_post_data)
