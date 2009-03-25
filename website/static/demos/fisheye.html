@@ -30,7 +30,7 @@
 <script>
 
 function loader() {
-  var eltsAD = $$('menuBox');
+  var eltsAD = getElementsByClass("menuBox");
   
   //crawl dom tree to find left or top offset
   var findOffset= function (obj, offsetLbl, dirLbl)
@@ -124,14 +124,14 @@ function loader() {
   //containing box expands on mouseover
   var extra = 10;
   var backgroundBarB =
-  insertValuesB(
+  insertValueB(
     'menu',
-    [startsWith(
+    startsWith(
       mergeE(
         menuMouseLeaveE.constantE( (minSize + extra) + 'px'),
         menuMouseOverE.constantE( (maxSize + extra) + 'px')),
       (minSize + extra) + 'px'),
-    'style', 'height']);
+    'style', 'height');
   
 }
 

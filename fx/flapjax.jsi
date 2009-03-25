@@ -283,8 +283,8 @@ calmE :: Behavior -> EventStream;
 startsWith :: EventStream any -> Behavior;
 changes :: Behavior -> EventStream;
 
-// also $$
 getElementsByClass :: string optional(html) optional(string) -> [ html, ... ];
+$$ :: string optional(html) optional(string) -> [ html, ... ];
 getObj :: htmlOrId -> html;
 $ :: htmlOrId -> html;
 readCookie :: string -> optional(string); // may return undefined
