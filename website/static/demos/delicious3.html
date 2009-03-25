@@ -19,7 +19,7 @@ function collapsedItemsB(linksE,maxLength) {
       
     return tagRec(['mouseover', 'mouseout'],
       function (overE,outE) {
-        return LIB(AB({ href: url },
+        return LI(A({ href: url },
           mergeE(overE.constantE(full),outE.constantE(collapsed))
           .startsWith(collapsed)));
       });
@@ -30,7 +30,7 @@ function collapsedItemsB(linksE,maxLength) {
   })
   .startsWith([ ])
   .liftB(function (items) {
-      return items.length == 0 ? 'Type to start' : ULB(items);
+      return items.length == 0 ? 'Type to start' : UL(items);
   })
   .switchB();
 };

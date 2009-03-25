@@ -2,24 +2,18 @@
 <head>
 <link rel="stylesheet" href="/demo.css"/>
 <script type="text/javascript" src="/fx/flapjax.js"></script>
-<script type="text/javascript" src="/fx/fxws.js"></script>
 
 <title>Flapjax Demo: Delicious Bookmarks</title>
 <script type="text/javascript">
 
 function loader() {
-  initFlapjaxForeignWSO('/fx');
 
   // EventStream { posts: [ { u: String, d: String }, ... ] }
-  linksInfoE = getForeignWebServiceObjectE(
+  linksInfoE = evalForeignScriptValE(
     extractValueE('userName').mapE(function (name) {
-      return {
-        url: "http://feeds.delicious.com/v2/json/" + name,
-        request: "get",
-        response: "json" }}));
-
+      return { 'url': 'http://del.icio.us/feeds/json/' + name,
+						   'globalArg': 'Delicious' } }));
    
-linksInfoE.mapE(function(x) { console.log(x); }); 
   var postToLi = function (post) { return LI(A({href: post.u}, post.d)); };
 
   var lis = 
@@ -28,8 +22,7 @@ linksInfoE.mapE(function(x) { console.log(x); });
             return map(postToLi, linksObj.posts); 
           });
 
-  insertDomB(changes(ULB(lis)).startsWith(SPAN('type a name')),
-             'userLinks');
+  insertDomB(UL(lis), "userLinks");
 
 }
 

@@ -32,9 +32,7 @@ function loader() {
     			return map(postToLi, linksObj.posts);
     		});
     		
- 	insertDomB(  			
- 		changes(ULB(lis)).startsWith('type to start'),
- 		'userLinks');
+ 	insertDomB(UL(lis), "userLinks");
 }
 
 </script>
