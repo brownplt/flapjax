@@ -10,10 +10,10 @@
 <script type="text/javascript">
 
 function loader() {
-  var timerB = timerB(100);
-  insertDomB(timerB, 'timer');
+  var timeB = timerB(100);
+  insertDomB(timeB, 'timer');
 
-  var secondsB = liftB(function (v) { return Math.floor(v / 1000); }, timerB);
+  var secondsB = liftB(function (v) { return Math.floor(v / 1000); }, timeB);
   insertDomB(secondsB, 'timer2');
 
   var secsMod10 = liftB(function (v) { return v % 10; }, secondsB);

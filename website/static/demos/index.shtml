@@ -45,9 +45,6 @@ var examples =
     , items:
       { desc: 'Print the number of letters of a word'
       , url: 'letters.html' } }
-  , { synopsis: "Reader/Writer", id: 'readwrite'
-    , items: { desc: 'This demo demonstrates reading and writing values to a server.'
-             , url: 'readwrite.html' } }
   , { synopsis: "Time", id: 'time'
     , items: 
       [ { desc: 'Print the current time to millisecond precision, updating every 100 milliseconds.'
