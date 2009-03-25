@@ -12,28 +12,28 @@
 function loader() {
 
   var DELAY = 300;
-  var mouseLeftB = mouseLeftB(document);
-  var mouseTopB  = mouseTopB(document);
+  var leftB = mouseLeftB(document);
+  var topB  = mouseTopB(document);
 
   insertDomB( 
-    DIVB( 
+    DIV( 
       {id: 'themouse',
         className: 'contrastBlock',
        style: { 
 	       position: 'absolute',
-	       left: mouseLeftB,
-	       top: mouseTopB}},
+	       left: leftB,
+	       top: topB}},
       'the mouse!'),
     'body',
     'beginning');
 
   var mouseOffset = $('themouse').offsetWidth;
   var delayedLeft = liftB(function (pos) { return pos + mouseOffset; },
-                           delayB(mouseLeftB, DELAY));
-  var delayedTop  = delayB(mouseTopB, DELAY);
+                           delayB(leftB, DELAY));
+  var delayedTop  = delayB(topB, DELAY);
 
   insertDomB(
-    DIVB(
+    DIV(
       {id: 'tail',
         className: 'contrastBlock',
        style: {color: '#FF0000',
@@ -47,16 +47,16 @@ function loader() {
   var WAG_DELAY = DELAY * 1.5;
   var mouseAndTailOffset = mouseOffset + $('tail').offsetWidth;
   var wagLeft = liftB(function (pos) { return pos + mouseAndTailOffset; },
-                       delayB(mouseLeftB, WAG_DELAY));
+                       delayB(leftB, WAG_DELAY));
   var wagging = liftB(function (timer) { 
                          return Math.round(10 * Math.random() - 5) },
                        timerB(100));
   var wagTop  = liftB(function (pos, rand) { return pos + rand; },
-                       delayB(mouseTopB, WAG_DELAY),
+                       delayB(topB, WAG_DELAY),
                        wagging);
 
   insertDomB(
-    DIVB(
+    DIV(
       {id: 'wagging',
         className: 'contrastBlock',        
        style: {color: '#FFFF00',

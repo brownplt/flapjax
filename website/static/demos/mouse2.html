@@ -11,36 +11,28 @@
 
 function loader() {
 
-  var DELAY = constantB(300);
-  var mouseLeftB = mouseLeftB(document);
-  var mouseTopB  = mouseTopB(document);
+  var leftB = mouseLeftB(document);
+  var topB  = mouseTopB(document);
 
   insertDomB( 
-    DIVB( 
-      {id: 'themouse',
-       className: 'contrastBlock',
-       style: { 
-	       position: 'absolute',
-	       left: mouseLeftB,
-         top: mouseTopB}},
-      'the mouse!'),
-    'body',
-    'beginning');
+    DIV({ id: 'themouse',
+          className: 'contrastBlock',
+          style: { position: 'absolute', left: leftB, top: topB } },
+        'the mouse!'),
+        'body',
+        'beginning');
 
   var mouseOffset = $('themouse').offsetWidth;
-  var delayedLeft = liftB(constantB(function (pos) { return pos + mouseOffset; }),
-                           delayB(mouseLeftB, DELAY));
-  var delayedTop  = delayB(mouseTopB, DELAY); 
+  var delayedLeft = 
+    liftB(function (pos) { return pos + mouseOffset; },leftB.delayB(300));
+  var delayedTop  = topB.delayB(300);
 
   insertDomB(
-    DIVB(
-      {id: 'tail',
-      className: 'contrastBlock',
-       style: {color: '#FF0000',
-               position: 'absolute',
-               left: delayedLeft,
-               top: delayedTop}},
-      'its tail!'),
+    DIV({ id: 'tail',
+          className: 'contrastBlock',
+          style: { color: '#FF0000',position: 'absolute',left: delayedLeft,
+                   top: delayedTop } },
+        'its tail!'),
     'body',
     'end');
 }

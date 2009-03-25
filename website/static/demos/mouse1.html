@@ -10,13 +10,13 @@
 <script type="text/javascript">
 
 function loader() {
-  var mouseLeftB = mouseLeftB(document);
-  var mouseTopB  = mouseTopB(document);
 
   insertDomB( 
-    DIVB( 
-      {className: 'contrastBlock', style: {position: 'absolute', left: mouseLeftB, top: mouseTopB } },
-      'the mouse!'),
+    DIV({ className: 'contrastBlock', 
+          style: { position: 'absolute', 
+                   left: mouseLeftB(document),
+                   top: mouseTopB(document) }},
+        "the mouse!"),
     'body',
     'beginning');
 }
