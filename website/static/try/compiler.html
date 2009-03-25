@@ -69,8 +69,7 @@ function loader() {
   insertValueE(compileResultE,$("msgs"),"innerHTML"); // security police
 
   compileResultE.mapE(function(compileResult) {
-    window.parent.output.location.href = "/fxserver/getobj/tryFlapjax";
-    window.parent.output.location.reload();
+    window.parent.output.location.href = "/fxserver/getobj/tryFlapjax/";
      });
   
   loadInitial(oneE(true)); }
