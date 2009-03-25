@@ -69,7 +69,8 @@ var examples =
     , items:
       { desc: "This program demonstrates how to manipulate the mouse location as a time-varying value and link " +
               "it to textual page content."
-      , url: 'mouse_coords.html' } }
+      , url: 'mouse_coords.html'
+      , fx: "mouse_coords.fx" } }
   , { synopsis: "Yaggle: Yahoo Local and Google Maps mashup", id: 'yaggle'
     , items: 
       { desc: "A mashup of Yahoo! Local and Google Maps."
@@ -121,7 +122,8 @@ function processAnchor(id) {
       p.innerHTML = item.desc;
       return DIV_({},p,
                  P_(A_({href: '/demos/' + item.url},'Run the demo')),
-                 P_(A_({href: '/try/?edit=' + item.url}, 'View and edit the code')));
+                 item.fx ? [P_(A_({href: '/try/?edit=' + item.fx}, "View and edit the code"))] : [],
+                 P_(A_({href: '/try/?edit=' + item.url}, 'View and edit the code (Flapjax as a library)')));
     }
     
     var itemsDom = DIV_({},map(makeItem,items));
