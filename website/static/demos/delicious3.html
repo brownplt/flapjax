@@ -1,16 +1,16 @@
 <html>
 <head>
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 <script type="text/javascript" src="/fx/fxws.js"></script>
 
 <title>Flapjax Demo: Delicious bookmarks with collapsed links</title>
 
 <script type="text/javascript">
 
-function collapsedItems_b(linksE,maxLength) {
+function collapsedItemsB(linksE,maxLength) {
   
-  var collapsedItem_b = function(post) {
+  var collapsedItemB = function(post) {
     var full = post.d;
     var url = post.u;
     
@@ -20,33 +20,33 @@ function collapsedItems_b(linksE,maxLength) {
     return tagRec(['mouseover', 'mouseout'],
       function (overE,outE) {
         return LIB(AB({ href: url },
-          merge_e(overE.constant_e(full),outE.constant_e(collapsed))
-          .hold(collapsed)));
+          mergeE(overE.constantE(full),outE.constantE(collapsed))
+          .startsWith(collapsed)));
       });
   };
   
-  return linksE.lift_e(function(links) {
-    return map(collapsedItem_b,links.posts);
+  return linksE.mapE(function(links) {
+    return map(collapsedItemB,links.posts);
   })
-  .hold([ ])
-  .lift_b(function (items) {
+  .startsWith([ ])
+  .liftB(function (items) {
       return items.length == 0 ? 'Type to start' : ULB(items);
   })
-  .switch_b();
+  .switchB();
 };
 
 function loader() {
   
-  var linksInfoE = evalForeignScriptVal_e(extractValue_e('userName')
-    .filter_e(function(str){return str.length > 0;})
-    .calm_e(450).lift_e(function (name) {
+  var linksInfoE = evalForeignScriptValE(extractValueE('userName')
+    .filterE(function(str){return str.length > 0;})
+    .calmE(450).mapE(function (name) {
       return { 
         'url': 'http://del.icio.us/feeds/json/' + name,
         'globalArg': 'Delicious'
       };
     }));
   
-  insertDomB(collapsedItems_b(linksInfoE,20),'userLinks');
+  insertDomB(collapsedItemsB(linksInfoE,20),'userLinks');
   
 }
 

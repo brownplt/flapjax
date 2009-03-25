@@ -3,27 +3,27 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 <title>Flapjax Demo: Basic Draft Saving</title>
 
 <script lang="javascript">
 
 function loader() {
-  var saveClickE = extractEvent_e('saveButton', 'click');
+  var saveClickE = extractEventE('saveButton', 'click');
 
-  var savedTimeE = saveClickE.lift_e(function (_) {
+  var savedTimeE = saveClickE.mapE(function (_) {
     var date = new Date();
     return date.toLocaleString();
   });
 
-  var draftTextE = saveClickE.snapshot_e(extractValue_b('theText'));
+  var draftTextE = saveClickE.snapshotE(extractValueB('theText'));
  
-  var draftE = draftTextE.lift_e(function(text) {
+  var draftE = draftTextE.mapE(function(text) {
     return SPAN({className: 'block'},text);
   });
 
-  var timeE = draftTextE.lift_e(function(time) {
+  var timeE = draftTextE.mapE(function(time) {
     return SPAN(time);
   });
     

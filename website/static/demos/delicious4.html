@@ -1,7 +1,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 <script type="text/javascript" src="/fx/fxws.js"></script>
 
 
@@ -10,9 +10,9 @@
 <script type="text/javascript">
 
 // This function is from the previous demo.
-function collapsedItems_b(linksE,maxLength) {
+function collapsedItemsB(linksE,maxLength) {
   
-  var collapsedItem_b = function(post) {
+  var collapsedItemB = function(post) {
     var full = post.d;
     var url = post.u;
     
@@ -22,73 +22,73 @@ function collapsedItems_b(linksE,maxLength) {
     return tagRec(['mouseover', 'mouseout'],
       function (overE,outE) {
         return LIB(AB({ href: url },
-          merge_e(overE.constant_e(full),outE.constant_e(collapsed))
-          .hold(collapsed)));
+          mergeE(overE.constantE(full),outE.constantE(collapsed))
+          .startsWith(collapsed)));
       });
   };
   
-  return linksE.lift_e(function(links) {
-    return map(collapsedItem_b,links.posts);
+  return linksE.mapE(function(links) {
+    return map(collapsedItemB,links.posts);
   })
-  .hold([ ])
-  .lift_b(function (items) {
+  .startsWith([ ])
+  .liftB(function (items) {
       return items.length == 0 ? 'Type to start' : ULB(items);
   })
-  .switch_b();
+  .switchB();
 };
 
-var history_e = function(nextE) {
+var historyE = function(nextE) {
   
-  var historyE = nextE.collect_e([],function(item,arr) {
+  var historyE = nextE.collectE([],function(item,arr) {
     arr.push(item); arr.slice(0,10); return arr;
   });
   
-  var linksE = historyE.lift_e(function(items) {
+  var linksE = historyE.mapE(function(items) {
     return map(function(item) {
       var a = A({ href: 'javascript:undefined' },item);
       return { 
         anchor: SPAN({ style: { padding: '5px' }},a),
-        click: clicks_e(a).constant_e(item) };
+        click: clicksE(a).constantE(item) };
     }, items);
   });
   
   
-  var controlB = linksE.lift_e(function(items) {
+  var controlB = linksE.mapE(function(items) {
       return map(function(item) { return item.anchor; },items);
     })
-    .hold('No requests yet.')
-    .lift_b(function (anchors) { return DIVB(anchors); })
-    .switch_b();
+    .startsWith('No requests yet.')
+    .liftB(function (anchors) { return DIVB(anchors); })
+    .switchB();
   
-  var oldE = linksE.lift_e(function(items) {
-      return merge_e.apply(this,
+  var oldE = linksE.mapE(function(items) {
+      return mergeE.apply(this,
         map(function(item) { return item.click; }, items));
     })
-    .switch_e();
+    .switchE();
   
   return { 
     controlB: controlB,
-    nextE: merge_e(nextE,oldE)
+    nextE: mergeE(nextE,oldE)
   };
 }
 
 function loader() {
   
-	var requestsE = extractValue_e('userName')
-    .filter_e(function (str) { return str.length > 0; })
-    .calm_e(450);
+	var requestsE = extractValueE('userName')
+    .filterE(function (str) { return str.length > 0; })
+    .calmE(450);
   
-  var history = history_e(requestsE); 
+  var history = historyE(requestsE); 
   
-  var linksInfoE = evalForeignScriptVal_e(history.nextE
-    .calm_e(450).lift_e(function (name) {
+  var linksInfoE = evalForeignScriptValE(history.nextE
+    .calmE(450).mapE(function (name) {
       return { 
         'url': 'http://del.icio.us/feeds/json/' + name,
         'globalArg': 'Delicious'
       };
     }));
   
-  insertDomB(collapsedItems_b(linksInfoE,20),'userLinks');
+  insertDomB(collapsedItemsB(linksInfoE,20),'userLinks');
   insertDomB(history.controlB,'history');
   
 }

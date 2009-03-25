@@ -3,7 +3,7 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 <title>Flapjax Demo: Letter Count</title>
 <style type="text/css">
@@ -16,8 +16,8 @@ body {text-align: center;
 
 function loader() {
 
-  var valB = extractValue_b('toCount', 'value');
-  var lengthStrB = valB.lift_b(function (s) { return 'length: ' + s.length; });
+  var valB = extractValueB('toCount', 'value');
+  var lengthStrB = valB.liftB(function (s) { return 'length: ' + s.length; });
   insertDomB(lengthStrB, 'result');	
 }
 

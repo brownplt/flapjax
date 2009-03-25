@@ -11,24 +11,24 @@ function loader() {
   initFlapjaxForeignWSO('/fx');
 
   // EventStream { posts: [ { u: String, d: String }, ... ] }
-  linksInfoE = getForeignWebServiceObject_e(
-    extractValue_e('userName').lift_e(function (name) {
+  linksInfoE = getForeignWebServiceObjectE(
+    extractValueE('userName').mapE(function (name) {
       return {
         url: "http://feeds.delicious.com/v2/json/" + name,
         request: "get",
         response: "json" }}));
 
    
-linksInfoE.lift_e(function(x) { console.log(x); }); 
+linksInfoE.mapE(function(x) { console.log(x); }); 
   var postToLi = function (post) { return LI(A({href: post.u}, post.d)); };
 
   var lis = 
-        linksInfoE.hold({posts: []}).lift_b(
+        linksInfoE.startsWith({posts: []}).liftB(
           function (linksObj) {
             return map(postToLi, linksObj.posts); 
           });
 
-  insertDomB(changes(ULB(lis)).hold(SPAN('type a name')),
+  insertDomB(changes(ULB(lis)).startsWith(SPAN('type a name')),
              'userLinks');
 
 }

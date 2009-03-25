@@ -3,7 +3,7 @@
 <head>
 <title>Cross-domain with Flash 8 and Flapjax</title>
 
-<script type="text/javascript" src="../fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="../fx/flapjax.js"></script>
 <script type="text/javascript" src="../fx/fxws.js"></script>
 
 <script type="text/javascript">
@@ -21,10 +21,10 @@ function makeRequest(req) {
 function loader() {
   initFlapjaxForeignWSO('../fx');
   
-  var requestInfo = lift_b(function (url,body) { return { url: url, body: body }; },$B('url'),$B('body'));
+  var requestInfo = liftB(function (url,body) { return { url: url, body: body }; },$B('url'),$B('body'));
   
   var response = 
-    getForeignWebServiceObject_e(extractEvent_e($('requestButton'),'click').snapshot(requestInfo).lift_e(makeRequest));
+    getForeignWebServiceObjectE(extractEventE($('requestButton'),'click').snapshot(requestInfo).mapE(makeRequest));
   
   response.insertValueE($('response'),'value');
     

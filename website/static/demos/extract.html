@@ -3,7 +3,7 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 <script type="text/javascript" src="/fx/fxws.js"></script>
 
 <title>extracts</title>
@@ -13,28 +13,28 @@
 <script>
 function loader() {
 
-  insertDomB(extractValue_b( 'c1'), 'c1v');
+  insertDomB(extractValueB( 'c1'), 'c1v');
 
-  insertDomB(extractValue_b( 'c2a'), 'c2v');
+  insertDomB(extractValueB( 'c2a'), 'c2v');
     
-  insertDomB(extractValue_b( 'r2'), 'c3v');
+  insertDomB(extractValueB( 'r2'), 'c3v');
     
-  insertDomB(extractValue_b( 'c4'), 'c4v');
+  insertDomB(extractValueB( 'c4'), 'c4v');
     
   insertDomB(
-    extractValue_b( 'c5').lift_b(
+    extractValueB( 'c5').liftB(
       function (arr) {
         return '[' + arr + ']';
       }),
     'c5v');
 
-  insertDomB(extractValue_b( 'c6'), 'c6v');
+  insertDomB(extractValueB( 'c6'), 'c6v');
 
-  insertDomB(extractValue_b( 'c7'), 'c7v');
+  insertDomB(extractValueB( 'c7'), 'c7v');
 
-  insertDomB(extractValue_b( 'c8'), 'c8v');
+  insertDomB(extractValueB( 'c8'), 'c8v');
 
-  insertDomB(extractValue_b( 'c9'), 'c9v');
+  insertDomB(extractValueB( 'c9'), 'c9v');
 
 }
 </script>

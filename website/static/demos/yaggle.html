@@ -4,9 +4,9 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
-<!-- Contains getForeignWebServiceObject_e -->
+<!-- Contains getForeignWebServiceObjectE -->
 <script type="text/javascript" src="/fx/fxws.js"></script>
 
 <title>Flapjax Yahoo/Google Mashup</title>
@@ -41,11 +41,11 @@ function loader() {
 			item.Rating ? DIV('Rating: ',item.Rating) : SPAN(),
 			item.Distance ? DIV('Distance: ',item.Distance) : SPAN(),
 			item.BusinessUrl ?
-				A({href:item.BusinessUrl,target:'_blank'},'Website') :
+				A({href:item.BusinessUrl,target:'Blank'},'Website') :
 				SPAN());
 	}
 	
-	var wsInfoB = lift_b(function (lcn,q) {
+	var wsInfoB = liftB(function (lcn,q) {
 		return {
 			url: 'http://local.yahooapis.com/LocalSearchService/V3/localSearch',
 			fields: {
@@ -60,10 +60,10 @@ function loader() {
 		    response: 'json',
 			request: 'rest'
 		};
-	},extractValue_b('location'),extractValue_b('query'));
+	},extractValueB('location'),extractValueB('query'));
 	
-	var yahooLocalE = getForeignWebServiceObject_e(wsInfoB.changes().calm(500));
-	var yahooLocalB = yahooLocalE.hold({ResultSet:{Result:[{'Title':'Information from Yahoo! Local will appear here.'}]}});
+	var yahooLocalE = getForeignWebServiceObjectE(wsInfoB.changes().calm(500));
+	var yahooLocalB = yahooLocalE.startsWith({ResultSet:{Result:[{'Title':'Information from Yahoo! Local will appear here.'}]}});
 	
 	var yahooItemsB = yahooLocalB.lift(function(r) {
 		return (r && r.ResultSet && r.ResultSet.Result) ?
@@ -72,14 +72,14 @@ function loader() {
 	
 	insertDomB(ULB(yahooItemsB), 'yahooItems');
 	
-	var addrB = yahooItemsB.lift_b(function(k) {
-		var arrayOfNodes = map(function(q){return extractEvent_e(q,'click');},k)
-		var merged = merge_e.apply(this,arrayOfNodes);
-		var addrE = merge_e.apply(this,[merged.lift_e(function(v){
+	var addrB = yahooItemsB.liftB(function(k) {
+		var arrayOfNodes = map(function(q){return extractEventE(q,'click');},k)
+		var merged = mergeE.apply(this,arrayOfNodes);
+		var addrE = mergeE.apply(this,[merged.mapE(function(v){
 			return v.currentTarget.addrForGeo;}),
-			yahooItemsB.lift_b(function(v) {return v[0] && v[0].addrForGeo;}).changes()]);
-		return addrE.hold('Providence, RI');
-	}).switch_b();
+			yahooItemsB.liftB(function(v) {return v[0] && v[0].addrForGeo;}).changes()]);
+		return addrE.startsWith('Providence, RI');
+	}).switchB();
 
 	var theMap;
 	var geocoder;
@@ -88,22 +88,22 @@ function loader() {
 		theMap = new GMap2(document.getElementById("map"));
 		geocoder = new GClientGeocoder();
 	
-		var latLngE = receiver_e();
+		var latLngE = receiverE();
 
 		// callbacker: -> {e: Event a, c: a -> }
 		// makeCallback: Event a -> (a -> )
 	
 		// TODO: this
-		// var latLngE = callback_e(function(callback){geocoder.getLagLng(addr,callback);});
+		// var latLngE = callbackE(function(callback){geocoder.getLagLng(addr,callback);});
 	
-		addrB.lift_b(function (addr) {
+		addrB.liftB(function (addr) {
 			var callback = function (point) {
 				if (point) { latLngE.sendEvent(point); }
 			};
 			geocoder.getLatLng(addr,callback);
 		});
 		
-		latLngE.collect_e(
+		latLngE.collectE(
 			false,
 			function (point, marker) {
 				theMap.setCenter(point, 13);

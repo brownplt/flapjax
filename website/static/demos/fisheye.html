@@ -4,7 +4,7 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 <style type="text/css">
 .menuBox {
@@ -47,12 +47,12 @@ function loader() {
       return cur;
   };
   
-  var menuMouseMoveB = mouse_b( 'menu', 'mousemove');
-  var menuMouseOverE = extractEvent_e( 'menu', 'mouseover');
+  var menuMouseMoveB = mouseB( 'menu', 'mousemove');
+  var menuMouseOverE = extractEventE( 'menu', 'mouseover');
   
   //TODO abstract out: event stream of when mouse goes out of element (& ignore children)
   var menuMouseLeaveE = 
-  extractEvent_e( 'menu', 'mouseout').filter_e( 
+  extractEventE( 'menu', 'mouseout').filterE( 
     function (evt) {
       var target = $('menu');
       
@@ -87,14 +87,14 @@ function loader() {
   var paddingSizesAB =
   map(
     function (eltD) { 
-      return hold(
-        merge_e( 
-          changes(menuMouseMoveB).collect_e(
+      return startsWith(
+        mergeE( 
+          changes(menuMouseMoveB).collectE(
             minSize,
             function (mousePosn, acc) { 
               return posnToPadding(eltD, mousePosn, acc); 
             }),
-          menuMouseLeaveE.constant_e(minSize)),
+          menuMouseLeaveE.constantE(minSize)),
         minSize);
     },
     eltsAD);
@@ -104,7 +104,7 @@ function loader() {
   map(
     function (eltD, paddingSizeB) {
       insertValueB( 
-        paddingSizeB.lift_b( function (size) {return size + 'px'; }), 
+        paddingSizeB.liftB( function (size) {return size + 'px'; }), 
         eltD, 'style', 'width');
     },
     eltsAD,
@@ -115,7 +115,7 @@ function loader() {
   map(
     function (eltD, paddingSizeB) {
       insertValueB( 
-        paddingSizeB.lift_b( function (size) {return size + 'px'; }), 
+        paddingSizeB.liftB( function (size) {return size + 'px'; }), 
         eltD, 'style', 'height');
     },
     eltsAD,
@@ -126,10 +126,10 @@ function loader() {
   var backgroundBarB =
   insertValuesB(
     'menu',
-    [hold(
-      merge_e(
-        menuMouseLeaveE.constant_e( (minSize + extra) + 'px'),
-        menuMouseOverE.constant_e( (maxSize + extra) + 'px')),
+    [startsWith(
+      mergeE(
+        menuMouseLeaveE.constantE( (minSize + extra) + 'px'),
+        menuMouseOverE.constantE( (maxSize + extra) + 'px')),
       (minSize + extra) + 'px'),
     'style', 'height']);
   

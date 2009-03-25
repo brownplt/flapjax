@@ -3,7 +3,7 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 <title>Flapjax Demo: Saving Drafts on the Server</title>
 
@@ -32,27 +32,27 @@ function load(ignored_arg) {
 
 function loader() {
   // Save when the Save button is clicked, and every 10 seconds.
-  var saveClickE = extractEvent_e('saveButton', 'click');
-  var autoSaveE = timer_e(10000);
-  var saveE = merge_e(saveClickE, autoSaveE);
+  var saveClickE = extractEventE('saveButton', 'click');
+  var autoSaveE = timerE(10000);
+  var saveE = mergeE(saveClickE, autoSaveE);
 
-  var draftTextE = saveE.snapshot(extractValue_b('theText'));
+  var draftTextE = saveE.snapshot(extractValueB('theText'));
   
   // The storage API stores objects, not flat values.  So, we create an object
   // with the draft as a field, and include a timestamp.
-  var saveObjectE = draftTextE.lift_e(function (txt) {
+  var saveObjectE = draftTextE.mapE(function (txt) {
     return save(txt,(new Date()).toLocaleString());
   });
-  getWebServiceObject_e(saveObjectE);
+  getWebServiceObjectE(saveObjectE);
   
   // Poll the server for a draft every 5 seconds.
-  serverDraftE = getWebServiceObject_e(timer_e(5000).lift_e(load));
+  serverDraftE = getWebServiceObjectE(timerE(5000).mapE(load));
 
-  var draftE = serverDraftE.lift_e(function(o) {
+  var draftE = serverDraftE.mapE(function(o) {
     return SPAN({className: 'block'},o.savedtext);
   });
 
-  var timeE = draftTextE.lift_e(function(o) {
+  var timeE = draftTextE.mapE(function(o) {
     return SPAN(o.savetime);
   });
 

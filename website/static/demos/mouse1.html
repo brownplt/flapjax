@@ -3,15 +3,15 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 <title>Flapjax Demo: Follow the Mouse</title>
 
 <script type="text/javascript">
 
 function loader() {
-  var mouseLeftB = mouseLeft_b(document);
-  var mouseTopB  = mouseTop_b(document);
+  var mouseLeftB = mouseLeftB(document);
+  var mouseTopB  = mouseTopB(document);
 
   insertDomB( 
     DIVB( 

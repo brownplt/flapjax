@@ -2,7 +2,7 @@
 <head>
 <title>Catch Up</title>
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 <script type="text/javascript">
 
@@ -14,13 +14,13 @@ function loader() {
 
   var toInt = function (v, def) { try { return parseInt(v); } catch (_) { return def; } };
 
-  var timerB = timer_b(extractValue_b('frameRate').lift_b(toInt, 50));
+  var timeB = timerB(extractValueB('frameRate').liftB(toInt, 50));
 
-  var delayTimeB = extractValue_b('delayRate').lift_b(toInt, 500);
+  var delayTimeB = extractValueB('delayRate').liftB(toInt, 500);
 
   //CATCH box    
   insertDomB( 
-    DIVB(
+    DIV(
       {id: 'catch',
        style: {backgroundColor: '#000000',
            color: '#FFFFFF',
@@ -28,19 +28,19 @@ function loader() {
            position: 'absolute',
            padding: '5px',
            left: 
-            lift_b(
+            liftB(
               function (t, x) {
                 return x + Math.round(DIAM1 * Math.cos(t / SPEED)); 
               },
-              timerB, 
-              mouseLeft_b( document)),
+              timeB, 
+              mouseLeftB( document)),
             top: 
-            lift_b(
+            liftB(
               function (t, y) {
                 return y + Math.round(DIAM1 * Math.sin(t / SPEED)); 
               },
-              timerB,
-              mouseTop_b( document))}},
+              timeB,
+              mouseTopB( document))}},
        'catch'),
     'body', 'beginning');
     
@@ -49,31 +49,31 @@ function loader() {
       tagRec( 
         ['mouseover', 'mouseout'],
         function (mouseOverE, mouseOutE) {
-          return DIVB(
+          return DIV(
           {id: 'up',
            style: {
             padding: '5px',
             backgroundColor:
-              merge_e(
-                mouseOverE.constant_e('#FF0000'),
-                mouseOutE.constant_e('#000')).hold('#000'),
+              mergeE(
+                mouseOverE.constantE('#FF0000'),
+                mouseOutE.constantE('#000')).startsWith('#000'),
              color: '#FFFFFF',
              fontSize: '3em',
              position: 'absolute',
              left: 
-              lift_b(
+              liftB(
                 function (t, x) {
                   return OFFSET2 + x + Math.round(DIAM2 * Math.cos(t / SPEED)); 
                 },
-                timerB,
-                mouseLeft_b(document).delay_b(delayTimeB)),
+                timeB,
+                mouseLeftB(document).delayB(delayTimeB)),
             top: 
-              lift_b(
+              liftB(
                 function (t, y) {
                   return y + Math.round(DIAM2 * Math.sin(t / SPEED)); 
                 },
-                timerB,
-                mouseTop_b(document).delay_b(delayTimeB))}},
+                timeB,
+                mouseTopB(document).delayB(delayTimeB))}},
            'up');
       });
       
@@ -81,13 +81,13 @@ function loader() {
     
   // Count the number of times we catch up.
   var caughtUpB = 
-    extractEvent_e(upB, 'mouseover').collect_e(0,
-      function (_,p) { return p + 1;}).hold(0);
+    extractEventE(upB, 'mouseover').collectE(0,
+      function (_,p) { return p + 1;}).startsWith(0);
 
   // Display caughtUpB.
-  insertDomB(DIVB(H1B('you caught up ', 
-    SPANB({style: {color: 'white', backgroundColor: 'black' }},
-          caughtUpB.lift_b(function (n) { return n.toString(); })),
+  insertDomB(DIV(H1('you caught up ', 
+    SPAN({style: {color: 'white', backgroundColor: 'black' }},
+          caughtUpB.liftB(function (n) { return n.toString(); })),
           ' times.'),
              'hit up with your mouse'),
     'count');

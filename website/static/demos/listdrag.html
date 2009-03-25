@@ -24,7 +24,7 @@
 
 </style>
 <script type="text/javascript" src="prototype.js"></script>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 <script type="text/javascript">
 
 // http://www.mail-archive.com/prototype-core@googlegroups.com/msg01671.html
@@ -70,17 +70,17 @@ function findDropTarget(targets,exclude,mouseX,mouseY) {
   return possibleTargets;
 }
 
-// drag_e(downE) -> EventStream drag
+// dragE(downE) -> EventStream drag
 // downE : EventStream mousedown
 // dragE = { startDrag: element }
 //       | { dragging: element, left: int, top: int, mouseX: int, mouseY: int }
 //       | { drop: element, mouseX: int, mouseY: int }
-function drag_e(mdE) {
+function dragE(mdE) {
   // If you really want to, you can eliminate this use of state.  But, it's
   // unnecessarily painful.
   var target;
   
-  var drag_ee = mdE.lift_e(function(md) {
+  var dragEe = mdE.mapE(function(md) {
     target = md.element();
     
     var offset = target.cumulativeOffset();
@@ -89,7 +89,7 @@ function drag_e(mdE) {
     
     md.stop(); // don't bubble (i.e. don't select text, etc)
     
-    var drag_e = extractEvent_e(document,'mousemove').lift_e(function(mm) {
+    var dragE = extractEventE(document,'mousemove').mapE(function(mm) {
       return { dragging: target,
                mouseX: mm.clientX,
                mouseY: mm.clientY,
@@ -97,39 +97,39 @@ function drag_e(mdE) {
                top: mm.clientY - startY };
     });
     
-    var down_e = one_e({ startDrag: target });
+    var downE = oneE({ startDrag: target });
         
-    return merge_e(down_e,drag_e);
+    return mergeE(downE,dragE);
   });
   
-  var drop_ee = extractEvent_e(document,'mouseup').lift_e(function(mu) {
-    return one_e({ drop: target,
+  var dropEe = extractEventE(document,'mouseup').mapE(function(mu) {
+    return oneE({ drop: target,
                    mouseX: mu.clientX,
                    mouseY: mu.clientY });
   });
   
-  return switch_e(merge_e(drag_ee,drop_ee));
+  return switchE(mergeE(dragEe,dropEe));
 }
 
 // Returns a stream of elements that a dragged element hovers over.
-// hover_e(targets,dragE) -> EventStream element
+// hoverE(targets,dragE) -> EventStream element
 // targets : Array element
 // dragE : EventStream drag
-var hover_e = function(hoverables,dragE) {
+var hoverE = function(hoverables,dragE) {
   return dragE
-    .lift_e(function (op) {
+    .mapE(function (op) {
       return op.dragging
         ? findDropTarget(hoverables,op.dragging,op.mouseX,op.mouseY)[0] || false
         : false;
     })
-    .filterRepeats_e();
+    .filterRepeatsE();
 };
 
-// highlight_e(border,elementE);
+// highlightE(border,elementE);
 // border : string
 // elementE : EventStream element
-var highlight_e = function(highlightBorder,elementE) {
-  elementE.collect_e({ element: false, border: false },
+var highlightE = function(highlightBorder,elementE) {
+  elementE.collectE({ element: false, border: false },
     function (current,last) {
       if (last.element) {
         last.element.style.border = last.border;
@@ -148,9 +148,9 @@ var highlight_e = function(highlightBorder,elementE) {
 
 // In response to drags, moves a "ghost" of the item being dragged around
 // the screen.  When the item is dropped, an event fires.
-// ghose_e(dragE) -> EventStream { drop: element, mouseX: int, mouseY: int }
+// ghoseE(dragE) -> EventStream { drop: element, mouseX: int, mouseY: int }
 // dragE : EventStream drag
-var ghost_e = function(drag_e) {
+var ghostE = function(dragE) {
 
   var dragGhost = function(evt,acc) {
     if (evt.startDrag) {
@@ -180,16 +180,16 @@ var ghost_e = function(drag_e) {
     };
       
   };
-  return drag_e.collect_e(undefined,dragGhost)
-    .filter_e(function(v) { return v && v.drop; });
+  return dragE.collectE(undefined,dragGhost)
+    .filterE(function(v) { return v && v.drop; });
   
 };
 
-// listDrop_e(targets,dropE);
+// listDropE(targets,dropE);
 // targets : Array element
 // dropE   : EventStream drag
-var listDrop_e = function(dropTargets,drop_e) {
-  drop_e.lift_e(function(drop) {
+var listDropE = function(dropTargets,dropE) {
+  dropE.mapE(function(drop) {
     if (drop.drop) {
       var droppedOn = 
         findDropTarget(dropTargets,false,drop.mouseX,drop.mouseY);
@@ -220,27 +220,27 @@ function loader() {
     .concat($A(document.getElementsByClassName('list')));
 
   // Mousedown on any item
-  var mouseDown_e = extractEvent_e(document.body,'mousedown')
-  .filter_e(function (md) {  return md.element().className == 'item' });
+  var mouseDownE = extractEventE(document.body,'mousedown')
+  .filterE(function (md) {  return md.element().className == 'item' });
   
   // stream of starDrag / dragging / drop events
-  var pos_e = drag_e(mouseDown_e); 
+  var posE = dragE(mouseDownE); 
   
-  // ghost_e draws the faded element and filters pos_e to just return
+  // ghostE draws the faded element and filters posE to just return
   // the drop events.
-  var drop_e = ghost_e(pos_e);
+  var dropE = ghostE(posE);
 
-  // listDrop_e filters out everything but the drop events and 
+  // listDropE filters out everything but the drop events and 
   // moves the dropped element if appropriate.
-  listDrop_e(dropTargets,pos_e);
+  listDropE(dropTargets,posE);
   
-  // hover_e maps dragging events to a stream of elements we are hovering
+  // hoverE maps dragging events to a stream of elements we are hovering
   // over.  If we aren't hovering over a valid drop target, the stream carries
   // false.
   //
-  // highlight_e highlights elements returned by hover_e, and un-highlights
+  // highlightE highlights elements returned by hoverE, and un-highlights
   // previously highlighted elements.
-  highlight_e('3px solid orange', hover_e(dropTargets,pos_e));  
+  highlightE('3px solid orange', hoverE(dropTargets,posE));  
   
 }
 

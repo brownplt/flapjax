@@ -3,7 +3,7 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 <title>Flapjax Demo: Follow the Mouse with a Jittering Tail</title>
 
@@ -12,8 +12,8 @@
 function loader() {
 
   var DELAY = 300;
-  var mouseLeftB = mouseLeft_b(document);
-  var mouseTopB  = mouseTop_b(document);
+  var mouseLeftB = mouseLeftB(document);
+  var mouseTopB  = mouseTopB(document);
 
   insertDomB( 
     DIVB( 
@@ -28,9 +28,9 @@ function loader() {
     'beginning');
 
   var mouseOffset = $('themouse').offsetWidth;
-  var delayedLeft = lift_b(function (pos) { return pos + mouseOffset; },
-                           delay_b(mouseLeftB, DELAY));
-  var delayedTop  = delay_b(mouseTopB, DELAY);
+  var delayedLeft = liftB(function (pos) { return pos + mouseOffset; },
+                           delayB(mouseLeftB, DELAY));
+  var delayedTop  = delayB(mouseTopB, DELAY);
 
   insertDomB(
     DIVB(
@@ -46,13 +46,13 @@ function loader() {
 
   var WAG_DELAY = DELAY * 1.5;
   var mouseAndTailOffset = mouseOffset + $('tail').offsetWidth;
-  var wagLeft = lift_b(function (pos) { return pos + mouseAndTailOffset; },
-                       delay_b(mouseLeftB, WAG_DELAY));
-  var wagging = lift_b(function (timer) { 
+  var wagLeft = liftB(function (pos) { return pos + mouseAndTailOffset; },
+                       delayB(mouseLeftB, WAG_DELAY));
+  var wagging = liftB(function (timer) { 
                          return Math.round(10 * Math.random() - 5) },
-                       timer_b(100));
-  var wagTop  = lift_b(function (pos, rand) { return pos + rand; },
-                       delay_b(mouseTopB, WAG_DELAY),
+                       timerB(100));
+  var wagTop  = liftB(function (pos, rand) { return pos + rand; },
+                       delayB(mouseTopB, WAG_DELAY),
                        wagging);
 
   insertDomB(

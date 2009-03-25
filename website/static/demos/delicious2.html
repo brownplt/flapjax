@@ -1,7 +1,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 <title>Flapjax Demo: Delicious Bookmarks (FilterRepeats &amp; Calm)</title>
 
@@ -10,10 +10,10 @@
 function loader() {
 
     var linksInfoE = 
-    	evalForeignScriptVal_e(
-    		extractValue_e('userName').    		
-			filter_e(function(str){return str.length > 0;}).
-			calm_e(450).lift_e(
+    	evalForeignScriptValE(
+    		extractValueE('userName').    		
+			filterE(function(str){return str.length > 0;}).
+			calmE(450).mapE(
     			function (name) 
     			{
     				var res = 
@@ -26,14 +26,14 @@ function loader() {
 	var postToLi = function (post) { return LI(A({href: post.u}, post.d)); };
 
 	var lis =
-		linksInfoE.hold({posts:[]}).lift_b(
+		linksInfoE.startsWith({posts:[]}).liftB(
 			function (linksObj)
     		{
     			return map(postToLi, linksObj.posts);
     		});
     		
  	insertDomB(  			
- 		changes(ULB(lis)).hold('type to start'),
+ 		changes(ULB(lis)).startsWith('type to start'),
  		'userLinks');
 }
 

@@ -3,34 +3,34 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 <title>Flapjax Demo: Functional Form Validator</title>
 
 <script type="text/javascript">
 
 function loader() {
-  var form1SelectedB = extractValue_b('formSelector1');
-  var form2SelectedB = extractValue_b('formSelector2'); 
+  var form1SelectedB = extractValueB('formSelector1');
+  var form2SelectedB = extractValueB('formSelector2'); 
   
-  var selectedFormB = extractValue_b('formSelector'); 
+  var selectedFormB = extractValueB('formSelector'); 
   
-  var textField1B = extractValue_b('textField1');
-  var textField2B = extractValue_b('textField2'); 
+  var textField1B = extractValueB('textField1');
+  var textField2B = extractValueB('textField2'); 
   
   var boxesAD = [$('box1'), $('box2'), $('box3'), $('box4')];
   var boxCheckedAB = 
   map(
-    function (name) { return extractValue_b(name); },
+    function (name) { return extractValueB(name); },
     boxesAD);
   
   var validLenP = function (str, len) { return ( (str.length === len) );};
-  var textField1ValidB = lift_b(validLenP, textField1B, 3);
-  var textField2ValidB = lift_b(validLenP, textField2B, 4);
+  var textField1ValidB = liftB(validLenP, textField1B, 3);
+  var textField2ValidB = liftB(validLenP, textField2B, 4);
   
-  var form1ValidB = and_b(textField1ValidB, textField2ValidB);
+  var form1ValidB = andB(textField1ValidB, textField2ValidB);
   var form2ValidB = 
-  lift_b.apply(
+  liftB.apply(
     {},
     [function() {
       var num = 0;
@@ -41,48 +41,48 @@ function loader() {
     }].concat(boxCheckedAB)); 
   
   var readyForSubmitB = 
-  cond_b(
+  condB(
     [form1SelectedB, form1ValidB],
     [form2SelectedB, form2ValidB],
     [true /* else */, false]);
   
   var aFormSelectedB = 
-  selectedFormB.lift_b(
+  selectedFormB.liftB(
     function (form) { return (form !== undefined ); });
   
   insertValueB(
-    if_b(aFormSelectedB, '#00FF00', '#FF0000'),
+    ifB(aFormSelectedB, '#00FF00', '#FF0000'),
     'formSelector1parent', 'style', 'backgroundColor');
   
   
   insertValueB(
-    if_b(aFormSelectedB, '#00FF00', '#FF0000'),
+    ifB(aFormSelectedB, '#00FF00', '#FF0000'),
     'formSelector2parent', 'style', 'backgroundColor');
   
   
   insertValueB(
-    if_b(textField1ValidB, '#00FF00', '#FF0000'),
+    ifB(textField1ValidB, '#00FF00', '#FF0000'),
     'textField1', 'style', 'borderColor');
   
   
   insertValueB(
-    if_b(textField2ValidB, '#00FF00', '#FF0000'),
+    ifB(textField2ValidB, '#00FF00', '#FF0000'),
     'textField2', 'style', 'borderColor');
   
   
   insertValueB(
-    if_b(form1ValidB, '#00FF00', '#FF0000'),
+    ifB(form1ValidB, '#00FF00', '#FF0000'),
     'form1', 'style', 'borderColor');
   
   
   insertValueB(
-    if_b(form2ValidB, '#00FF00', '#FF0000'),
+    ifB(form2ValidB, '#00FF00', '#FF0000'),
     'form2', 'style', 'borderColor');
   
   forEach(
     function (textFieldD) {
       insertValueB(
-        not_b(form1SelectedB),
+        notB(form1SelectedB),
         textFieldD, 'disabled');
     },
     ['textField1', 'textField2']);
@@ -90,12 +90,12 @@ function loader() {
   forEach(
     function (boxD) {
       insertValueB(
-        not_b(form2SelectedB),
+        notB(form2SelectedB),
         boxD, 'disabled');
     },
     boxesAD);
   
-  insertValueB(not_b(readyForSubmitB), 'submitter', 'disabled');
+  insertValueB(notB(readyForSubmitB), 'submitter', 'disabled');
   
   insertDomB(
     DIVB(
@@ -103,7 +103,7 @@ function loader() {
         style: 
         {color: '#FFFFFF',
 				 	backgroundColor: 
-          if_b(
+          ifB(
             readyForSubmitB, 
             '#00FF00', 
             '#FF0000'),

@@ -3,7 +3,7 @@
 
 
 <link rel="stylesheet" href="/demo.css"/>
-<script type="text/javascript" src="/fx/flapjax.debug.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 
 
 <title>Flapjax: Reading and Writing</title>
@@ -22,7 +22,7 @@ function readFrom(objName,val) {
 };
 
 function writeTo(name,valE) {
-  return valE.lift_e(function(val) {
+  return valE.mapE(function(val) {
       return {
         url: '/fxserver/setobj/' + name + '/',
         fields: { name: name, value: val },
@@ -35,22 +35,22 @@ function writeTo(name,valE) {
 
 function loader() {
   // Poll the server for 'someValue' every two seconds.
-  var someValue = getWebServiceObject_e(timer_e(2000).lift_e(readFrom('someValue',"nothing saved")));
+  var someValue = getWebServiceObjectE(timerE(2000).mapE(readFrom('someValue',"nothing saved")));
   // Create a text node in the DOM with the contents of someValue
   insertDomE(someValue,$('someValue'));
   // Send a request to the server when the value changes.  'Calm' the requests so that we don't send more than once
   // every second.
-  getWebServiceObject_e(writeTo('someValue',extractValue_e('someValueSrc','value').calm_e(1000)));
+  getWebServiceObjectE(writeTo('someValue',extractValueE('someValueSrc','value').calmE(1000)));
   
 }    
 
 /*
 initFlapjaxServerAPIs(getFlapjaxObj(), 'http://www.flapjax-lang.org/flapjax/servlets/');
 
-writePersistentObject(extractValue_b('someValue').changes(), { path: ['someValue'] });
-writePersistentObject(extractValue_b('someArr0').transform(function (val) { return [val]; }).changes(), 
+writePersistentObject(extractValueB('someValue').changes(), { path: ['someValue'] });
+writePersistentObject(extractValueB('someArr0').transform(function (val) { return [val]; }).changes(), 
 { path: ['someArr'] });
-writePersistentObject(extractValue_b('someObjbar').transform(function (val) { return { bar: val }; }).changes(),
+writePersistentObject(extractValueB('someObjbar').transform(function (val) { return { bar: val }; }).changes(),
 { path: ['someObj'] });
 
 
