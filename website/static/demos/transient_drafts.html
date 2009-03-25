@@ -10,26 +10,18 @@
 <script lang="javascript">
 
 function loader() {
-  var saveClickE = extractEventE('saveButton', 'click');
+  var saveClickE = clicksE('saveButton');
 
   var savedTimeE = saveClickE.mapE(function (_) {
     var date = new Date();
-    return date.toLocaleString();
-  });
+    return date.toLocaleString();});
 
-  var draftTextE = saveClickE.snapshotE(extractValueB('theText'));
+  var draftTextE = saveClickE.snapshotE($B('theText'));
  
-  var draftE = draftTextE.mapE(function(text) {
-    return SPAN({className: 'block'},text);
-  });
-
-  var timeE = draftTextE.mapE(function(time) {
-    return SPAN(time);
-  });
-    
-
-  insertDomE(draftE, 'curDraft','over');
-  insertDomE(timeE, 'savedTime', 'over');
+  insertDomB(SPAN({ className: "block" }, draftTextE.startsWith("")),
+             "curDraft");
+  insertDomB(SPAN(savedTimeE.startsWith("")),
+             "savedTime");
 }
 
 </script>
