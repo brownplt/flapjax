@@ -223,9 +223,11 @@ mouseTopB :: html -> Behavior;
 mouseLeftB :: html -> Behavior;
 mouseB :: html -> Behavior;
 extractValueB :: or(htmlOrId,inputName) -> Behavior;
+$B :: or(htmlOrId,inputName) -> Behavior;
 extractValueE :: or(htmlOrId,inputName) -> EventStream;
 // TODO: underspecified, behavior carries htmlOrId
 extractEventE :: or(BehaviorOf(htmlOrId),htmlOrId) string -> EventStream;
+$E :: or(BehaviorOf(htmlOrId),htmlOrId) string -> EventStream;
 clicksE :: htmlOrId -> EventStream;
 timerE :: Behavior -> EventStream;
 extractValueOnEventE :: EventStream htmlOrId -> EventStream;

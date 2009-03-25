@@ -1588,6 +1588,8 @@ var extractEventE = function (domB, eventName) {
   };
 };
 
+$E = extractEventE;
+
 
 //extractEventsE: 
 //      [Behavior] Dom  
@@ -1627,7 +1629,6 @@ extractDomFieldOnEventE = function (triggerE, domObj /* . indices */) {
 extractValueE = function (domObj) {
   return changes(extractValueB.apply(this, arguments));
 };
-$E = extractValueE;
 
 //extractValueOnEventB: Event * DOM -> Behavior
 // value of a dom form object, polled during trigger
