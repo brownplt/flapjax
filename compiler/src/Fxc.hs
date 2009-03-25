@@ -31,7 +31,8 @@ data Option
 
 options:: [OptDescr Option]
 options =
- [ Option ['f'] ["flapjax-path"] (ReqArg Flapjax "URL") "url of flapjax.js"
+ [ Option ['h'] ["help"] (NoArg Usage) "shows this help message"
+ , Option ['f'] ["flapjax-path"] (ReqArg Flapjax "URL") "url of flapjax.js"
  , Option ['o'] ["output"] (ReqArg Output "FILE") "output path"
  , Option [] ["stdout"] (NoArg Stdout) "write to standard output"
  , Option [] ["stdin"] (NoArg Stdin) "read from standard input"
