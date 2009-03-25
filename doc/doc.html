@@ -96,7 +96,7 @@ the document every 60 seconds, and when the user clicks the save button:</p>
 var saveTimer = timerE(60000);
 var saveClicked = extractEventE('save-button','click');
 var save = mergeE(saveTimer,saveClicked);
-save.transform(doSave); // doSave does the real work
+save.mapE(doSave); // doSave does the real work
 </programlisting>
 
 </example>
@@ -121,7 +121,7 @@ var domStreamE = receiverE(); // every event is a DOM object
 domStreamE.
 	switchE().
 	extractEventE('mouseover').
-	transformE(function(_) { alert('hit!'); });
+	mapE(function(_) { alert('hit!'); });
 </programlisting>
 
 </example>
