@@ -75,6 +75,11 @@ var examples =
     , items: 
       { desc: "A mashup of Yahoo! Local and Google Maps."
       , url: "yaggle.html" } }
+  , { synopsis: "Twiggle: A Twitter and Google Maps mashup", id: 'twiggle'
+    , items: 
+      { desc: "A mashup of Twitter and Google Maps."
+      , url: "twiggle.html"
+      , fx: "twiggle.fx" } }
   , { synopsis: "Drag and Drop", id: 'drag'
     , items:
     [ { desc: "Demonstration of free-form drog and drop of a single element."
