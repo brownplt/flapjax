@@ -12,12 +12,13 @@
 <div id="content">
 
 <div class="banner">
-<img src="/images/logo.png" alt="Flapjax logo"/>
-
-<div class="links">
+<span style="float: left;"><a href="/index.html">Flapjax</a></span>
+<span class="links">
+<a href="/tutorial">Tutorial</a>
 <a href="/demos/">Demos</a>
-<a href="/docs/">API Reference</a>
-<a href="/download/">Download</a>
-</div>
-
+<a href="/docs/">Docs</a>
+<a href="/try/">Compiler</a>
+</span>
 </div> <!-- banner -->
+
+

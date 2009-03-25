@@ -47,10 +47,13 @@ h1 {
 }
 
 .banner {
+  min-height: 20pt;
+  padding-left: 10px;
+  padding-right: 10px;
   border-top: 4px solid black;
   border-bottom: 2px solid black;
   margin-bottom: 10px;
-  background-color: #0033ff;
+  background-color: #cceeff;
 }
 
 .banner > .links {
@@ -58,9 +61,8 @@ h1 {
 }
 
 .banner a {
-  color: white;
-  vertical-align: middle;
-  text-decoration: underline;
+  text-decoration: none;
+  border-bottom: 1px dotted blue;
   font-family: Verdana, sans-serif;
   margin-left: 5px;
   margin-right: 5px;

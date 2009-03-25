@@ -1,8 +1,8 @@
 <!--#INCLUDE virtual="top.xml" -->
 
+<img src="/images/logo.png" alt="Flapjax logo"/>
 
 <div class="left">
-<h1>What is Flapjax?</h1>
 
 <p>Flapjax is a new programming language designed around the demands of modern, client-based Web applications. Its principal features include:
 
@@ -24,16 +24,14 @@ seamlessly with existing JavaScript code and other frameworks.</p>
 </div>
 
 <div class="right">
-<p><a href="/demos/">See</a> Flapjax in action</p>
-<p><a href="/tutorial/">Learn</a> how to program in Flapjax</p>
-<p><a href="/try/">Try</a> Flapjax in your browser&mdash;no download
-required</p>
-<p><a href="/download/">Download</a> the Flapjax framework</p>
-<p><a href="/docs/">Explore</a> the framework documentation</p>
-<p><a href="http://groups.google.com/group/flapjax/">Discuss</a> Flapjax with
-the developers and other users</p>
-<p><a href="http://flapjax.blogspot.com/">Read</a> the blog of progress</p>
-<p><a href="/who/">Find</a> out whodunnit</p>
+<p><a href="/demos/">Demos</a> See Flapjax and read the code.</p>
+<p><a href="/tutorial/">Tutorial</a> Learn how to program in Flapjax.</p>
+<p><a href="/try/">Compiler</a> Try Flapjax in your browser&mdash;no download
+required.</p>
+<p><a href="/docs/">Documentation</a> API reference</p>
+<p><a href="http://groups.google.com/group/flapjax/">Discuss</a> The Flapjax mailing list</p>
+<p><a href="http://flapjax.blogspot.com/">Blog</a> The developers&apos; blog</p>
+<p><a href="/who/">About</a> whodunnit</p>
 </div>
 
 <div style="height: 100px; clear: both"></div>

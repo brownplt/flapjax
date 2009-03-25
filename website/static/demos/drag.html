@@ -1,0 +1,58 @@
+<html>
+
+<head>
+<title>Flapjax Demo: Drag and Drop</title>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript">
+
+// dragE(element) -> EventStream { left: int, top: int }
+function dragE(target) {
+  // moveEe :: EventStream (EventStream { left: int, top: int })
+  var moveEe = extractEventE(target,'mousedown').mapE(function(md) {
+    var startX = md.layerX;
+    var startY = md.layerY;
+
+    return extractEventE(document,'mousemove').mapE(function(mm) {
+      // Stop the text from getting selected
+       mm.preventDefault();
+
+      return { element: target, // convenience
+               left: mm.clientX - startX,  
+               top: mm.clientY - startY };
+    });
+  });
+  
+  // dropEe :: EventStream (EventStream 'a)
+  var dropEe = extractEventE(document,'mouseup').mapE(function() {
+    return zeroE();
+  });
+  
+  return switchE(mergeE(moveEe,dropEe));
+}
+
+function loader() {
+  
+  var posE = dragE($('dragTarget'));
+ 
+  posE.mapE(function(pos) {
+    $('dragTarget').style.left = pos.left;
+    $('dragTarget').style.top = pos.top;
+  });
+}
+
+</script>
+<link rel="stylesheet" href="/demo.css"/>
+</head>
+
+<body onload="loader()">
+
+<div id="dragTarget"
+     style="background-color: #000000; border: 1px solid #666666;
+            color: #ffffff; padding: 10px; position: absolute;
+            font-family: sans-serif; cursor: move">
+Drag Me!
+</div>
+
+</body>
+
+</html>
