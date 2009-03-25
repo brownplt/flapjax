@@ -3,7 +3,12 @@ from django.http import HttpResponse
 import settings
 import subprocess
 
-flapjaxCmd = ["fxc","--flapjax","/fx/flapjax.js","--stdin","--stdout"]
+if settings.host == "peabody":
+  fxc = "fxc"
+else:
+  fxc = "/home/flapjax/compiler/bin/fxc"
+
+flapjaxCmd = [fxc,"--flapjax","/fx/flapjax.js","--stdin","--stdout"]
 
 # The "Try Flapjax" page uses setobj to store the page at setobj/tryFlapjax.
 # The compiler does the same.  The result is a bunch of warnings.
