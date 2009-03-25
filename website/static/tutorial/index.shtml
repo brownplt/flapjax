@@ -17,7 +17,7 @@ This tutorial contains links to the demos.  We encourage you to not
 only run them but also <em>read their sources</em>.  We've tried to
 create clean and readable code for you to learn from.
 The tutorial will be even most effective if you <a
-href="../compiler/">run</a> the examples in this tutorial 
+href="/try/">run</a> the examples in this tutorial 
 for yourself.
 </p>
 
@@ -35,7 +35,7 @@ code in an HTML page.  Here's a simple example:
 
 <pre class="code-disp">
 &lt;p&gt;
-The time is {! timer_b(100) !}.
+The time is {! timerB(100) !}.
 &lt;/p&gt;
 </pre>
 
@@ -46,10 +46,10 @@ expression
 written in Flapjax.  The expression's syntax looks remarkably similar
 to that of JavaScript, and this is no coincidence: Flapjax shares the
 syntax of JavaScript.  You may not be sure of what it does, but you
-can probably guess: the function <code class="fx">timer_b</code>
+can probably guess: the function <code class="fx">timerB</code>
 probably returns the current system time.  That is, the page probably
 prints the system time at the point when it was loaded.  Let's check
-by <a href="../demos/time/1/run.html">running the program</a><!--[<a
+by <a href="/demos/time1.html">running the program</a><!--[<a
 href="../note-on-links.html">first read a note on links in these
 documents</a>]-->.
 </p>
@@ -57,7 +57,7 @@ documents</a>]-->.
 <p>
 Hopefully what you saw is not just the current system time, but the
 time <em>incrementing rapidly</em>.  The function <code
-class="fx">timer_b</code> constructs something called a
+class="fx">timerB</code> constructs something called a
 <strong>behavior</strong>, which is a value that changes over time.
 In the first part of this tutorial you'll learn quite a bit more
 about behaviors, which are central to Flapjax.
@@ -65,7 +65,7 @@ about behaviors, which are central to Flapjax.
 
 <p>
 Returning to the example, the expression <code
-class="fx">timer_b(100)</code> creates a timer behavior that returns a
+class="fx">timerB(100)</code> creates a timer behavior that returns a
 value every 100 milliseconds, i.e., ten times every second.  What it returns,
 however, is a microsecond timer value, and all those extra digits are
 what make the timer appear to be updating madly.  So to smooth it we
@@ -74,12 +74,12 @@ should divide the value by <code class="fx">1000</code>:
 
 <pre class="code-disp">
 &lt;p&gt;
-The time in seconds is {! Math.floor(timer_b(100) / 1000) !}.
+The time in seconds is {! Math.floor(timerB(100) / 1000) !}.
 &lt;/p&gt;
 </pre>
 
 <p>
-First, <a href="../demos/time/2/run.html">see how it runs</a>.  As you
+First, <a href="/demos/time2.html">see how it runs</a>.  As you
 can see, this value updates more sedately, once every second.
 </p>
 
@@ -87,12 +87,12 @@ can see, this value updates more sedately, once every second.
 Here's what is interesting about this example: the division and floor
 happened every time there was a new value for the timer!  We didn't
 need to <em>tell</em> the program to recompute: when the value of
-<code class="fx">timer_b</code> changed, the rest of the computation
+<code class="fx">timerB</code> changed, the rest of the computation
 automatically noticed the change and updated itself.  In other words,
-not only did the value of <code class="fx">timer_b(100)</code> change
+not only did the value of <code class="fx">timerB(100)</code> change
 over time, 
-so did the value of <code class="fx">timer_b(100) / 1000</code> and,
-in turn, the value of <code class="fx">Math.floor(timer_b(100) /
+so did the value of <code class="fx">timerB(100) / 1000</code> and,
+in turn, the value of <code class="fx">Math.floor(timerB(100) /
 1000)</code>.  This points to an important rule: <em>if an expression
 is a behavior, all expressions whose values depend on it also become
 behaviors</em>.  This automatic updating of the values of behaviors is
@@ -108,7 +108,7 @@ names that we can refer to later.  Let's do this:
 
 <pre class="code-disp">
 &lt;script type="text/flapjax"&gt;
-var timerB = timer_b(100);
+var timerB = timerB(100);
 var secondsB = Math.floor(timerB / 1000);
 var secsModTenB = Math.floor(secondsB % 10);
 &lt;/script&gt;
@@ -149,7 +149,7 @@ The list of time modulo 10 elements is
 </pre>
 
 <p>
-Again, <a href="../demos/time/3/run.html">see how it runs</a>.  Notice
+Again, <a href="/demos/time3.html">see how it runs</a>.  Notice
 how <code class="js">arrayToString</code>, even though written in
 JavaScript, automatically works over behaviors, and does the right
 thing: it recomputes a fresh array as the time changes every second.
@@ -174,7 +174,7 @@ see when you run the programs.  There is some missing code that you
 must-write code creates a proper Web page and loads the Flapjax
 library.  The should-write code provides meaningful messages when the
 Web browser has disabled (or does not support) JavaScript.  You should
-read the annotated versions of the <a href="../demos/time/">demos</a>
+read the annotated versions of the <a href="/demos/index.html#time">demos</a>
 to understand these details.
 </p>
 
@@ -210,8 +210,8 @@ parse it:
   style={! {color: '#FFFFFF', 
             backgroundColor: '#000000',
             position: 'absolute',
-            left: mouseLeft_b(document),
-            top: mouseTop_b(document),
+            left: mouseLeftB(document),
+            top: mouseTopB(document),
             padding: '10px'} !}&gt;
 the mouse
 &lt;/div&gt;
@@ -224,7 +224,7 @@ class="html">left</code> and <code class="html">top</code>, which are
 set to be those of the mouse.  But because Flapjax provides these as
 behaviors, the values of the style setting update automatically,
 moving the box to follow the mouse.  <a
-href="../demos/follow-the-mouse/1/run.html">See the mouse move</a>.
+href="demos/mouse1.html">See the mouse move</a>.
 </p>
 
 <p>
@@ -257,8 +257,8 @@ express in Flapjax:
   style={! {color: '#FF0000', 
             backgroundColor: '#000000',
             position: 'absolute',
-            left: delay_b(mouseLeft_b(document), DELAY) + $('themouse').offsetWidth,
-            top: delay_b(mouseTop_b(document), DELAY),
+            left: delayB(mouseLeftB(document), DELAY) + $('themouse').offsetWidth,
+            top: delayB(mouseTopB(document), DELAY),
             padding: '10px'} !}>
 its tail!
 &lt;/div&gt;
@@ -268,7 +268,7 @@ its tail!
 The key expression is
 </p>
 <pre class="code-disp">
-delay_b(mouseLeft_b(document), DELAY) + $('themouse').offsetWidth
+delayB(mouseLeftB(document), DELAY) + $('themouse').offsetWidth
 </pre>
 <p>
 The sub-expression on the left delays the mouse's left position by
@@ -277,7 +277,7 @@ some value given in the constant <code class="js">DELAY</code>
 references the object on the current page whose whose CSS id is <code
 class="html">themouse</code>, and computes its width.  The sum of
 these yields the new horizontal position of the mouse.  <a
-href="../demos/follow-the-mouse/2/run.html">Watch the mouse's tail follow
+href="/demos/mouse2.html">Watch the mouse's tail follow
 it</a>.
 </p>
 
@@ -288,7 +288,7 @@ follows the rest of the mouse but also wags.  (Do the tails of mice
 wag?  We don't really know: a quick survey around the office was
 inconclusive.)  You may not succeed, but you'll learn from the
 effort.  When you're done,
-<a href="../demos/follow-the-mouse/">see all the code</a>.
+<a href="/demos/index.html#follow">see all the code</a>.
 </p>
 
 <p>
@@ -333,13 +333,13 @@ Enter a 3 character string: &lt;input id="textField1"/&gt;
 We want to modify the border color attribute of the <code
 class="html">input</code> field depending on whether or not the length
 of the field is correct.  The function <code
-class="fx">extractValue_b</code> converts the value of an element on
+class="fx">extractValueB</code> converts the value of an element on
 the page into a behavior.  Given this helpful function, the expression
 that determines the background color becomes
 </p>
 
 <pre class="code-disp">
-(extractValue_b('textField1').length === 3 ? 'green' : 'red')
+(extractValueB('textField1').length === 3 ? 'green' : 'red')
 </pre>
 
 <p>
@@ -349,7 +349,7 @@ So all that's left is to use this behavior to set the border color:
 <pre class="code-disp">
 Enter a 3 character string:
   &lt;input id="textField1"
-            style={! {borderColor: (extractValue_b('textField1').length === 3 ? 'green' : 'red')} !}/&gt;
+            style={! {borderColor: (extractValueB('textField1').length === 3 ? 'green' : 'red')} !}/&gt;
 </pre>
 
 <p>
@@ -386,7 +386,7 @@ the length of a string using the appropriate comparison operator).
 
 </ul>
 
-See the <a href="../demos/validator/">longer example</a>, which
+See the <a href="/demos/index.html#validator">longer example</a>, which
 demonstrates these concepts.
 </p>
 
@@ -521,10 +521,10 @@ Text buffer: &lt;input type="text" id="toLength"&gt;&lt;/input&gt;
 </pre>
 
 <p>
-The program then uses <code class="fx">extractValue_e</code> to create
+The program then uses <code class="fx">extractValueE</code> to create
 an event stream reflecting all events associated with this text box.
 (In practice, this stream includes not only keystrokes but also
-tabbing and other activities.  <code class="fx">extractValue_e</code>
+tabbing and other activities.  <code class="fx">extractValueE</code>
 takes additional arguments that help refine the set of events.)  We
 want to then transform this event stream into a series of strings
 representing the length:
@@ -532,7 +532,7 @@ representing the length:
 
 <pre class="code-disp">
 &lt;p&gt;
-Length: {! extractValue_e('toLength').transform(
+Length: {! extractValueE('toLength').transform(
              function (s) {return s.length; }) !}
 &lt;p&gt;
 </pre>
@@ -587,7 +587,7 @@ time there's a click, we want to update the time of last save:
 </p>
 
 <pre class="code-disp">
-var saveClickE = extractEvent_e(saveD, 'click');
+var saveClickE = extractEventE(saveD, 'click');
 var savedTimeE = saveClickE.transform(getTime);
 insertValueE(savedTimeE, savedTimeD, 'textContent');
 </pre>
@@ -603,7 +603,7 @@ var getTime = function (_) {
 </pre>
 
 <p>
-<a href="../demos/draftSaver/1/run.html">Watch this run</a>.  You notice
+<a href="demos/transient_drafts.html">Watch this run</a>.  You notice
 that there's something rather unsatisfactory about it: it only
 registers drafts when the user clicks the button, which means a user
 immersed in their work who forgets to click may lose their draft.
@@ -611,7 +611,7 @@ Instead, we'd like to use a timer that periodically saves the text:
 </p>
 
 <pre class="code-disp">
-var autoSaveE = timer_e(100);
+var autoSaveE = timerE(100);
 var savedTimeE = autoSaveE.transform(getTime);
 insertValueE(savedTimeE, savedTimeD, 'textContent');
 </pre>
@@ -624,18 +624,18 @@ user clicks and when the timer fires.  That is, given an event stream
 corresponding to the timer and another corresponding to the user's
 clicks, we'd like one that merges these two to form a unified trigger
 for saving drafts.  This is precisely what the Flapjax operator <code
-class="fx">merge_e</code> does:
+class="fx">mergeE</code> does:
 
 <pre class="code-disp">
-var saveClickE = extractEvent_e(saveD, 'click');
-var autoSaveE = timer_e(10000);
-var saveE = merge_e(saveClickE, autoSaveE);
+var saveClickE = extractEventE(saveD, 'click');
+var autoSaveE = timerE(10000);
+var saveE = mergeE(saveClickE, autoSaveE);
 var savedTimeE = saveE.transform(getTime);
 insertValueE(savedTimeE, savedTimeD, 'textContent');
 </pre>
 
 <p>
-Be sure to study the <a href="../demos/draftSaver/1/">full code</a>.
+Be sure to study the <a href="/try/?edit=transient_drafts.html">full code</a>.
 </p>
 
 <h3 class="intermezzo">Intermezzo: Contrasting Behaviors and Event Streams</h3>
@@ -649,7 +649,7 @@ stream, starting with the specified initial value until the first
 event arrives.  Likewise, every behavior can be converted into an
 event stream: when the behavior's value changes, send the new value as
 an event.  These conversions are handy enough that Flapjax provides
-them as primitive functions called <code class="fx">hold</code> and
+them as primitive functions called <code class="fx">startsWith</code> and
 <code class="fx">changes</code>, respectively.  (These are not the
 sole means of converting between the two, only the most natural ones.)
 </p>
@@ -673,16 +673,16 @@ behavior, as we saw in the buffer draft saver example.
 Earlier we saw the following program:
 
 <pre class="code-disp">
-(extractValue_b('textField1').length === 3 ? 'green' : 'red')
+(extractValueB('textField1').length === 3 ? 'green' : 'red')
 </pre>
 
 This fragment actually contains a small sleight-of-hand.  Notice the
 use of <code class="fx">.length</code>: we treated the result of <code
-class="fx">extractValue_b</code> as if it were a regular object and
+class="fx">extractValueB</code> as if it were a regular object and
 dereferenced its <code class="fx">length</code> field.  Not only is
 this perfectly legal in Flapjax, it behaves as you'd expect: the value
 of the entire expression <code
-class="fx">extractValue_b('textField1').length</code> is defined to be
+class="fx">extractValueB('textField1').length</code> is defined to be
 the length of that entity at all points in time, which means its value
 updates as the entity's content updates.
 </p>
@@ -703,7 +703,7 @@ the string entered in the buffer.  First we set up the page:
 Now to write the Flapjax code.  The first step is standard:
 
 <pre class="code-disp">
-var valE = extractValue_e('toCount', 'value');
+var valE = extractValueE('toCount', 'value');
 </pre>
 
 where <code class="fx">value</code> indicates which event to extract,
@@ -716,7 +716,7 @@ insertDomE('length: ' + valE.length, 'result');
 
 This too behaves just as you would expect, effectively automatically
 applying <code class="fx">transform</code>.
-<a href="../demos/letter-count/">See the demo</a>.
+<a href="/demos/#lettercount">See the demo</a>.
 </p>
 
 <h3 class="section">Static Initialization</h3>
@@ -840,16 +840,16 @@ particular URL that includes the username of a del.icio.us user
 downloads JavaScript code which, when run, binds the variable <code
 class="js">Delicious</code> to some of that user's bookmarks.  The
 Flapjax interface to this mechanism is <code
-class="fx">evalForeignScriptVal_e</code>, which consumes an event
+class="fx">evalForeignScriptValE</code>, which consumes an event
 stream of requests.  Suppose <code class="fx">userName</code> were
 a field in which the user entered a del.icio.us username:
 </p>
 
 <pre class="code-disp">
-var userNameChangeE = extractValue_e('userName');
+var userNameChangeE = extractValueE('userName');
 
 var deliciousUserLinksE = 
-  evalForeignScriptVal_e(
+  evalForeignScriptValE(
     {'url': 'http://del.icio.us/feeds/json/' + userNameChangeE,
      'globalArg': 'Delicious'});
 </pre>
@@ -859,7 +859,7 @@ Every fresh username places a new value on the event stream, which
 leads to a fresh iteration of the remote site call.  Each time the
 Flapjax function extracts and returns the value bound to the named
 global argument, in this case <code class="js">Delicious</code>.  <a
-href="../demos/delicious/1/run.html">Run the program</a>.
+href="/try/?edit=delicious1.html">Run the program</a>.
 </p>
 
 <p>
@@ -882,7 +882,7 @@ interaction, and perhaps also fetches the bookmarks of usernames we
 weren't interested in.  Rather, it is more natural to connect only
 when the user pauses.  This is a sufficiently useful construction that
 Flapjax provides two useful functions for this purpose: <code
-class="fx">filterRepeats_e</code> and <code class="fx">calm_e</code>.
+class="fx">filterRepeatsE</code> and <code class="fx">calmE</code>.
 The former eliminates duplicates from an event stream.  The latter
 takes an additional argument, a duration, and only releases the latest
 event when the duration has elapsed and no new event has occurred.
@@ -891,14 +891,14 @@ Putting these together:
 
 <pre class="code-disp">
 var deliciousUserLinksE = 
-  evalForeignScriptVal_e(
+  evalForeignScriptValE(
     {'url': 'http://del.icio.us/feeds/json/' +
-            calm_e(filterRepeats_e(userNameChangeE), 450),
+            calmE(filterRepeatsE(userNameChangeE), 450),
      'globalArg': 'Delicious'});
 </pre>
 
 <p>
-<a href="../demos/delicious/2/run.html">Run the revised program</a>.
+<a href="/try/?edit=delicious2.html">Run the revised program</a>.
 </p>
 
 <p>
@@ -917,11 +917,11 @@ taught you to keep in mind Bertrand Russell's chicken.
 <p>
 That's not all.  Flapjax offers much more to enable you to program
 over Web services.  Take a look at
-<a href="../demos/yaggle/">Yaggle</a>, a <em>client-side</em> mashup
+<a href="/demos/index.html#yaggle">Yaggle</a>, a <em>client-side</em> mashup
 that uses Yahoo!'s local services directory in conjunction with
 Google's mapping capability.  The key to this mashup is the Flapjax
 primitive
-<code class="fx">getWebServiceObject_e</code>, which simplifies the process
+<code class="fx">getWebServiceObjectE</code>, which simplifies the process
 of both constructing the service call and, even more usefully, parsing
 the response by converting XML responses into JSON.
 </p>
@@ -986,7 +986,7 @@ writePersistentObject(saveE.snapshot($B('theText')),
 
 <p>
 Finally, we have to initialize the server and load the appropriate
-libraries.  See <a href="/demos/draftSaver/2/">the example</a> for the
+libraries.  See <a href="/demos/index.html#draftsaver">the example</a> for the
 minutiae.  Notice that you can run the application and open the same
 URL in two windows or frames; you'll eventually see changes in one
 propagate to the other.
