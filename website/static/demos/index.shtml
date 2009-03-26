@@ -28,7 +28,7 @@ var examples =
   , { synopsis: "Extract", id: 'extract'
     , items:
       { desc: "This program demonstrates usage of the Flapjax library to extract form content as time-varying values."
-      , url: "extract.html" } }
+      , url: "extract.html", fx: "extract.fx" } }
   , { synopsis: "Fisheye", id: 'fisheye'
     , items: { desc: 'This program shows how to build a reactive animation (a "fisheye" menu widget reacts by ' +
                      'enlarging the items closest to the mouse).'
