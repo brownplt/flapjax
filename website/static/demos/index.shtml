@@ -8,7 +8,7 @@ var examples =
     , items: { desc:  "This is a simple demo that includes a mouse follower and a delayed mouse follower.\n" +
                       "Whenever the mouse is over the 'up' box, the box should be red.\n" +
                       "A counter should record the number of times the mouse has gone over the 'up' box.",
-               url: "catchup.html" } }
+               url: "catchup.html", fx: "catchup.fx" } }
   , { synopsis: "Delicious", id: 'delicious'
     , items:
       [ { desc: "This program demonstrates the use of a cross-site script to download a user's del.icio.us bookmarks."
