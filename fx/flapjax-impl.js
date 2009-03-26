@@ -2498,8 +2498,13 @@ var unBehavior = function(recompute) { return function(v) {
 
 // compilerEventStreamArg :: Behavior a -> a
 var compilerEventStreamArg = function(x) {
-  return (x instanceof Behavior) ? x.valueNow() : x; };
-
+  if (x instanceof Behavior) {
+    return compilerEventStreamArg(x.valueNow()); }
+  else if (typeof(x) == "function") {
+    return function() {
+      return compilerEventStreamArg(x.apply(this,arguments)); }}
+  else {
+    return x; }};
 
 var map1 = function(f,src) { 
   var dest = [ ];
