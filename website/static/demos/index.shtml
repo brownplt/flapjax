@@ -75,7 +75,7 @@ var examples =
     , id: "filters"
     , items:
         { desc: "Composing functions and interfaces with Flapjax"
-        , url "filters.html"
+        , url: "filters.html"
         , fx: "filters.fx"
         }
     }
