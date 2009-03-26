@@ -38,20 +38,20 @@ function makeDownload(src) {
 
 function whenTrue(v) { return v === true; };
 
-function loadInitial(onLoadE) {
+function loadInitialE(onLoadE) {
   // For the edit in the compiler feature of the demo page.
   var urlMatch = 
     window.parent.location.toString().match(/.*?\?edit\=(.*)$/);
   var editUrl = (urlMatch && urlMatch[1]) || 'mouse_coords.fx';
 
-  var textE = getWebServiceObjectE(onLoadE.mapE(makeDownload(editUrl)));
-  insertValueE(textE,$("usersrc"),"value"); }
+  return getWebServiceObjectE(onLoadE.mapE(makeDownload(editUrl))); };
 
 function compileE(doE,src) {
   return getWebServiceObjectE(doE.snapshotE(src)
                               .mapE(makeCompileRequest)); }
 
-function loader() {
+function initialLoaded(initial) {
+  $("usersrc").value = initial;
 
   var src = $B('usersrc');
   var doE = clicksE($("compile"));
@@ -72,7 +72,10 @@ function loader() {
     window.parent.output.location.href = "/fxserver/getobj/tryFlapjax/";
      });
   
-  loadInitial(oneE(true)); }
+  }
+
+function loader() {
+  loadInitialE(oneE(true)).mapE(initialLoaded); };
 
 document.observe("dom:loaded",loader);
 </script>
