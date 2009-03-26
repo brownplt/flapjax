@@ -50,10 +50,10 @@ h1 {
   min-height: 20pt;
   padding-left: 10px;
   padding-right: 10px;
-  border-top: 4px solid black;
+  padding-bottom: 5px;
   border-bottom: 2px solid black;
   margin-bottom: 10px;
-  background-color: #cceeff;
+  background-color: #ffffff;
 }
 
 .banner > .links {
@@ -61,6 +61,7 @@ h1 {
 }
 
 .banner a {
+  font-size: 12pt;
   text-decoration: none;
   border-bottom: 1px dotted blue;
   font-family: Verdana, sans-serif;
