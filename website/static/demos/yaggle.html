@@ -62,15 +62,15 @@ function loader() {
 		};
 	},extractValueB('location'),extractValueB('query'));
 	
-	var yahooLocalE = getForeignWebServiceObjectE(wsInfoB.changes().calm(500));
+	var yahooLocalE = getForeignWebServiceObjectE(wsInfoB.changes().calmE(500));
 	var yahooLocalB = yahooLocalE.startsWith({ResultSet:{Result:[{'Title':'Information from Yahoo! Local will appear here.'}]}});
 	
-	var yahooItemsB = yahooLocalB.lift(function(r) {
+	var yahooItemsB = yahooLocalB.liftB(function(r) {
 		return (r && r.ResultSet && r.ResultSet.Result) ?
 		map(formatItem,r.ResultSet.Result) : [];
 	});
 	
-	insertDomB(ULB(yahooItemsB), 'yahooItems');
+	insertDomB(UL(yahooItemsB), 'yahooItems');
 	
 	var addrB = yahooItemsB.liftB(function(k) {
 		var arrayOfNodes = map(function(q){return extractEventE(q,'click');},k)
@@ -116,30 +116,26 @@ function loader() {
 }
 		</script>
 	</head>
-	<body onload="loader();" onunload="GUnload();">
-		<h1>Flapjax Yahoo/Google Mashup Demo</h1>
-		<form>
-			<div id="main">
-				<p>
-					Location:
-					<input type="text" id="location" value="Providence, RI" size="60"/>
-				</p>
-				<p>
-					Query:
-					<input type="text" id="query" value="delicious delicious pizza" size="60"/>
-				</p>
-				<br />
-				<div id="map" style="width: 500px; height: 300px"></div>
-				<br />
-				<div id="yahooLinkFrame" style="width: 500px; height: 300px">
-					<iframe name="yahoo" style="border: none; width: 500px; height: 300px">
-						<b>Click on a link and information about it will appear here.</b>
-					</iframe>
-				</div>
-			</div>
-			<div id="sidebar">
-				<div id="yahooItems" rows="20" cols="100"></div>
-			</div>
-		</form>
-	</body>
+	
+<body onload="loader();" onunload="GUnload();">
+
+<h1>Flapjax Yahoo/Google Mashup Demo</h1>
+<form>
+<div id="main">
+				
+<p>Location: <input type="text" id="location" value="Providence, RI" size="60">
+</p>
+<p>Query:<input type="text" id="query" value="delicious delicious pizza" size="60">
+</p>
+<br/>
+<div id="map" style="width: 500px; height: 300px"></div>
+<br/>
+<div id="yahooLinkFrame" style="width: 500px; height: 300px">
+<iframe name="yahoo" style="border: none; width: 500px; height: 300px"></iframe>
+</div>
+			
+<div id="sidebar"><div id="yahooItems" rows="20" cols="100"></div></div>
+</div>
+</form>
+</body>
 </html>
