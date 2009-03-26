@@ -122,14 +122,12 @@ isUnliftedMethod opts id =
 --         insertDomB(expression,uidN,'over');
 -- </script><span id=uid></span>
 
-mixedInsertDom opts = J.call (J.ref (J.id "insertDomB"))
-
 inlineToScript:: CompilerOpts -> Html -> State Int Html
 inlineToScript opts (Html.InlineScript (Inline p e) _ init) = do
   id <- get
   let uid = flapjaxIdBase opts ++ show id
-  let e' = ExprStmt p $ (J.call (J.ref (J.id "insertDomB")))
-                        [e,StringLit p uid,StringLit p "over"]
+  let e' = ExprStmt p $ (J.call (J.ref (J.id "compilerInsertDomB")))
+                        [e,StringLit p uid]
   put (id+1)
   return $ Html.HtmlSeq
              [Html.Element "script" 

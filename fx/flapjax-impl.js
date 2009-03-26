@@ -2419,6 +2419,9 @@ var mixedSwitchB = function(behaviourCreatorsB) {
     init instanceof Behavior? valueNow(init) : init);
 };
 
+var compilerInsertDomB = function(mixedB, target) {
+  insertDomB(mixedSwitchB(mixedB),target,"over"); };
+
 
 var compilerLift = function(f /* , args ... */) {
   checkBehavior: {

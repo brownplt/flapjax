@@ -62,7 +62,7 @@ var EventStreamOf = function(name) { return function(eventValueContract) {
     },
     server: function(s,loc) { return function(val) {
       if (val instanceof impl.EventStream) {
-        return val.liftE(function(e) {
+        return val.mapE(function(e) {
            return eventValueContract.server(s,loc)(e);
         });
       }
@@ -72,7 +72,7 @@ var EventStreamOf = function(name) { return function(eventValueContract) {
     }; },
     client: function(s,loc) { return function(val) {
       if (val instanceof impl.EventStream) {
-        return val.liftE(function(e) {
+        return val.mapE(function(e) {
            return eventValueContract.client(s,loc)(e);
         });
       }
@@ -184,7 +184,7 @@ instance Behavior {
 };
 
 instance EventStream {
-  liftE : anyFunction -> EventStream,
+  mapE : anyFunction -> EventStream,
   // TODO: a better contract should restrict this
   switchE : -> EventStream,
   filterE : anyFunction -> EventStream,
@@ -261,7 +261,7 @@ evalForeignScriptValE :: EventStreamOf({ url: string, globalArg: string })
 
 oneE :: any -> EventStream;
 zeroE :: -> EventStream;
-liftE ::  anyFunction EventStream -> EventStream;
+mapE ::  anyFunction EventStream -> EventStream;
 mergeE :: EventStream ... -> EventStream;
 switchE :: EventStreamOf(EventStream) -> EventStream;
 filterE :: EventStream anyFunction -> EventStream;
@@ -386,6 +386,7 @@ member :: any;
 slice :: any;
 forEach :: any;
 
+compilerInsertDomB :: any;
 compilerLift :: any;
 compilerCall :: any;
 compilerIf :: any;
