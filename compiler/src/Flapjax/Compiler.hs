@@ -211,15 +211,15 @@ compileInlineAtAttribs opts page =
 -- wrapped in a loader function.  Therefore, they must be transformed into
 -- assignments.
 
-fixScopingM stmt = return $ everywhereBut (extQ (mkQ True stopFn) stopFnS) (mkT fixScope) stmt where
+fixScopingM stmt = return $ everywhereBut (extQ (mkQ False stopFn) stopFnS) (mkT fixScope) stmt where
 
   stopFn :: Expression SourcePos -> Bool
-  stopFn (FuncExpr{}) = False
-  stopFn _ = True
+  stopFn (FuncExpr{}) = True
+  stopFn _ = False
 
   stopFnS :: Statement SourcePos -> Bool
-  stopFnS (FunctionStmt{}) = False
-  stopFnS _ = True
+  stopFnS (FunctionStmt{}) = True
+  stopFnS _ = False
 
   fixScope:: Statement SourcePos -> Statement SourcePos
   fixScope (FunctionStmt p f args stmt) =
@@ -440,7 +440,6 @@ compileStatement :: S.Set String
 compileStatement fxenv opts stmt = do
   stmt <- fixScopingM stmt
   stmt <- liftStmtM fxenv opts stmt
-  -- stmt <- qualifyKeywordsM opts stmt
   return stmt
 
 -- loaderArray.push(name)
