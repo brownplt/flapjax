@@ -2505,11 +2505,6 @@ var compilerUnbehavior = function(v) {
     return function() {
       // These values may contain behaviors.
       var originalArgs = slice(arguments,0);
-      checkBehavior: {
-        for (var i = 0; i < originalArgs.length; i++) {
-          if (originalArgs[i] instanceof Behavior) {
-            break checkBehavior; }}
-        return v.apply(this,arguments); }
 
       var srcs = [ ];
 

@@ -24,10 +24,10 @@ seamlessly with existing JavaScript code and other frameworks.</p>
 </div>
 
 <div class="right">
-<p><a href="/demos/">Demos</a> See Flapjax and read the code.</p>
-<p><a href="/tutorial/">Tutorial</a> Learn how to program in Flapjax.</p>
+<p><a href="/demos/">Demos</a> See Flapjax and read the code</p>
+<p><a href="/tutorial/">Tutorial</a> Learn how to program in Flapjax</p>
 <p><a href="/try/">Compiler</a> Try Flapjax in your browser&mdash;no download
-required.</p>
+required</p>
 <p><a href="/docs/">Documentation</a> API reference</p>
 <p><a href="http://groups.google.com/group/flapjax/">Discuss</a> The Flapjax mailing list</p>
 <p><a href="http://flapjax.blogspot.com/">Blog</a> The developers&apos; blog</p>
