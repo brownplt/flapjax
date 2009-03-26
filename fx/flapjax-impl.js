@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2009, the Flapjax Team All rights reserved.
+ * Copyright (c) 2006-2009, The Flapjax Team.  All Rights Reserved.
  *  
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -2449,6 +2449,9 @@ var compilerLift = function(f /* , args ... */) {
   // optimize later.
   var resultE = internalE();
   var r = liftB.apply(this,arguments);
+  if (!(r instanceof Behavior)) {
+    return r;
+  }
   if (r.valueNow() instanceof EventStream) {
     return r.valueNow();
   }
@@ -2492,6 +2495,10 @@ var unBehavior = function(recompute) { return function(v) {
     return v;
   };
 }};
+
+// compilerEventStreamArg :: Behavior a -> a
+var compilerEventStreamArg = function(x) {
+  return (x instanceof Behavior) ? x.valueNow() : x; };
 
 
 var map1 = function(f,src) { 

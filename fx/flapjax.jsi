@@ -392,3 +392,4 @@ compilerLift :: any;
 compilerCall :: any;
 compilerIf :: any;
 compilerUnbehavior :: any;
+compilerEventStreamArg :: any;

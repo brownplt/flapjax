@@ -8,6 +8,7 @@ import Control.Monad.State.Strict
 import Control.Monad.Writer
 
 import Data.List(partition)
+import qualified Data.List as L
 import System.Random(randomRIO)
 import Flapjax.Syntax
 import WebBits.Common -- pretty-printable
@@ -109,9 +110,17 @@ isUnliftedFunction _ (Id _ "forEach") = False
 isUnliftedFunction opts id = 
   (unId id) `elem` (flapjaxFunctions opts)
 
+isEventStreamCombinator :: (Id SourcePos) -> Bool
+isEventStreamCombinator (Id _ "snapshotE") = False
+isEventStreamCombinator (Id _ src) = L.last src == 'E'
+
 isUnliftedMethod:: CompilerOpts -> (Id SourcePos) -> Bool
 isUnliftedMethod opts id =
   (unId id) `elem` (flapjaxMethods opts)
+
+eventStreamContext :: ParsedExpression -> ParsedExpression
+eventStreamContext expr = CallExpr noPos
+  (VarRef noPos (Id noPos "compilerEventStreamArg")) [expr]
 
 -- -----------------------------------------------------------------------------
 -- Whole-page pass: Compile Inline Flapjax-scripts
@@ -363,7 +372,9 @@ liftExprM fxenv opts expr = liftM expr where
   liftM e@(CallExpr p f@(VarRef _ id) args)
     | isUnliftedFunction opts id = do
         args' <- mapM liftM args
-        return $ CallExpr p f args'
+        if isEventStreamCombinator id
+          then return $ CallExpr p f (map eventStreamContext args')
+          else return $ CallExpr p f args'
     | otherwise = do 
         (f':args') <- mapM liftM (f:args)
         return $ mixedCall (f':args')
@@ -374,7 +385,10 @@ liftExprM fxenv opts expr = liftM expr where
   liftM (CallExpr p ref@(DotRef p' obj method) args) =
     if isUnliftedMethod opts method
       then do (obj':args') <-  mapM liftM (obj:args)
-              return $ CallExpr p (DotRef p' obj' method) args'
+              if isEventStreamCombinator method
+                then return $ CallExpr p (DotRef p' obj' method)
+                                       (map eventStreamContext args')
+                else return $ CallExpr p (DotRef p' obj' method) args'
       else let (objId:argIds) = mkIds p (obj:args)
                lift = J.func (objId:argIds)
                         (J.return
