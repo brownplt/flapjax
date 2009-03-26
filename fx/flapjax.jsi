@@ -387,6 +387,7 @@ slice :: any;
 forEach :: any;
 
 compilerInsertDomB :: any;
+compilerInsertValueB :: any;
 compilerLift :: any;
 compilerCall :: any;
 compilerIf :: any;

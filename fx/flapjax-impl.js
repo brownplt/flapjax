@@ -2422,6 +2422,20 @@ var mixedSwitchB = function(behaviourCreatorsB) {
 var compilerInsertDomB = function(mixedB, target) {
   insertDomB(mixedSwitchB(mixedB),target,"over"); };
 
+var compilerInsertValueB = function(mixedB,target,attrib) {
+console.log(mixedB);
+  if (typeof(mixedB) == "object") {
+    for (var ix in mixedB) {
+      if (Object.prototype && Object.prototype[ix]) {
+        continue; }
+      if (mixedB[ix] instanceof Behavior) {
+        insertValueB(mixedSwitchB(mixedB[ix]),target,attrib,ix); }
+      else {
+        insertValueB(constantB(mixedB[ix]),target,attrib,ix); }};
+  }
+  else {
+    insertValueB(mixedSwitchB(mixedB),target,attrib); }};
+
 
 var compilerLift = function(f /* , args ... */) {
   checkBehavior: {

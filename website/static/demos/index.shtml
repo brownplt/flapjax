@@ -36,11 +36,11 @@ var examples =
   , { synopsis: "Follow the Mouse", id: 'follow'
     , items: 
       [ { desc: "Create a box whose position is the same as that of the mouse."
-        , url: 'mouse1.html' }
+        , url: 'mouse1.html', fx: "mouse1.fx" }
       , { desc: "Add a second box whose position is that of the mouse, with a slight delay."
-        , url: 'mouse2.html' }
+        , url: 'mouse2.html', fx: "mouse2.fx" }
       , { desc: "Add a third box that trails the second with a delay and a jitter."
-               , url: 'mouse3.html' } ] }
+               , url: 'mouse3.html', fx: "mouse3.fx" } ] }
   , { synopsis: "Letter Count", id: 'lettercount'
     , items:
       { desc: 'Print the number of letters of a word'
