@@ -1,156 +1,88 @@
 <html>
+<head>
+<title>Composing Interfaces</title>
+
+<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript">
+var candidates =
+  [ { name: 'Frederick Algernon Trotteville', score: 1, gender: 'Male' }
+  , { name: 'Lawrence Daykin', score: 3, gender: 'Male' }
+  , { name: 'Margaret Daykin', score: 6, gender: 'Female' }
+  , { name: 'Philip Hilton', score: 2, gender: 'Male' }
+  , { name: 'Elizabeth Hilton', score: 4, gender: 'Female' }
+  ]
+
+var mapKeys = function(f,obj) {
+  var arr = [ ];
+  for (var ix in obj) {
+    if (Object.prototype && Object.prototype[ix]) continue;
+    arr.push(f(ix,obj[ix]));
+  }
+  return arr; };
+
+var formatCandidate = function(c) {
+  return P(c.name, " scored ", c.score," and is ", c.gender); };
+
+var makeCandidatesDOM = function(cs) { 
+  return DIV(map(formatCandidate,cs)); };
+
+var pickGender = function() {
+  var ui = SELECT(
+    OPTION({ value: 'Female' }, "Female"),
+    OPTION({ value: 'Male' }, "Male"));
   
-  <head>
-    <script lang="text/javascript" src="/fx/flapjax.js">
-    </script>
-    <script lang="text/javascript">
-      var fxcode = [];
-    </script>
-    
-    <title>
-      Compositional UI demo
-    </title>
-    
-    <script type="text/javascript" lang="">
-      var mapKeys = function (f, obj)
-                    {
-                      var arr = [];
-                      for (var ix in obj)
-                        {
-                          if (Object.prototype && Object.prototype[ix])
-                            continue;
-                          arr.push(f(ix, obj[ix]));
-                        }
-                      return arr;
-                    };
-    </script>
-    
-    <script type="text/javascript" lang="">
-      function fxcode0()
-      {
-        formatCandidate = function (c)
-                          {
-                            return P(compilerLift(function (arg0, arg1)
-                                                  {
-                                                  return arg0 + arg1;
-                                                  }, compilerLift(function (arg0, arg1)
-                                                                  {
-                                                                  return arg0 + arg1;
-                                                                  }, compilerLift(function (arg0, arg1)
-                                                                                  {
-                                                                                  return arg0 + arg1;
-                                                                                  }, compilerLift(function (arg0, arg1)
-                                                                                                  {
-                                                                                                  return arg0 + arg1;
-                                                                                                  }, compilerLift(function (arg0)
-                                                                                                                  {
-                                                                                                                  return arg0.name;
-                                                                                                                  }, c), " scored "), compilerLift(function (arg0)
-                                                                                                                                                   {
-                                                                                                                                                   return arg0.score;
-                                                                                                                                                   }, c)), " and is "), compilerLift(function (arg0)
-                                                                                                                                                                                     {
-                                                                                                                                                                                     return arg0.gender;
-                                                                                                                                                                                     }, c)));
-                          };
-        makeCandidatesDOM = function (cs)
-                            {
-                              return DIV(compilerCall(compilerUnbehavior(map), formatCandidate, cs));
-                            };
-        candidates = [{name: "Frederick Algernon Trotteville", score: 1.0, gender: "Male"}, {name: "Lawrence Daykin", score: 3.0, gender: "Male"}, {name: "Margaret Daykin", score: 6.0, gender: "Female"}, {name: "Philip Hilton", score: 2.0, gender: "Male"}, {name: "Margaret Daykin", score: 4.0, gender: "Female"}];
-        pickGender = function ()
-                     {
-                       var ui = SELECT(OPTION({value: "Female"}, "Female"), OPTION({value: "Male"}, "Male"));
-                       return {dom: ui, filter: function (person)
-                                                {
-                                                  return compilerLift(function (arg0, arg1)
-                                                                      {
-                                                                      return arg0 == arg1;
-                                                                      }, compilerLift(function (arg0)
-                                                                                      {
-                                                                                      return arg0.gender;
-                                                                                      }, person), $B(ui));
-                                                }};
-                     };
-        pickScore = function ()
-                    {
-                      var ui = INPUT({type: "text", size: 5.0});
-                      return {dom: ui, filter: function (person)
-                                               {
-                                                 return compilerLift(function (arg0, arg1)
-                                                                     {
-                                                                     return arg0 == arg1;
-                                                                     }, compilerLift(function (arg0)
-                                                                                     {
-                                                                                     return arg0.score;
-                                                                                     }, person), compilerCall(compilerUnbehavior(parseInt), $B(ui)));
-                                               }};
-                    };
-        filters = {"Gender": pickGender, "Score": pickScore};
-        pickFilter = function ()
-                     {
-                       var options = compilerCall(compilerUnbehavior(mapKeys), function (k, v)
-                                                                               {
-                                                                                 return OPTION({value: k}, k);
-                                                                               }, filters);
-                       var sel = SELECT(options);
-                       var subFilter = compilerCall(compilerLift(function (arg0, arg1)
-                                                                 {
-                                                                 return arg0[arg1];
-                                                                 }, filters, $B(sel)));
-                       return {dom: SPAN(sel, " is ", compilerLift(function (arg0)
-                                                                   {
-                                                                   return arg0.dom;
-                                                                   }, subFilter)), filter: compilerLift(function (arg0)
-                                                                                                        {
-                                                                                                        return arg0.filter;
-                                                                                                        }, subFilter)};
-                     };
-        filterObj = compilerCall(pickFilter);
-        filteredCandidates = compilerCall(compilerUnbehavior(filter), compilerLift(function (arg0)
-                                                                                   {
-                                                                                   return arg0.filter;
-                                                                                   }, filterObj), candidates);
-      }
-      fxcode.push(fxcode0);
-    </script>
-    
-  </head>
+  return {
+    dom: ui,
+    pred: $B(ui).liftB(function(selectedGender) {
+      return function(person) {
+        return person.gender == selectedGender; }})}};
+
+var pickScore = function() {
+  var ui = INPUT({ type: 'text', size: 5 });
   
-  <body onload="forEach(function(l){ l(); }, fxcode)">
-    Filter by:
-    <script lang="text/javascript" type="">
-      function fxcode1()
-      {
-        compilerInsertDomB(compilerLift(function (arg0)
-                                        {
-                                        return arg0.dom;
-                                        }, filterObj), "flapjaxsuid0");
-      }
-      fxcode.push(fxcode1);
-    </script><!--
-    --><span id="flapjaxsuid0">
-         
-       </span>
-    
-    <br>
-    </br>
-    
-    <p>
-      The candidates are:
-    </p>
-    
-    <script lang="text/javascript" type="">
-      function fxcode2()
-      {
-        compilerInsertDomB(compilerCall(makeCandidatesDOM, filteredCandidates), "flapjaxsuid1");
-      }
-      fxcode.push(fxcode2);
-    </script><!--
-    --><span id="flapjaxsuid1">
-         
-       </span>
-    
-  </body>
-  
+  return {
+    dom: ui,
+    pred: $B(ui).liftB(function(selectedScore) {
+      return function(person) {
+        return person.score == parseInt(selectedScore); }})}};
+
+var filters = 
+  { 'Gender': pickGender
+  , 'Score': pickScore 
+  };
+
+var pickFilter = function() {
+  var options = mapKeys(function(k,v) { return OPTION({ value: k }, k);},
+                        filters);
+  var sel = SELECT(options);
+  var subFilter = $B(sel).liftB(function(selected) {
+    return filters[selected](); });
+
+  return { 
+    dom: SPAN(sel, " is ", 
+              subFilter.liftB(function(x) { return x.dom }).switchB()),
+    pred: subFilter.liftB(function(x) { return x.pred; }).switchB()};};
+
+function start() {
+  filterObj = pickFilter();
+  filteredCandidates = filterObj.pred.liftB(function(pred) {
+    return filter(pred,candidates); });
+
+  insertDomB(filterObj.dom, "ui");
+  insertDomB(filteredCandidates.liftB(makeCandidatesDOM).switchB(), "list"); };
+</script>
+</head>
+
+<body onload="start()">
+
+Filter by: <span id="ui"></span>
+
+<br>
+<p>The candidates are:</p>
+
+<div id="list"></div>
+
+</body>
+
 </html>
+

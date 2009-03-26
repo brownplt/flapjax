@@ -28,7 +28,7 @@ var candidates =
     { name: 'Lawrence Daykin', score: 3, gender: 'Male' },
     { name: 'Margaret Daykin', score: 6, gender: 'Female' },
     { name: 'Philip Hilton', score: 2, gender: 'Male' },
-    { name: 'Margaret Daykin', score: 4, gender: 'Female' } ]
+    { name: 'Elizabeth Hilton', score: 4, gender: 'Female' } ]
 
 
 var pickGender = function() {
