@@ -5,6 +5,8 @@ import subprocess
 
 if settings.host == "peabody":
   fxc = "fxc"
+elif settings.host == "wanderlust.local":
+  fxc = "fxc"
 else:
   fxc = "/home/flapjax/compiler/bin/fxc"
 
