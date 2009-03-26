@@ -15,12 +15,12 @@ data CompilerMessage
 instance HTML ParseError where
   toHtml err =
     p <<  toHtml (errorPos err)
-      +++ (concatMap unMsg (errorMessages err))
+      +++ (concatHtml $ map unMsg (errorMessages err))
 
-unMsg :: Message -> [String]
-unMsg (Message s) = [s]
-unMsg (UnExpect s) = ["unexpected " ++ s]
-unMsg _ = []
+unMsg (Message s) = s +++ br
+unMsg (UnExpect s) = s +++ br
+unMsg (Expect s) = s +++ br
+unMsg (SysUnExpect s) = s +++ br
 
 instance HTML SourcePos where
   toHtml p = thespan << 

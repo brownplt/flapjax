@@ -57,12 +57,10 @@ insertDomB(
            position: 'absolute',
            left: 
              OFFSET2 + mouseLeftB(document).delayB(delayTimeB) + Math.round(DIAM2 * Math.cos(timeB / SPEED)),
-              },
-          top: 
-            mouseTopB(document).delayB(delayTimeB) + 
-            Math.round(DIAM2 * Math.sin(timeB / SPEED)) },
-         'up');
-    });
+            top: 
+              mouseTopB(document).delayB(delayTimeB) + 
+              Math.round(DIAM2 * Math.sin(timeB / SPEED)) }},
+         'up')});
     
   insertDomB( upB, 'catch', 'before');
   
