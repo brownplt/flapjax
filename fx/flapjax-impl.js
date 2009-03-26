@@ -2367,6 +2367,23 @@ var cumulativeOffset = function(element) {
   return { left: valueL, top: valueT };
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Flapjax compiler support
+
+
+/* What is lifting?  Lifting a type-directed transformation that is applied to
+ * functions that do not "know" behaviors.
+ *
+ * lift(Int)      ---> Behavior Int
+ * lift(String)   ---> Behavior String
+ * lift(t1 -> t2) ---> lift(t1) -> lift(t2)
+ *
+ * Consider f :: (t1 -> t2) -> t3.  Flapjax may apply f to a constant function
+ * that returns a behavior.
+ */
+ 
+
+
 var mixedSwitchB = function(behaviourCreatorsB) {
   var init = valueNow(behaviourCreatorsB);
   
@@ -2375,7 +2392,6 @@ var mixedSwitchB = function(behaviourCreatorsB) {
   var receiverE = internalE();
 
   
-	//XXX could result in out-of-order propagation! Fix!
   var makerE = 
   createNode(
     [changes(behaviourCreatorsB)],
@@ -2404,9 +2420,13 @@ var mixedSwitchB = function(behaviourCreatorsB) {
 };
 
 
-// Flapjax compiler support
 var compilerLift = function(f /* , args ... */) {
-  var i;
+  checkBehavior: {
+    for (var i = 0; i < arguments.length; i++) {
+      if (arguments[i] instanceof Behavior) {
+        break checkBehavior; } }
+    return f.apply(this,slice(arguments,1));
+  }
 
   // Assume some argument is a behavior.  This should always work.  We can
   // optimize later.
@@ -2438,7 +2458,7 @@ var compilerIf = function(test,cons,alt) {
 var unBehavior = function(recompute) { return function(v) {
   if (v instanceof Behavior) {
     if (v.valueNow() instanceof Behavior) {
-      return unBehavior(recompute)(v.ValueNow());
+      return unBehavior(recompute)(v.valueNow());
     }
     else {
       attachListener(v.changes(),recompute(v.changes()));
@@ -2468,7 +2488,6 @@ var compilerUnbehavior = function(v) {
     return function() {
       // These values may contain behaviors.
       var originalArgs = slice(arguments,0);
-   
       var srcs = [ ];
 
       var recompute = function(src) {
@@ -2483,14 +2502,13 @@ var compilerUnbehavior = function(v) {
         // arguments.
         map1(function(src) { removeListener(src,recomputeE); },srcs);
         srcs = [ ];
-        
         var args = map1(unBehavior(recompute),originalArgs);
         var r = v.apply(this,args);
         sendEvent(resultE,r);
       });
 
       return resultE.startsWith(v.apply(this,map1(unBehavior(recompute),
-                                              arguments)));
+                                              originalArgs)));
     }
   }
   else {

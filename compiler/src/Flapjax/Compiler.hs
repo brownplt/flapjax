@@ -227,6 +227,9 @@ fixScopingM stmt = return $ everywhereBut (extQ (mkQ True stopFn) stopFnS) (mkT 
   fixScope (VarDeclStmt p decls) =
     let toAssign (VarDecl p id (Just expr)) = 
           AssignExpr p OpAssign (VarRef p id) expr
+        toAssign (VarDecl p id Nothing) =
+          AssignExpr p OpAssign (VarRef p id) 
+            (PrefixExpr p PrefixVoid (NumLit p 0))
         -- TODO: empty var-decls
       in ExprStmt p (ListExpr p (map toAssign decls))
   fixScope other = other
@@ -336,11 +339,9 @@ liftExprM fxenv opts expr = liftM expr where
              in do expr' <- liftM expr
                    return $ mixedLift [lift,expr']
       else warn "unlifted prefix operator" e p >> return e
-  -- Strange treatment for assignment
   liftM e@(AssignExpr p op left right) = do
     if isPureAssignOperator op
-      then do left <- liftM left
-              right <- liftM right
+      then do right <- liftM right -- NOTE: LHS is totally unlifted
               return (AssignExpr p op left right)
       else warn "unlifted assignment operator" e p >> return e
   -- test ? cons : altr :

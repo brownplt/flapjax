@@ -12,7 +12,7 @@ var examples =
   , { synopsis: "Delicious", id: 'delicious'
     , items:
       [ { desc: "This program demonstrates the use of a cross-site script to download a user's del.icio.us bookmarks."
-        , url: "delicious1.html" }
+        , url: "delicious1.html", fx: "delicious1.fx" }
       , { desc: "Slow down requests to the server and do not request for the empty username."
         , url: "delicious2.html" }
       , { desc: "Replace long link names with abbreviated forms, showing the full names during mouseover."
@@ -127,8 +127,8 @@ function processAnchor(id) {
       p.innerHTML = item.desc;
       return DIV_({},p,
                  P_(A_({href: '/demos/' + item.url},'Run the demo')),
-                 item.fx ? [P_(A_({href: '/try/?edit=' + item.fx}, "View and edit the code"))] : [],
-                 P_(A_({href: '/try/?edit=' + item.url}, 'View and edit the code (Flapjax as a library)')));
+                 item.fx ? [P_(A_({href: '/try/index.html?edit=' + item.fx}, "View and edit the code"))] : [],
+                 P_(A_({href: '/try/index.html?edit=' + item.url}, 'View and edit the code (Flapjax as a library)')));
     }
     
     var itemsDom = DIV_({},map(makeItem,items));
