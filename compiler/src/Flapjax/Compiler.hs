@@ -100,6 +100,12 @@ warn :: PrettyPrintable a
 warn desc ast pos = tell [Warning desc (render $ pp ast) pos]
 
 isUnliftedFunction :: CompilerOpts -> (Id SourcePos) -> Bool
+isUnliftedFunction _ (Id _ "map") = False
+isUnliftedFunction _ (Id _ "fold") = False
+isUnliftedFunction _ (Id _ "filter") = False
+isUnliftedFunction _ (Id _ "member") = False
+isUnliftedFunction _ (Id _ "slice") = False
+isUnliftedFunction _ (Id _ "forEach") = False
 isUnliftedFunction opts id = 
   (unId id) `elem` (flapjaxFunctions opts)
 
