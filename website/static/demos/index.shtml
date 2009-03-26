@@ -14,7 +14,7 @@ var examples =
       [ { desc: "This program demonstrates the use of a cross-site script to download a user's del.icio.us bookmarks."
         , url: "delicious1.html", fx: "delicious1.fx" }
       , { desc: "Slow down requests to the server and do not request for the empty username."
-        , url: "delicious2.html" }
+        , url: "delicious2.html", fx: "delicious2.fx" }
       , { desc: "Replace long link names with abbreviated forms, showing the full names during mouseover."
         , url: "delicious3.html" }
       , { desc: "Show a history of searches."
@@ -22,9 +22,9 @@ var examples =
   , { synopsis: "Draft Saver", id: 'draftsaver'
     , items:
       [ { desc: "Basic idea for an automatic draft saver."
-        , url: "transient_drafts.html" }
+        , url: "transient_drafts.html", fx: "transient_drafts.fx" }
       , { desc: "Add server persistence of the draft saver."
-        , url: "persistent_drafts.html" } ] }
+        , url: "persistent_drafts.html", fx: "persistent_drafts.fx" } ] }
   , { synopsis: "Extract", id: 'extract'
     , items:
       { desc: "This program demonstrates usage of the Flapjax library to extract form content as time-varying values."
