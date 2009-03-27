@@ -1,4 +1,6 @@
 build
+/website/.static
+/website/build-static
 *.pyc
 /website/persistence/sqlite3.db
 /fx/flapjax.debug.js

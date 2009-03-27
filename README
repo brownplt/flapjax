@@ -9,3 +9,9 @@ The Flapjax website is built with:
  + GHC 6.10.1 or higher
  + rsync
  + make
+
+Build the website in stages:
+ 1. make fx
+ 2. make compiler
+ 3. make doc
+ 4. make website
