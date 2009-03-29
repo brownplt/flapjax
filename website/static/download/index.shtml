@@ -1,5 +1,11 @@
 <!--#INCLUDE virtual="../top.xml" -->
 
-<p>Download the latest version of <a href="/fx/flapjax.js">flapjax.js</a> (updated: November 17th 2008).</p>
+<div class="center">
+<div class="block">
+<a href="/download/flapjax-2.0.js">
+Download the Flapjax library: Flapjax-2.0 (March 29, 2009)</a></div>
+</div>
+
+<div style="height: 100px; clear: both"></div>
 
 <!--#INCLUDE virtual="../bot.xml" -->

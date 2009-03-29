@@ -24,6 +24,12 @@ h1 {
   float: left;
 }
 
+.center {
+  width: 70%;
+  padding-left: 15%;
+  padding-right: 15%;
+}
+
 .right {
   float: right;
   border-left: 1px solid #333333;
@@ -67,4 +73,25 @@ h1 {
   font-family: Verdana, sans-serif;
   margin-left: 5px;
   margin-right: 5px;
+}
+
+.block {
+  border: 1px solid #0000ff;
+  padding: 10px; 
+  margin: 10px;
+  font-family: Verdana, sans-serif;
+  font-size: 14pt;
+  font-weight: bold;
+  color: #000000;
+  background-color: #99ccff;
+  text-align: center;
+}
+   
+.block a {
+  text-decoration: none;
+  color: #000000;
+}
+
+.block a:hover {
+  text-decoration: underline;
 }
