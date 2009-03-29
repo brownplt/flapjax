@@ -43,7 +43,7 @@ options =
  ]
 
 checkUsage (Usage:_) = do
-  putStrLn "Flapjax Compiler (fxc-3.0)"
+  putStrLn "Flapjax Compiler (fxc-2.0)"
   putStrLn (usageInfo "Usage: fxc [OPTION ...] file" options)
   exitSuccess
 checkUsage _ = return ()
