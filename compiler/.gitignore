@@ -1,2 +1,4 @@
 fxc
 dist
+deb/usr
+*.deb

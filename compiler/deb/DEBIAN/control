@@ -1,0 +1,9 @@
+Package: fxc
+Version: 2.0
+Priority: optional
+Section: web
+Architecture: i386
+Maintainer: Arjun Guha <arjun@cs.brown.edu>
+Homepage: http://www.flapjax-lang.org/
+Depends: libc6, libgmp3c2
+Description: Flapjax compiler
