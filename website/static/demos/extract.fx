@@ -37,7 +37,7 @@
       <select id="c4">
         <option value="av">a</option>
         <option value="bv">b</option>
-        <option>c</option>
+        <option value="cv">c</option>
       </select>
       
       which selected: <span>{! $B("c4") !}</span>
