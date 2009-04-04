@@ -211,8 +211,9 @@ a constant value.</p>
 </p>
 
 <programlisting>
-var clicks = extractValueE('form-button','click');
-clicks.constantE(function() { alert('Do not press this button.'); });
+var clicks = clicksE('form-button');
+clicks.constantE(42).mapE(function(v) { 
+  alert('The magic number is ' + v '.'); });
 </programlisting>
 
 </example>

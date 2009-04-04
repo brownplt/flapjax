@@ -217,6 +217,7 @@ liftB :: or(BehaviorOf(anyFunction),anyFunction) Behavior ... -> Behavior;
 condB :: [Behavior,Behavior] ... -> Behavior;
 ifB :: Behavior Behavior Behavior -> Behavior;
 timerB :: or(positiveInt,BehaviorOf(positiveInt)) -> Behavior;
+disableTimer :: or(Behavior,EventStream) -> void;
 // just about anything can be printed to the DOM
 insertDomB :: notEventStream htmlOrId location -> any;
 mouseTopB :: html -> Behavior;

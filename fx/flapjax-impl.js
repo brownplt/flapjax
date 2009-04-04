@@ -337,7 +337,7 @@ EventStream.prototype.constantE = function(constantValue) {
 };
 
 
-var constantE = function(e) { return e.constantE(); };
+var constantE = function(e,v) { return e.constantE(v); };
 
 
 var createTimeSyncNode = function(nodes) {
