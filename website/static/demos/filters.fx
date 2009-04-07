@@ -16,7 +16,7 @@ var mapKeys = function(f,obj) {
 </script>
 <script type="text/flapjax">
 var formatCandidate = function(c) {
-  return P(c.name + " scored " + c.score + " and is " + c.gender);
+  return P(c.name + " scored " + c.score.toString() + " and is " + c.gender);
 };
 
 var makeCandidatesDOM = function(cs) { 
