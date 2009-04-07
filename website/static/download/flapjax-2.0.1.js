@@ -1,4 +1,7 @@
-/*
+(function () {
+    var impl = { };
+    (function() {
+var $B;var $E;var extractIdB;var extractValueB;var extractValueE;var extractValueOnEventE;var insertDomB;var insertDomE;var insertValueB;var insertValueE;/*
  * Copyright (c) 2006-2009, The Flapjax Team.  All Rights Reserved.
  *  
  * Redistribution and use in source and binary forms, with or without
@@ -2545,3 +2548,1454 @@ var compilerUnbehavior = function(v) {
     return v;
   }
 };
+try
+{
+if (constantB !== undefined)
+  this.constantB = constantB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (delayB !== undefined)
+  this.delayB = delayB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (calmB !== undefined)
+  this.calmB = calmB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (blindB !== undefined)
+  this.blindB = blindB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (valueNow !== undefined)
+  this.valueNow = valueNow;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (switchB !== undefined)
+  this.switchB = switchB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (andB !== undefined)
+  this.andB = andB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (orB !== undefined)
+  this.orB = orB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (notB !== undefined)
+  this.notB = notB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (liftB !== undefined)
+  this.liftB = liftB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (condB !== undefined)
+  this.condB = condB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (ifB !== undefined)
+  this.ifB = ifB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (timerB !== undefined)
+  this.timerB = timerB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (disableTimer !== undefined)
+  this.disableTimer = disableTimer;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (insertDomB !== undefined)
+  this.insertDomB = insertDomB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (mouseTopB !== undefined)
+  this.mouseTopB = mouseTopB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (mouseLeftB !== undefined)
+  this.mouseLeftB = mouseLeftB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (mouseB !== undefined)
+  this.mouseB = mouseB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (extractValueB !== undefined)
+  this.extractValueB = extractValueB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if ($B !== undefined)
+  this.$B = $B;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (extractValueE !== undefined)
+  this.extractValueE = extractValueE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (extractEventE !== undefined)
+  this.extractEventE = extractEventE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if ($E !== undefined)
+  this.$E = $E;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (clicksE !== undefined)
+  this.clicksE = clicksE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (timerE !== undefined)
+  this.timerE = timerE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (extractValueOnEventE !== undefined)
+  this.extractValueOnEventE = extractValueOnEventE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (extractIdB !== undefined)
+  this.extractIdB = extractIdB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (insertDomE !== undefined)
+  this.insertDomE = insertDomE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (insertValueE !== undefined)
+  this.insertValueE = insertValueE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (insertValueB !== undefined)
+  this.insertValueB = insertValueB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (tagRec !== undefined)
+  this.tagRec = tagRec;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (getWebServiceObjectE !== undefined)
+  this.getWebServiceObjectE = getWebServiceObjectE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (getForeignWebServiceObjectE !== undefined)
+  this.getForeignWebServiceObjectE = getForeignWebServiceObjectE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (evalForeignScriptValE !== undefined)
+  this.evalForeignScriptValE = evalForeignScriptValE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (oneE !== undefined)
+  this.oneE = oneE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (zeroE !== undefined)
+  this.zeroE = zeroE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (mapE !== undefined)
+  this.mapE = mapE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (mergeE !== undefined)
+  this.mergeE = mergeE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (switchE !== undefined)
+  this.switchE = switchE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (filterE !== undefined)
+  this.filterE = filterE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (ifE !== undefined)
+  this.ifE = ifE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (constantE !== undefined)
+  this.constantE = constantE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (collectE !== undefined)
+  this.collectE = collectE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (andE !== undefined)
+  this.andE = andE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (orE !== undefined)
+  this.orE = orE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (notE !== undefined)
+  this.notE = notE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (filterRepeatsE !== undefined)
+  this.filterRepeatsE = filterRepeatsE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (receiverE !== undefined)
+  this.receiverE = receiverE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (sendEvent !== undefined)
+  this.sendEvent = sendEvent;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (snapshotE !== undefined)
+  this.snapshotE = snapshotE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (onceE !== undefined)
+  this.onceE = onceE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (skipFirstE !== undefined)
+  this.skipFirstE = skipFirstE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (delayE !== undefined)
+  this.delayE = delayE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (blindE !== undefined)
+  this.blindE = blindE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (calmE !== undefined)
+  this.calmE = calmE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (startsWith !== undefined)
+  this.startsWith = startsWith;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (changes !== undefined)
+  this.changes = changes;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (getElementsByClass !== undefined)
+  this.getElementsByClass = getElementsByClass;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if ($$ !== undefined)
+  this.$$ = $$;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (getObj !== undefined)
+  this.getObj = getObj;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if ($ !== undefined)
+  this.$ = $;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (readCookie !== undefined)
+  this.readCookie = readCookie;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (swapDom !== undefined)
+  this.swapDom = swapDom;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (getURLParam !== undefined)
+  this.getURLParam = getURLParam;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (cumulativeOffset !== undefined)
+  this.cumulativeOffset = cumulativeOffset;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (map !== undefined)
+  this.map = map;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (A !== undefined)
+  this.A = A;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (B !== undefined)
+  this.B = B;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (BLOCKQUOTE !== undefined)
+  this.BLOCKQUOTE = BLOCKQUOTE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (BR !== undefined)
+  this.BR = BR;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (BUTTON !== undefined)
+  this.BUTTON = BUTTON;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (CANVAS !== undefined)
+  this.CANVAS = CANVAS;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (DIV !== undefined)
+  this.DIV = DIV;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (FIELDSET !== undefined)
+  this.FIELDSET = FIELDSET;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (FORM !== undefined)
+  this.FORM = FORM;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (FONT !== undefined)
+  this.FONT = FONT;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (H1 !== undefined)
+  this.H1 = H1;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (H2 !== undefined)
+  this.H2 = H2;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (H3 !== undefined)
+  this.H3 = H3;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (H4 !== undefined)
+  this.H4 = H4;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (HR !== undefined)
+  this.HR = HR;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (IMG !== undefined)
+  this.IMG = IMG;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (IFRAME !== undefined)
+  this.IFRAME = IFRAME;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (INPUT !== undefined)
+  this.INPUT = INPUT;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (LABEL !== undefined)
+  this.LABEL = LABEL;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (LEGEND !== undefined)
+  this.LEGEND = LEGEND;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (LI !== undefined)
+  this.LI = LI;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (OL !== undefined)
+  this.OL = OL;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (OPTGROUP !== undefined)
+  this.OPTGROUP = OPTGROUP;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (OPTION !== undefined)
+  this.OPTION = OPTION;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (P !== undefined)
+  this.P = P;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (PRE !== undefined)
+  this.PRE = PRE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (SELECT !== undefined)
+  this.SELECT = SELECT;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (SPAN !== undefined)
+  this.SPAN = SPAN;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (STRONG !== undefined)
+  this.STRONG = STRONG;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TABLE !== undefined)
+  this.TABLE = TABLE;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TBODY !== undefined)
+  this.TBODY = TBODY;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TD !== undefined)
+  this.TD = TD;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TEXTAREA !== undefined)
+  this.TEXTAREA = TEXTAREA;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TFOOT !== undefined)
+  this.TFOOT = TFOOT;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TH !== undefined)
+  this.TH = TH;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (THEAD !== undefined)
+  this.THEAD = THEAD;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TR !== undefined)
+  this.TR = TR;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TT !== undefined)
+  this.TT = TT;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (UL !== undefined)
+  this.UL = UL;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TEXT !== undefined)
+  this.TEXT = TEXT;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (A_ !== undefined)
+  this.A_ = A_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (B_ !== undefined)
+  this.B_ = B_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (BLOCKQUOTE_ !== undefined)
+  this.BLOCKQUOTE_ = BLOCKQUOTE_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (BR_ !== undefined)
+  this.BR_ = BR_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (BUTTON_ !== undefined)
+  this.BUTTON_ = BUTTON_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (CANVAS_ !== undefined)
+  this.CANVAS_ = CANVAS_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (DIV_ !== undefined)
+  this.DIV_ = DIV_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (FIELDSET_ !== undefined)
+  this.FIELDSET_ = FIELDSET_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (FORM_ !== undefined)
+  this.FORM_ = FORM_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (FONT_ !== undefined)
+  this.FONT_ = FONT_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (H1_ !== undefined)
+  this.H1_ = H1_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (H2_ !== undefined)
+  this.H2_ = H2_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (H3_ !== undefined)
+  this.H3_ = H3_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (H4_ !== undefined)
+  this.H4_ = H4_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (HR_ !== undefined)
+  this.HR_ = HR_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (IMG_ !== undefined)
+  this.IMG_ = IMG_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (IFRAME_ !== undefined)
+  this.IFRAME_ = IFRAME_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (INPUT_ !== undefined)
+  this.INPUT_ = INPUT_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (LABEL_ !== undefined)
+  this.LABEL_ = LABEL_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (LEGEND_ !== undefined)
+  this.LEGEND_ = LEGEND_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (LI_ !== undefined)
+  this.LI_ = LI_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (OL_ !== undefined)
+  this.OL_ = OL_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (OPTGROUP_ !== undefined)
+  this.OPTGROUP_ = OPTGROUP_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (OPTION_ !== undefined)
+  this.OPTION_ = OPTION_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (P_ !== undefined)
+  this.P_ = P_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (PRE_ !== undefined)
+  this.PRE_ = PRE_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (SELECT_ !== undefined)
+  this.SELECT_ = SELECT_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (SPAN_ !== undefined)
+  this.SPAN_ = SPAN_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (STRONG_ !== undefined)
+  this.STRONG_ = STRONG_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TABLE_ !== undefined)
+  this.TABLE_ = TABLE_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TBODY_ !== undefined)
+  this.TBODY_ = TBODY_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TD_ !== undefined)
+  this.TD_ = TD_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TEXTAREA_ !== undefined)
+  this.TEXTAREA_ = TEXTAREA_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TFOOT_ !== undefined)
+  this.TFOOT_ = TFOOT_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TH_ !== undefined)
+  this.TH_ = TH_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (THEAD_ !== undefined)
+  this.THEAD_ = THEAD_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TR_ !== undefined)
+  this.TR_ = TR_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TT_ !== undefined)
+  this.TT_ = TT_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (UL_ !== undefined)
+  this.UL_ = UL_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (TEXT_ !== undefined)
+  this.TEXT_ = TEXT_;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (fold !== undefined)
+  this.fold = fold;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (map !== undefined)
+  this.map = map;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (filter !== undefined)
+  this.filter = filter;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (member !== undefined)
+  this.member = member;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (slice !== undefined)
+  this.slice = slice;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (forEach !== undefined)
+  this.forEach = forEach;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (compilerInsertDomB !== undefined)
+  this.compilerInsertDomB = compilerInsertDomB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (compilerInsertValueB !== undefined)
+  this.compilerInsertValueB = compilerInsertValueB;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (compilerLift !== undefined)
+  this.compilerLift = compilerLift;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (compilerCall !== undefined)
+  this.compilerCall = compilerCall;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (compilerIf !== undefined)
+  this.compilerIf = compilerIf;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (compilerUnbehavior !== undefined)
+  this.compilerUnbehavior = compilerUnbehavior;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (compilerEventStreamArg !== undefined)
+  this.compilerEventStreamArg = compilerEventStreamArg;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (Behavior !== undefined)
+  this.Behavior = Behavior;
+}
+catch (_) {
+          ;
+          }
+try
+{
+if (EventStream !== undefined)
+  this.EventStream = EventStream;
+}
+catch (_) {
+          ;
+          }
+}).apply(impl,[]);
+this.constantB = impl.constantB;
+this.delayB = impl.delayB;
+this.calmB = impl.calmB;
+this.blindB = impl.blindB;
+this.valueNow = impl.valueNow;
+this.switchB = impl.switchB;
+this.andB = impl.andB;
+this.orB = impl.orB;
+this.notB = impl.notB;
+this.liftB = impl.liftB;
+this.condB = impl.condB;
+this.ifB = impl.ifB;
+this.timerB = impl.timerB;
+this.disableTimer = impl.disableTimer;
+this.insertDomB = impl.insertDomB;
+this.mouseTopB = impl.mouseTopB;
+this.mouseLeftB = impl.mouseLeftB;
+this.mouseB = impl.mouseB;
+this.extractValueB = impl.extractValueB;
+this.$B = impl.$B;
+this.extractValueE = impl.extractValueE;
+this.extractEventE = impl.extractEventE;
+this.$E = impl.$E;
+this.clicksE = impl.clicksE;
+this.timerE = impl.timerE;
+this.extractValueOnEventE = impl.extractValueOnEventE;
+this.extractIdB = impl.extractIdB;
+this.insertDomE = impl.insertDomE;
+this.insertValueE = impl.insertValueE;
+this.insertValueB = impl.insertValueB;
+this.tagRec = impl.tagRec;
+this.getWebServiceObjectE = impl.getWebServiceObjectE;
+this.getForeignWebServiceObjectE = impl.getForeignWebServiceObjectE;
+this.evalForeignScriptValE = impl.evalForeignScriptValE;
+this.oneE = impl.oneE;
+this.zeroE = impl.zeroE;
+this.mapE = impl.mapE;
+this.mergeE = impl.mergeE;
+this.switchE = impl.switchE;
+this.filterE = impl.filterE;
+this.ifE = impl.ifE;
+this.constantE = impl.constantE;
+this.collectE = impl.collectE;
+this.andE = impl.andE;
+this.orE = impl.orE;
+this.notE = impl.notE;
+this.filterRepeatsE = impl.filterRepeatsE;
+this.receiverE = impl.receiverE;
+this.sendEvent = impl.sendEvent;
+this.snapshotE = impl.snapshotE;
+this.onceE = impl.onceE;
+this.skipFirstE = impl.skipFirstE;
+this.delayE = impl.delayE;
+this.blindE = impl.blindE;
+this.calmE = impl.calmE;
+this.startsWith = impl.startsWith;
+this.changes = impl.changes;
+this.getElementsByClass = impl.getElementsByClass;
+this.$$ = impl.$$;
+this.getObj = impl.getObj;
+this.$ = impl.$;
+this.readCookie = impl.readCookie;
+this.swapDom = impl.swapDom;
+this.getURLParam = impl.getURLParam;
+this.cumulativeOffset = impl.cumulativeOffset;
+this.map = impl.map;
+this.A = impl.A;
+this.B = impl.B;
+this.BLOCKQUOTE = impl.BLOCKQUOTE;
+this.BR = impl.BR;
+this.BUTTON = impl.BUTTON;
+this.CANVAS = impl.CANVAS;
+this.DIV = impl.DIV;
+this.FIELDSET = impl.FIELDSET;
+this.FORM = impl.FORM;
+this.FONT = impl.FONT;
+this.H1 = impl.H1;
+this.H2 = impl.H2;
+this.H3 = impl.H3;
+this.H4 = impl.H4;
+this.HR = impl.HR;
+this.IMG = impl.IMG;
+this.IFRAME = impl.IFRAME;
+this.INPUT = impl.INPUT;
+this.LABEL = impl.LABEL;
+this.LEGEND = impl.LEGEND;
+this.LI = impl.LI;
+this.OL = impl.OL;
+this.OPTGROUP = impl.OPTGROUP;
+this.OPTION = impl.OPTION;
+this.P = impl.P;
+this.PRE = impl.PRE;
+this.SELECT = impl.SELECT;
+this.SPAN = impl.SPAN;
+this.STRONG = impl.STRONG;
+this.TABLE = impl.TABLE;
+this.TBODY = impl.TBODY;
+this.TD = impl.TD;
+this.TEXTAREA = impl.TEXTAREA;
+this.TFOOT = impl.TFOOT;
+this.TH = impl.TH;
+this.THEAD = impl.THEAD;
+this.TR = impl.TR;
+this.TT = impl.TT;
+this.UL = impl.UL;
+this.TEXT = impl.TEXT;
+this.A_ = impl.A_;
+this.B_ = impl.B_;
+this.BLOCKQUOTE_ = impl.BLOCKQUOTE_;
+this.BR_ = impl.BR_;
+this.BUTTON_ = impl.BUTTON_;
+this.CANVAS_ = impl.CANVAS_;
+this.DIV_ = impl.DIV_;
+this.FIELDSET_ = impl.FIELDSET_;
+this.FORM_ = impl.FORM_;
+this.FONT_ = impl.FONT_;
+this.H1_ = impl.H1_;
+this.H2_ = impl.H2_;
+this.H3_ = impl.H3_;
+this.H4_ = impl.H4_;
+this.HR_ = impl.HR_;
+this.IMG_ = impl.IMG_;
+this.IFRAME_ = impl.IFRAME_;
+this.INPUT_ = impl.INPUT_;
+this.LABEL_ = impl.LABEL_;
+this.LEGEND_ = impl.LEGEND_;
+this.LI_ = impl.LI_;
+this.OL_ = impl.OL_;
+this.OPTGROUP_ = impl.OPTGROUP_;
+this.OPTION_ = impl.OPTION_;
+this.P_ = impl.P_;
+this.PRE_ = impl.PRE_;
+this.SELECT_ = impl.SELECT_;
+this.SPAN_ = impl.SPAN_;
+this.STRONG_ = impl.STRONG_;
+this.TABLE_ = impl.TABLE_;
+this.TBODY_ = impl.TBODY_;
+this.TD_ = impl.TD_;
+this.TEXTAREA_ = impl.TEXTAREA_;
+this.TFOOT_ = impl.TFOOT_;
+this.TH_ = impl.TH_;
+this.THEAD_ = impl.THEAD_;
+this.TR_ = impl.TR_;
+this.TT_ = impl.TT_;
+this.UL_ = impl.UL_;
+this.TEXT_ = impl.TEXT_;
+this.fold = impl.fold;
+this.map = impl.map;
+this.filter = impl.filter;
+this.member = impl.member;
+this.slice = impl.slice;
+this.forEach = impl.forEach;
+this.compilerInsertDomB = impl.compilerInsertDomB;
+this.compilerInsertValueB = impl.compilerInsertValueB;
+this.compilerLift = impl.compilerLift;
+this.compilerCall = impl.compilerCall;
+this.compilerIf = impl.compilerIf;
+this.compilerUnbehavior = impl.compilerUnbehavior;
+this.compilerEventStreamArg = impl.compilerEventStreamArg;window.flapjax = {};
+for (var ix in impl)
+  window.flapjax[ix] = impl[ix];
+})();
