@@ -381,6 +381,7 @@ UL_ ::elementMaker;
 TEXT_ :: elementMaker;
 
 fold :: any;
+foldR :: any;
 map :: any;
 filter :: any;
 member :: any;
