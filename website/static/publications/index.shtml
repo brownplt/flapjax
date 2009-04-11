@@ -1,0 +1,21 @@
+<!--#INCLUDE virtual="../top.xml" -->
+
+<h1>Publications</h1>
+
+<p>Leo Meyerovich, Arjun Guha, Jacob Baskin, Greg Cooper, Michael Greenberg,
+Aleks Bromfield, Shriram Krishnamurthi. <a
+href="http://www.cs.brown.edu/research/pubs/techreports/reports/CS-09-04.html">Flapjax:
+A Programming Language for Ajax Applications</a>.</p>
+
+<h2>Other Publications</h2>
+
+<p>Arjun Guha, Shriram Krishnamurthi, Trevor Jim. <a
+href="http://www.cs.brown.edu/~sk/Publications/Papers/Published/gkj-stat-anal-ajax-id/">Using
+Static Analysis for Ajax intrusion Detection</a>.</p>
+
+<p>Arjun Guha, Jacob Matthews, Robert Bruce Findler, Shriram Krishnamurthi. <a
+href="http://www.cs.brown.edu/~sk/Publications/Papers/Published/gmfk-rel-par-poly-cont/">Relationally-Parametric
+Polymorphic Contracts</a>.</p>
+
+<!--#INCLUDE virtual="../bot.xml" -->
+
