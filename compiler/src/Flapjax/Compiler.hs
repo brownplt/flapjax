@@ -11,8 +11,8 @@ import Data.List(partition)
 import qualified Data.List as L
 import System.Random(randomRIO)
 import Flapjax.Syntax
-import WebBits.Common -- pretty-printable
-import WebBits.JavaScript.Syntax
+import BrownPLT.Common -- pretty-printable
+import BrownPLT.JavaScript.Syntax
 import Flapjax.HtmlEmbedding() -- just instances
 import Text.ParserCombinators.Parsec.Pos (initialPos,SourcePos)
 import Text.PrettyPrint.HughesPJ(render)
@@ -20,9 +20,9 @@ import Control.Monad
 import Control.Monad.Trans
 import Data.Generics hiding (GT)
 import Data.IORef -- awful!
-import qualified WebBits.Html.Syntax as Html
+import qualified BrownPLT.Html.Syntax as Html
 import qualified Flapjax.Builder as J
-import WebBits.JavaScript.Env (localVars)
+import BrownPLT.JavaScript.Environment (localVars)
 import qualified Data.Set as S
 import BrownPLT.Flapjax.Interface
 import BrownPLT.Flapjax.CompilerMessage

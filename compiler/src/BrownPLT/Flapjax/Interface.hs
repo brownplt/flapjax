@@ -7,8 +7,8 @@ module BrownPLT.Flapjax.Interface
   ) where
 
 import System.FilePath
-import Language.JavaScript.Contracts
-import Language.JavaScript.Contracts.Interface
+import BrownPLT.JavaScript.Contracts
+import BrownPLT.JavaScript.Contracts.Interface
 
 import Paths_Flapjax
 
