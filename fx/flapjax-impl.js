@@ -248,7 +248,7 @@ var createNode = function (nodes, updater) {
 //attachListener: Node * Node -> Void
 //flow from node to dependent
 //note: does not add flow as counting for rank nor updates parent ranks
-attachListener = function (node, dependent) {
+var attachListener = function (node, dependent) {
   if (!(node instanceof EventStream)) { throw 'attachListenenerNode: expects event as first arg';} //SAFETY
   if (!(dependent instanceof EventStream)) { throw 'attachListenenerNode: expects event as second arg';} //SAFETY
   
@@ -263,11 +263,12 @@ attachListener = function (node, dependent) {
 		}
 	}
 };
+module.attachListener = attachListener;
 
 //removeListener: Node * Node -> Boolean
 //remove flow from node to dependent
 //note: does not remove flow as counting for rank nor updates parent ranks
-removeListener = function (node, dependent)
+var removeListener = function (node, dependent)
 {
   if (!(node instanceof EventStream)) { throw 'removeListenerNode: expects event as first arg';} //SAFETY
   if (!(dependent instanceof EventStream)) { throw 'removeListenenerNode: expects event as second arg';} //SAFETY
@@ -282,6 +283,8 @@ removeListener = function (node, dependent)
   
   return foundSending;
 };
+
+module.removeListener = removeListener;
 
 // An internalE is a node that simply propagates all pulses it receives.  It's used internally by various 
 // combinators.
@@ -1588,7 +1591,7 @@ var extractEventE = function (domB, eventName) {
   };
 };
 
-$E = extractEventE;
+var $E = extractEventE;
 
 
 //extractEventsE: 
@@ -1626,13 +1629,13 @@ extractDomFieldOnEventE = function (triggerE, domObj /* . indices */) {
   return res;
 };
 
-extractValueE = function (domObj) {
+var extractValueE = function (domObj) {
   return changes(extractValueB.apply(this, arguments));
 };
 
 //extractValueOnEventB: Event * DOM -> Behavior
 // value of a dom form object, polled during trigger
-extractValueOnEventB = function (triggerE, domObj) {
+var extractValueOnEventB = function (triggerE, domObj) {
   return extractValueStaticB(domObj, triggerE);
 };
 
@@ -1789,7 +1792,7 @@ extractValueStaticB = function (domObj, triggerE) {
   }
 };
 
-extractValueB = function (domObj) {
+var extractValueB = function (domObj) {
   if (domObj instanceof Behavior) {
     return liftB(function (dom) { return extractValueStaticB(dom); },
                   domObj)
@@ -1798,7 +1801,7 @@ extractValueB = function (domObj) {
     return extractValueStaticB(domObj);
   }
 };
-$B = extractValueB;
+var $B = extractValueB;
 
 
 //into[index] = deepValueNow(from) via descending from object and mutating each field
@@ -2009,7 +2012,7 @@ insertDomB = function (initTriggerB, optID, optPosition) {
 };
 
 
-extractIdB = function (id, start)
+var extractIdB = function (id, start)
 {
   return startsWith(
     createNode( start instanceof Behavior? [changes(start)] :
