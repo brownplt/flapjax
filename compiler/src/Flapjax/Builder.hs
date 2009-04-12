@@ -4,8 +4,8 @@
 module Flapjax.Builder where
 
 import qualified Prelude as P
-import Text.ParserCombinators.Parsec.Pos(SourcePos,initialPos)
-import WebBits.JavaScript.Syntax 
+import Text.ParserCombinators.Parsec.Pos (SourcePos, initialPos)
+import BrownPLT.JavaScript.Syntax
 
 
 

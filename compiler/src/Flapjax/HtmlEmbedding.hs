@@ -4,10 +4,10 @@
 module Flapjax.HtmlEmbedding(FjHtml) where
 
 import Control.Monad
-import WebBits.Html.Syntax(Script,parseScriptBlock,parseInlineScript,attributeValue,
-                   parseAttributeScript,Html)
+import BrownPLT.Html.Syntax (Script, parseScriptBlock, parseInlineScript,
+  attributeValue, parseAttributeScript, Html)
 import qualified Flapjax.Parser
-import qualified WebBits.JavaScript.Parser
+import qualified BrownPLT.JavaScript.Parser
 import Flapjax.Syntax
 import Text.ParserCombinators.Parsec(SourcePos)
 
@@ -28,7 +28,7 @@ instance Script Flapjax where
       (Just "flapjax")      -> Flapjax.Parser.parseScript
       (Just "text/flapjax") -> Flapjax.Parser.parseScript
       otherwise             -> 
-        liftM Javascript WebBits.JavaScript.Parser.parseScript
+        liftM Javascript BrownPLT.JavaScript.Parser.parseScript
   parseInlineScript =
     Just Flapjax.Parser.parseInline
   parseAttributeScript = 

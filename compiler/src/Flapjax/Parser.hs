@@ -2,8 +2,8 @@ module Flapjax.Parser(parseScript,parseInline,parseInlineAttribute) where
 
 import Control.Monad
 import Text.ParserCombinators.Parsec
-import WebBits.JavaScript.Parser (parseStatement,parseExpression)
-import WebBits.JavaScript.Lexer (whiteSpace)
+import BrownPLT.JavaScript.Parser (parseStatement, parseExpression)
+import BrownPLT.JavaScript.Lexer (whiteSpace)
 import Flapjax.Syntax
 
 parseScript =

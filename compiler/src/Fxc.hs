@@ -9,13 +9,12 @@ import System.IO
 import System.Console.GetOpt
 import System.Environment hiding (withArgs)
 import System.Directory
-import WebBits.Common
-import WebBits.Html.Html()
+import BrownPLT.Html (renderHtml)
 import Text.PrettyPrint.HughesPJ
 import Text.ParserCombinators.Parsec(ParseError,parseFromFile)
 import Flapjax.HtmlEmbedding()
 import Flapjax.Parser(parseScript) -- for standalone mode
-import WebBits.Html.PermissiveParser (parseHtmlFromString)
+import BrownPLT.Html.PermissiveParser (parseHtmlFromString)
 import Flapjax.Compiler(compilePage,defaults,CompilerOpts(..))
 
 import BrownPLT.Flapjax.CompilerMessage
@@ -112,6 +111,6 @@ main = do
       -- TODO: web mode is different
       mapM_ (hPutStrLn stderr . showErr) msgs
 
-      hPutStrLn outputHandle (render $ pp outHtml)
+      hPutStrLn outputHandle (renderHtml outHtml)
       hClose outputHandle
       exitSuccess

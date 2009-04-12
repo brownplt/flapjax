@@ -11,7 +11,6 @@ import Data.List(partition)
 import qualified Data.List as L
 import System.Random(randomRIO)
 import Flapjax.Syntax
-import BrownPLT.Common -- pretty-printable
 import BrownPLT.JavaScript.Syntax
 import Flapjax.HtmlEmbedding() -- just instances
 import Text.ParserCombinators.Parsec.Pos (initialPos,SourcePos)
@@ -95,10 +94,10 @@ defaults = CompilerOpts
   , flapjaxFunctions = error "flapjaxFunctions not initialized"
   }
 
-warn :: PrettyPrintable a 
+warn :: Show a 
      => String -> a -> SourcePos 
      -> Compiler () 
-warn desc ast pos = tell [Warning desc (render $ pp ast) pos]
+warn desc ast pos = tell [Warning desc (show ast) pos]
 
 isUnliftedFunction :: CompilerOpts -> (Id SourcePos) -> Bool
 isUnliftedFunction _ (Id _ "map") = False

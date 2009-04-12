@@ -1,8 +1,10 @@
 module Flapjax.Syntax where
 
-import WebBits.JavaScript
-import Text.ParserCombinators.Parsec(SourcePos)
-import Data.Generics(Data,Typeable)
+import BrownPLT.JavaScript.Crawl()
+import qualified BrownPLT.JavaScript.PrettyPrint as JsPrettyPrint
+import BrownPLT.JavaScript
+import Text.ParserCombinators.Parsec (SourcePos)
+import Data.Generics (Data, Typeable)
 import qualified Text.PrettyPrint.HughesPJ as Pp
 
 data Flapjax
@@ -16,11 +18,12 @@ data Flapjax
   | InlineAttribute SourcePos (Expression SourcePos)
   deriving (Data,Typeable)
 
-instance PrettyPrintable Flapjax where
-  pp (FlapjaxScript _ stmts) = Pp.vcat (map pp stmts)
-  pp (Javascript js) = pp js
-  pp (Inline p expr) = pp expr
-  pp (InlineAttribute p expr) = pp expr
+prettyFlapjax :: Flapjax -> Pp.Doc
+prettyFlapjax fx = case fx of
+  FlapjaxScript _ stmts -> Pp.vcat (map JsPrettyPrint.stmt stmts)
+  Javascript js -> JsPrettyPrint.javaScript js
+  Inline p e -> JsPrettyPrint.expr e
+  InlineAttribute p e -> JsPrettyPrint.expr e
 
 instance Show Flapjax where
-  show f = Pp.render (pp f)
+  show fx = Pp.render (prettyFlapjax fx)
