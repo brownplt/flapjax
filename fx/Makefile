@@ -1,4 +1,4 @@
-JSCC = $(HOME)/.cabal/bin/jscc
+JSCC = jscc
 COMPILERDATA = ../compiler/data
 WEBSITEFX = ../website/build/fx
 
