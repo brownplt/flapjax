@@ -402,7 +402,8 @@ liftExprM fxenv opts expr = liftM expr where
     return $ mixedCall (f':args')
   -- mutual-recursion to lift statements in expressions
   liftM (FuncExpr p ids stmt) = do
-    let fxenv' = S.unions [localVars [stmt],S.fromList $ map unId ids,fxenv]
+    let locals = S.fromList (map fst (localVars [stmt]))
+    let fxenv' = S.unions [locals, S.fromList $ map unId ids, fxenv]
     stmt' <- liftStmtM fxenv' opts stmt
     return $ FuncExpr p ids stmt'
   -- lifting a list of expressions
@@ -513,7 +514,8 @@ compileScripts opts page = do
 fxScriptGlobalEnv :: Html -> S.Set String
 fxScriptGlobalEnv html = everything S.union (mkQ S.empty getEnv) html where
   getEnv :: Flapjax -> S.Set String
-  getEnv (FlapjaxScript _ stmts) = localVars stmts
+  getEnv (FlapjaxScript _ stmts) = locals where
+    locals = S.fromList (map fst (localVars stmts))
   getEnv (Javascript _) = S.empty
   getEnv (Inline _ _) = S.empty -- cannot declare global variables
   getEnv (InlineAttribute _ _) = S.empty -- as above

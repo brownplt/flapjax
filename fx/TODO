@@ -1,9 +1,0 @@
-+ Remove and_e from flapjax.js / document and fix and_e from flapjax.js
-+ Rewrite lift_e to deal with single event streams.
-  + Decide on the semantics of functions that work with multiple event streams.
-    We either allow them or we don't.
-+ Good switch_e example, without getting into heaps of DOM tricks.s
-+ Clarify filterRepeats.  Depends on our definition of equality.
-+ Clarify if_e (syn: choose_e, choose).  At the "same time?"
-+ Clarify or_e.
-+ Clarify cond_e.
