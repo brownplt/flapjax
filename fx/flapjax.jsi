@@ -220,6 +220,7 @@ timerB :: or(positiveInt,BehaviorOf(positiveInt)) -> Behavior;
 disableTimer :: or(Behavior,EventStream) -> void;
 // just about anything can be printed to the DOM
 insertDomB :: notEventStream htmlOrId location -> any;
+insertDom :: html htmlOrId location -> any;
 mouseTopB :: html -> Behavior;
 mouseLeftB :: html -> Behavior;
 mouseB :: html -> Behavior;
