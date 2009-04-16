@@ -3,6 +3,8 @@ COMPILERDATA = ../compiler/data
 WEBSITEFX = ../website/build/fx
 
 all: flapjax.debug.js flapjax.js flapjax.jsi
+	cp fxws.js $(WEBSITEFX)/fxws.js
+	cp Flash4AJAX.swf $(WEBSITEFX)/Flash4AJAX.swf
 
 clean:
 	rm -f flapjax.debug.js
