@@ -23,3 +23,4 @@ flapjax.js: flapjax-impl.js flapjax.jsi
 	cp flapjax.js $(WEBSITEFX)/flapjax.js
 	cp flapjax.jsi $(COMPILERDATA)/flapjax.jsi
 	cp flapjax.jsi $(WEBSITEFX)/flapjax.jsi
+	cp flapjax-impl.js $(WEBSITEFX)/flapjax-impl.js
