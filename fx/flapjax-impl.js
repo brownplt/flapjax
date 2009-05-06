@@ -1481,6 +1481,133 @@ staticTagMaker = function (tagName) {
   };
 };
 
+var deepEach = function(arr, f) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] instanceof Array) {
+      deepEach(arr[i], f);
+    }
+    else {
+      f(arr[i]);
+    }
+  }
+};
+
+var mapWithKeys = function(obj, f) {
+  for (var ix in obj) {
+    if (!(Object.prototype && Object.prototype[ix] == obj[ix])) {
+      f(ix, obj[ix]);
+    }
+  }
+}
+
+var insertAfter = function(parent, newChild, refChild) {
+  if (refChild.nextSibling) {
+    parent.insertBefore(newChild, refChild.nextSibling);
+  }
+  else {
+    // refChild == parent.lastChild
+    parent.appendChild(newChild);
+  }
+};
+
+var swapChildren = function(parent, existingChildren, newChildren) {
+  var end = Math.min(existingChildren.length, newChildren.length);
+  var i;
+
+  for (i = 0; i < end; i++) {
+    parent.replaceChild(newChildren[i], existingChildren[i]);
+  }
+
+  var lastInsertedChild = existingChildren[i - 1];
+
+  if (end < existingChildren.length) {
+    for (i = end; i < existingChildren.length; i++) {
+      parent.removeChild(existingChildren[i]);
+    }
+  }
+  else if (end < newChildren.length) {
+    for (i = end; i < newChildren.length; i++) {
+      insertAfter(parent, newChildren[i], newChildren[i - 1]);
+    }
+  }
+};
+
+var elementize /* not a word */ = function(maybeElement) {
+  return (maybeElement.nodeType > 0) 
+           ? maybeElement
+           : document.createTextNode(maybeElement.toString());
+};
+                                    
+
+var enstyle = function(obj, prop, val) {
+  if (val instanceof Behavior) {
+    enstyle(obj, prop, val.valueNow());
+    // TODO: Must stop updates on nested behaviors.
+    val.liftB(function(v) {
+      enstyle(obj, prop, v);
+    });
+  }
+  else if (val instanceof Object) {
+    mapWithKeys(val, function(k, v) {
+      enstyle(obj[prop], k, v);
+    });
+  }
+  else {
+    obj[prop] = val;
+  }
+};
+  
+// makeTagB :: tagName -> elementB, ... -> element
+var makeTagB = function(tagName) { return function() {
+  var attribs, childrens;
+
+  if (arguments[0].nodeType > 0 || arguments[0] instanceof Behavior ||
+      arguments[0] instanceof Array) {
+    attribs = { };
+    children = slice(arguments, 0);
+  }
+  else {
+    attribs = arguments[0];
+    children = slice(arguments, 1);
+  }
+ 
+  var elt = document.createElement(tagName);
+
+  mapWithKeys(attribs, function(name, val) {
+    if (val instanceof Behavior) {
+      elt[name] = val.valueNow();
+      val.liftB(function(v) { 
+        enstyle(elt, name, v); });
+    }
+    else {
+      enstyle(elt, name, val);
+    }
+  });
+
+  deepEach(children, function(child) {
+    if (child instanceof Behavior) {
+      var lastVal = child.valueNow();
+      lastVal = (lastVal instanceof Array) ? lastVal : [lastVal];
+      lastVal = map(elementize, lastVal);
+      forEach(function(dynChild) { elt.appendChild(dynChild); }, lastVal);
+
+      child.liftB(function(currentVal) {
+        currentVal = (currentVal instanceof Array) ? currentVal : [currentVal];
+        currentVal = map(elementize, currentVal);
+        swapChildren(elt, lastVal, currentVal);
+        lastVal = currentVal;
+      });
+    }
+    else {
+      elt.appendChild(elementize(child));
+    }
+  });
+
+  // constantB is for compatibility with the previous implementation.
+  return constantB(elt);
+} };
+
+
 
 
 var generatedTags = 
@@ -1491,16 +1618,9 @@ var generatedTags =
 "td", "textarea", "tfoot", "th", "thead", "tr", "tt", "ul" ];
 
 forEach(function(tagName) {
-  var upper = tagName.toUpperCase();
-  //d.<TAG>
-  this[upper] = function () { 
-    var thisTagB = new TagB(tagName,slice(arguments,0));
-    return thisTagB.resB;
-  };          
-    
-  //d.<TAG>_
-  this[upper + '_'] = staticTagMaker(tagName); // faster constructor
-}, generatedTags);
+  this[tagName.toUpperCase()] = makeTagB(tagName);
+}, generatedTags); // generatedTags is defined in flapjax-impl.js
+
 
 //TEXTB: Behavior a -> Behavior Dom TextNode    
 TEXTB = function (strB) {
