@@ -1658,34 +1658,27 @@ var TEXT = function (str) {
 
 //tagRec: Array (EventName a) * 
 //      ( .Array (Event a) * Array (Event a) -> Behavior Dom) -> Behavior Dom
+
+// tagRec :: [EventName] * (EventStream DOMEvent, ... -> Element) -> Element
 var tagRec = function (eventNames, maker) {
   if (!(eventNames instanceof Array)) { throw 'tagRec: expected array of event names as first arg'; } //SAFETY
   if (!(maker instanceof Function)) { throw 'tagRec: expected function as second arg'; } //SAFETY
   
   var numEvents = eventNames.length;
-  var internals = [ ];
-  var switches = [ ];
-  for (var i = 0; i < numEvents; i++) {
-    internals[i] = internalE();
-    switches[i] = internals[i].switchE();
-  };
-  
-  var domB = maker.apply(this,switches);
-  
-  var prevValue;
-  
-  var interceptE = createNode([domB.changes()],function (_,p) {
-    if (isEqual(p.value,prevValue)) { return; }
-    
-    prevValue = p.value;
-    for (var i = 0; i < numEvents; i++) {
-      sendEvent(internals[i],extractEventE(prevValue,eventNames[i]));
-    };
-  });
-  
-  sendEvent(interceptE,domB.valueNow());
-  
-  return domB;
+
+  var receivers = [ ];
+  var i;
+  for (i = 0; i < numEvents; i++) {
+    receivers.push(internalE());
+  }
+
+  var elt = maker.apply(this, receivers);
+
+  for (i = 0; i < numEvents; i++) {
+    attachListener(extractEventE(elt, eventNames[i]), receivers[i]);
+  }
+
+  return elt;
 };
 
 
