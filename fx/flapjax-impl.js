@@ -152,6 +152,9 @@ var foldR = function (fn, init /* arrays */) {
 //////////////////////////////////////////////////////////////////////////////
 // Flapjax core
 
+// Sentinel value returned by updaters to stop propagation.
+var doNotPropagate = { };
+
 //Pulse: Stamp * Path * Obj
 var Pulse = function (stamp, value) {
   // Timestamps are used by liftB (and ifE).  Since liftB may receive multiple
@@ -217,12 +220,20 @@ var propagatePulse = function (pulse, node) {
   var queue = new PQ(); //topological queue for current timestep
 
   queue.insert({k:node.rank,n:node,v:pulse});
-  while(!(queue.isEmpty())) {
+  var len = 1;
+
+  var nextPulse, i;
+
+  while (len) {
 	  var qv = queue.pop();
-	  qv.n.updater(function(nextPulse) {
-		  for(var i=0; i<qv.n.sendsTo.length;i++)
+    len--;
+    var nextPulse = qv.n.updater(undefined, new Pulse(qv.v.stamp, qv.v.value));
+    if (nextPulse != doNotPropagate) {
+      for (i = 0; i < qv.n.sendsTo.length; i++) {
+        len++;
 			  queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
-	  }, new Pulse(qv.v.stamp,qv.v.value));
+      }
+    }
   }
 };
 
@@ -289,7 +300,7 @@ module.removeListener = removeListener;
 // An internalE is a node that simply propagates all pulses it receives.  It's used internally by various 
 // combinators.
 var internalE = function(dependsOn) {
-  return createNode(dependsOn || [ ],function(send,pulse) { send(pulse); });
+  return createNode(dependsOn || [ ],function(send,pulse) { return pulse; });
 }
 
 var zeroE = function() {
@@ -306,7 +317,7 @@ var oneE = function(val) {
       throw ('oneE : received an extra value');
     }
     sent = true;
-    send(pulse);
+    return pulse;
   });
   window.setTimeout(function() { sendEvent(evt,val); },0);
   return evt;
@@ -335,27 +346,13 @@ EventStream.prototype.mergeE = function() {
 EventStream.prototype.constantE = function(constantValue) {
   return createNode([this],function(send,pulse) {
     pulse.value = constantValue;
-    send(pulse);
+    return pulse;
   });
 };
 
 
 var constantE = function(e,v) { return e.constantE(v); };
 
-
-var createTimeSyncNode = function(nodes) {
-	var nqs = map(function(n) {
-			var qpulse = [];
-			return {q:qpulse,v:createNode([n],function(s,p) {qpulse.push(p.value); s(p);},nodes)};
-  },nodes);
-	return createNode(
-    map(function(n) {return n.v;},nqs), function(s,p) {
-      var allfull = fold(function(n,acc) {return n.q.length && acc;},true,nqs);
-      if(allfull) {
-        p.value = map(function(n) {return n.q.shift();},nqs);
-        s(p);
-    }});
-};
 
 //This is up here so we can add things to its prototype that are in flapjax.combinators
 var Behavior = function (event, init, updater) {
@@ -371,12 +368,15 @@ var Behavior = function (event, init, updater) {
   this.underlyingRaw = event;
   
   //unexposed, sendEvent to this will only impact dependents of this behaviour
-  this.underlying =
-  createNode(
-    [event], 
-  (updater ? 
-   function (s, p) {behave.last = updater(p.value); p.value = behave.last; s(p);} : 
-   function (s, p) {behave.last = p.value;  s(p);}));
+  this.underlying = createNode([event], updater 
+    ? function (s, p) {
+        behave.last = updater(p.value); 
+        p.value = behave.last; return p;
+      } 
+    : function (s, p) {
+        behave.last = p.value;
+        return p
+      });
 };
 Behavior.prototype = new Object();
 
@@ -407,7 +407,7 @@ EventStream.prototype.bindE = function(k) {
   var m = this;
   var prevE = false;
   
-  var outE = createNode([],function(send,pulse) { send(pulse); });
+  var outE = createNode([],function(send,pulse) { return pulse; });
   outE.name = "bind outE";
   
   var inE = createNode([m], function (send,pulse) {
@@ -421,6 +421,8 @@ EventStream.prototype.bindE = function(k) {
     else {
       throw "bindE : expected EventStream";
     }
+
+    return doNotPropagate;
   });
   inE.name = "bind inE";
   
@@ -438,7 +440,7 @@ EventStream.prototype.mapE = function(f) {
   
   return createNode([this],function(send,pulse) {
     pulse.value = f(pulse.value);
-    send(pulse);
+    return pulse;
   });
 };
 
@@ -455,9 +457,8 @@ EventStream.prototype.filterE = function(pred) {
   };
   
   // Can be a bindE
-  return createNode([this],
-    function(send,pulse) {
-      if (pred(pulse.value)) { send(pulse); }
+  return createNode([this], function(send,pulse) {
+    return pred(pulse.value) ? pulse : doNotPropagate;
   });
 };
 
@@ -470,7 +471,8 @@ EventStream.prototype.onceE = function() {
   var done = false;
   // Alternately: this.collectE(0,\n v -> (n+1,v)).filterE(\(n,v) -> n == 1).mapE(fst)
   return createNode([this],function(send,pulse) {
-    if (!done) { done = true; send(pulse); }
+    if (!done) { done = true; return pulse; }
+    else { return doNotPropagate; }
   });
 };
 
@@ -482,9 +484,9 @@ EventStream.prototype.skipFirstE = function() {
   var skipped = false;
   return createNode([this],function(send,pulse) {
     if (skipped)
-      { send(pulse); }
+      { return pulse; }
     else
-      { skipped = true; }
+      { return doNotPropagate; }
   });
 };
 
@@ -519,10 +521,9 @@ EventStream.prototype.ifE = function(thenE,elseE) {
   var testStamp = -1;
   var testValue = false;
   
-  createNode([this],function(_,pulse) { testStamp = pulse.stamp; testValue = pulse.value; });
+  createNode([this],function(_,pulse) { testStamp = pulse.stamp; testValue = pulse.value; return doNotPropagate; });
   
-  return mergeE(
-    createNode([thenE],function(send,pulse) { if (testValue && (testStamp == pulse.stamp)) { send(pulse); } }),
+  return mergeE(createNode([thenE],function(send,pulse) { if (testValue && (testStamp == pulse.stamp)) { send(pulse); } }),
     createNode([elseE],function(send,pulse) { if (!testValue && (testStamp == pulse.stamp)) { send(pulse); } }));
 };
 
@@ -581,12 +582,10 @@ var delayStaticE = function (event, time) {
   
   var resE = internalE();
   
-  createNode(
-    [event],
-    function (s, p) { 
-      setTimeout( 
-        function () { sendEvent(resE, p.value);}, 
-    time ); });
+  createNode([event], function (s, p) { 
+    setTimeout(function () { sendEvent(resE, p.value);},  time ); 
+    return doNotPropagate;
+  });
   
   return resE;
 };
@@ -616,6 +615,7 @@ EventStream.prototype.delayE = function (time) {
           towards: delayStaticE(event, p.value)
         };
         sendEvent(receiverEE, link.towards);
+        return doNotPropagate;
       });
     
     var resE = receiverEE.switchE();
@@ -701,13 +701,10 @@ var mapE = function (fn /*, [node0 | val0], ...*/) {
 
 
 EventStream.prototype.snapshotE = function (valueB) {
-  return createNode(
-    [this],
-    function (s, p) {
-      p.value = valueNow(valueB);
-      s(p);
-    }
-    ); 
+  return createNode([this], function (send, pulse) {
+    pulse.value = valueNow(valueB);
+    return pulse;
+  });
 };
 
 
@@ -748,6 +745,7 @@ var calmStaticE = function (triggerE, time) {
       return function (s, p) {
         if (towards !== null) { clearTimeout(towards); }
         towards = setTimeout( function () { towards = null; sendEvent(out,p.value) }, time );
+        return doNotPropagate;
       };
     }());
 	return out;
@@ -764,6 +762,7 @@ EventStream.prototype.calmE = function(time) {
         return function (s, p) {
           if (towards !== null) { clearTimeout(towards); }
           towards = setTimeout( function () { towards = null; sendEvent(out,p.value) }, valueNow(time));
+          return doNotPropagate;
         };
       }());
 		return out;
@@ -791,8 +790,9 @@ EventStream.prototype.blindE = function (time) {
         var curTime = (new Date()).getTime();
         if (curTime - lastSent > intervalFn()) {
           lastSent = curTime;
-          s(p);
+          return p;
         }
+        else { return doNotPropagate; }
       };
     }());
 };
@@ -852,6 +852,7 @@ Behavior.prototype.switchB = function() {
       attachListener(prevSourceE, receiverE);
       
       sendEvent(receiverE, valueNow(p.value));
+      return doNotPropagate;
     });
   
   if (init instanceof Behavior) {
@@ -975,10 +976,15 @@ var liftB = function (fn /* . behaves */) {
   //gen/send vals @ appropriate time
   var prevStamp = -1;
   var mid = createNode(constituentsE, function (s, p) {
-      if (p.stamp != prevStamp) {
-        prevStamp = p.stamp;
-        s(p);
-  }});
+    if (p.stamp != prevStamp) {
+      prevStamp = p.stamp;
+      return p; 
+    }
+    else {
+      return doNotPropagate;
+    }
+  });
+  
   return new Behavior(mid,getRes(),getRes);
 };
 
@@ -1209,6 +1215,7 @@ var timerE = function (interval) {
         disableTimerNode(prevE); 
         prevE = createTimerNodeStatic(p.value);
         sendEvent(receiverE, prevE);
+        return doNotPropagate;
       });
     
     res.__timerId = __getTimerId();
@@ -1430,56 +1437,6 @@ enstyleStaticProperty = function (obj, props, index) {
   }
 };
 
-staticTagMaker = function (tagName) {
-  
-  return function () {
-    
-    var tagD = document.createElement(tagName);
-    if (!(tagD.nodeType > 0)) { throw (tagName + ': invalid tag name'); } //SAFETY
-    
-    //partition input
-    
-    //          if (arguments[1] === null || arguments[1] === undefined) { arguments[1] = {}; }
-    var attribs = [];
-    for (var i = 0; i < arguments.length; i++) {
-      if (arguments[i] instanceof Array) {
-        for (var j = 0; j < arguments[i].length; j++) {
-          if (arguments[i][j]) {
-            tagD.appendChild(
-              (typeof(arguments[i][j]) == 'object' &&
-                arguments[i][j].nodeType > 0)?
-              arguments[i][j] :
-              document.createTextNode(arguments[i][j]));
-          }
-        }
-      } else if (!arguments[i]) {
-        //ignore
-      } else if ((typeof(arguments[i]) == 'object') && 
-        (arguments[i].nodeType > 0)) {
-      tagD.appendChild(arguments[i]);
-        } else if (typeof(arguments[i]) == 'object') {
-          attribs.push(arguments[i]);
-        } else {
-          tagD.appendChild(document.createTextNode(arguments[i]));                    
-        }
-    }
-    
-    if (attribs.length == 1) { 
-      for (var k in attribs[0]) {
-        if (!(Object.prototype) || !(Object.prototype[k])) {
-          enstyleStaticProperty(tagD, attribs[0], k);   
-        }
-      }
-    } else if (attribs.length >  0) { 
-      throw 'static enstyle: expected object literals'; //SAFETY
-    } /* else {
-    alert('no attribs on: ' + tagName);
-    } */
-    
-    
-    return tagD;
-  };
-};
 
 // Applies f to each element of a nested array.
 var deepEach = function(arr, f) {
@@ -1493,6 +1450,7 @@ var deepEach = function(arr, f) {
   }
 };
 
+
 var mapWithKeys = function(obj, f) {
   for (var ix in obj) {
     if (!(Object.prototype && Object.prototype[ix] == obj[ix])) {
@@ -1500,6 +1458,7 @@ var mapWithKeys = function(obj, f) {
     }
   }
 }
+
 
 var insertAfter = function(parent, newChild, refChild) {
   if (refChild.nextSibling) {
@@ -1510,6 +1469,7 @@ var insertAfter = function(parent, newChild, refChild) {
     parent.appendChild(newChild);
   }
 };
+
 
 var swapChildren = function(parent, existingChildren, newChildren) {
   var end = Math.min(existingChildren.length, newChildren.length);
@@ -1533,11 +1493,13 @@ var swapChildren = function(parent, existingChildren, newChildren) {
   }
 };
 
+
 var elementize /* not a word */ = function(maybeElement) {
   return (maybeElement.nodeType > 0) 
            ? maybeElement
            : document.createTextNode(maybeElement.toString());
 };
+
 
 var staticEnstyle = function(obj, prop, val) {
   if (val instanceof Object) {
@@ -1566,18 +1528,20 @@ var dynamicEnstyle = function(obj, prop, val) {
   }
 };
   
+
 // makeTagB :: tagName -> elementB, ... -> element
 var makeTagB = function(tagName) { return function() {
-  var attribs, childrens;
+  var attribs, children;
 
-  if (arguments[0].nodeType > 0 || arguments[0] instanceof Behavior ||
-      arguments[0] instanceof Array) {
-    attribs = { };
-    children = slice(arguments, 0);
-  }
-  else {
+  if (typeof(arguments[0]) == "object" && 
+      !(arguments[0].nodeType > 0 || arguments[0] instanceof Behavior || 
+        arguments[0] instanceof Array)) {
     attribs = arguments[0];
     children = slice(arguments, 1);
+  }
+  else {
+    attribs = { };
+    children = slice(arguments, 0);
   }
  
   var elt = document.createElement(tagName);
@@ -1972,6 +1936,7 @@ deepDynamicUpdate = function (into, from, index) {
             into[index] = p.value;
           }
           else { into = p.value; } //TODO notify topE?
+          return doNotPropagate;
         });
     }
   }
@@ -2148,7 +2113,7 @@ var extractIdB = function (id, start)
       [],
       function (s, p) {
         p.value = getObj(id);
-        s(p);
+        return p;
       }),
     getObj(id));
 };
