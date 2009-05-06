@@ -227,7 +227,7 @@ var propagatePulse = function (pulse, node) {
   while (len) {
 	  var qv = queue.pop();
     len--;
-    var nextPulse = qv.n.updater(undefined, new Pulse(qv.v.stamp, qv.v.value));
+    var nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
     if (nextPulse != doNotPropagate) {
       for (i = 0; i < qv.n.sendsTo.length; i++) {
         len++;
@@ -300,11 +300,11 @@ module.removeListener = removeListener;
 // An internalE is a node that simply propagates all pulses it receives.  It's used internally by various 
 // combinators.
 var internalE = function(dependsOn) {
-  return createNode(dependsOn || [ ],function(send,pulse) { return pulse; });
+  return createNode(dependsOn || [ ],function(pulse) { return pulse; });
 }
 
 var zeroE = function() {
-  return createNode([],function(send,pulse) {
+  return createNode([],function(pulse) {
       throw ('zeroE : received a value; zeroE should not receive a value; the value was ' + pulse.value);
   });
 };
@@ -312,7 +312,7 @@ var zeroE = function() {
 
 var oneE = function(val) {
   var sent = false;
-  var evt = createNode([],function(send,pulse) {
+  var evt = createNode([],function(pulse) {
     if (sent) {
       throw ('oneE : received an extra value');
     }
@@ -344,7 +344,7 @@ EventStream.prototype.mergeE = function() {
 
 
 EventStream.prototype.constantE = function(constantValue) {
-  return createNode([this],function(send,pulse) {
+  return createNode([this],function(pulse) {
     pulse.value = constantValue;
     return pulse;
   });
@@ -369,11 +369,11 @@ var Behavior = function (event, init, updater) {
   
   //unexposed, sendEvent to this will only impact dependents of this behaviour
   this.underlying = createNode([event], updater 
-    ? function (s, p) {
+    ? function (p) {
         behave.last = updater(p.value); 
         p.value = behave.last; return p;
       } 
-    : function (s, p) {
+    : function (p) {
         behave.last = p.value;
         return p
       });
@@ -407,10 +407,10 @@ EventStream.prototype.bindE = function(k) {
   var m = this;
   var prevE = false;
   
-  var outE = createNode([],function(send,pulse) { return pulse; });
+  var outE = createNode([],function(pulse) { return pulse; });
   outE.name = "bind outE";
   
-  var inE = createNode([m], function (send,pulse) {
+  var inE = createNode([m], function (pulse) {
     if (prevE) { 
       removeListener(prevE,outE);
     }
@@ -438,7 +438,7 @@ EventStream.prototype.mapE = function(f) {
     throw ('mapE : expected a function as the first argument; received ' + f);
   };
   
-  return createNode([this],function(send,pulse) {
+  return createNode([this],function(pulse) {
     pulse.value = f(pulse.value);
     return pulse;
   });
@@ -457,7 +457,7 @@ EventStream.prototype.filterE = function(pred) {
   };
   
   // Can be a bindE
-  return createNode([this], function(send,pulse) {
+  return createNode([this], function(pulse) {
     return pred(pulse.value) ? pulse : doNotPropagate;
   });
 };
@@ -470,7 +470,7 @@ var filterE = function(e,p) { return e.filterE(p); };
 EventStream.prototype.onceE = function() {
   var done = false;
   // Alternately: this.collectE(0,\n v -> (n+1,v)).filterE(\(n,v) -> n == 1).mapE(fst)
-  return createNode([this],function(send,pulse) {
+  return createNode([this],function(pulse) {
     if (!done) { done = true; return pulse; }
     else { return doNotPropagate; }
   });
@@ -482,7 +482,7 @@ var onceE = function(e) { return e.onceE(); };
 
 EventStream.prototype.skipFirstE = function() {
   var skipped = false;
-  return createNode([this],function(send,pulse) {
+  return createNode([this],function(pulse) {
     if (skipped)
       { return pulse; }
     else
@@ -521,10 +521,10 @@ EventStream.prototype.ifE = function(thenE,elseE) {
   var testStamp = -1;
   var testValue = false;
   
-  createNode([this],function(_,pulse) { testStamp = pulse.stamp; testValue = pulse.value; return doNotPropagate; });
+  createNode([this],function(pulse) { testStamp = pulse.stamp; testValue = pulse.value; return doNotPropagate; });
   
-  return mergeE(createNode([thenE],function(send,pulse) { if (testValue && (testStamp == pulse.stamp)) { send(pulse); } }),
-    createNode([elseE],function(send,pulse) { if (!testValue && (testStamp == pulse.stamp)) { send(pulse); } }));
+  return mergeE(createNode([thenE],function(pulse) { if (testValue && (testStamp == pulse.stamp)) { send(pulse); } }),
+    createNode([elseE],function(pulse) { if (!testValue && (testStamp == pulse.stamp)) { send(pulse); } }));
 };
 
 
@@ -582,7 +582,7 @@ var delayStaticE = function (event, time) {
   
   var resE = internalE();
   
-  createNode([event], function (s, p) { 
+  createNode([event], function (p) { 
     setTimeout(function () { sendEvent(resE, p.value);},  time ); 
     return doNotPropagate;
   });
@@ -607,7 +607,7 @@ EventStream.prototype.delayE = function (time) {
     var switcherE = 
     createNode(
       [changes(time)],
-      function (s, p) {
+      function (p) {
         removeListener(link.from, link.towards); 
         link =
         {
@@ -701,7 +701,7 @@ var mapE = function (fn /*, [node0 | val0], ...*/) {
 
 
 EventStream.prototype.snapshotE = function (valueB) {
-  return createNode([this], function (send, pulse) {
+  return createNode([this], function (pulse) {
     pulse.value = valueNow(valueB);
     return pulse;
   });
@@ -742,7 +742,7 @@ var calmStaticE = function (triggerE, time) {
     [triggerE],
     function() {
       var towards = null;
-      return function (s, p) {
+      return function (p) {
         if (towards !== null) { clearTimeout(towards); }
         towards = setTimeout( function () { towards = null; sendEvent(out,p.value) }, time );
         return doNotPropagate;
@@ -759,7 +759,7 @@ EventStream.prototype.calmE = function(time) {
       [this],
       function() {
         var towards = null;
-        return function (s, p) {
+        return function (p) {
           if (towards !== null) { clearTimeout(towards); }
           towards = setTimeout( function () { towards = null; sendEvent(out,p.value) }, valueNow(time));
           return doNotPropagate;
@@ -786,7 +786,7 @@ EventStream.prototype.blindE = function (time) {
       function () { return valueNow(time); }
       : function () { return time; };
       var lastSent = (new Date()).getTime() - intervalFn() - 1;
-      return function (s, p) {
+      return function (p) {
         var curTime = (new Date()).getTime();
         if (curTime - lastSent > intervalFn()) {
           lastSent = curTime;
@@ -842,7 +842,7 @@ Behavior.prototype.switchB = function() {
   var makerE = 
   createNode(
     [changes(behaviourCreatorsB)],
-    function (_, p) {
+    function (p) {
       if (!(p.value instanceof Behavior)) { throw 'switchB: expected Behavior as value of Behavior of first argument'; } //SAFETY
       if (prevSourceE != null) {
         removeListener(prevSourceE, receiverE);
@@ -975,7 +975,7 @@ var liftB = function (fn /* . behaves */) {
     
   //gen/send vals @ appropriate time
   var prevStamp = -1;
-  var mid = createNode(constituentsE, function (s, p) {
+  var mid = createNode(constituentsE, function (p) {
     if (p.stamp != prevStamp) {
       prevStamp = p.stamp;
       return p; 
@@ -1211,7 +1211,7 @@ var timerE = function (interval) {
     //interval changes: collect old timer
     createNode(
       [changes(interval)],
-      function (_, p) {
+      function (p) {
         disableTimerNode(prevE); 
         prevE = createTimerNodeStatic(p.value);
         sendEvent(receiverE, prevE);
@@ -1930,7 +1930,7 @@ deepDynamicUpdate = function (into, from, index) {
     if (from instanceof Behavior) {
       createNode(
         [changes(from)],
-        function (s, p) {
+        function (p) {
           if (index) { 
             var old = into[index];
             into[index] = p.value;
@@ -2111,7 +2111,7 @@ var extractIdB = function (id, start)
   return startsWith(
     createNode( start instanceof Behavior? [changes(start)] :
       [],
-      function (s, p) {
+      function (p) {
         p.value = getObj(id);
         return p;
       }),
@@ -2492,7 +2492,7 @@ var mixedSwitchB = function(behaviourCreatorsB) {
   var makerE = 
   createNode(
     [changes(behaviourCreatorsB)],
-    function (_, p) {
+    function (p) {
       if (prevSourceE != null) {
         removeListener(prevSourceE, receiverE);
         prevSourceE = null;
