@@ -1481,6 +1481,7 @@ staticTagMaker = function (tagName) {
   };
 };
 
+// Applies f to each element of a nested array.
 var deepEach = function(arr, f) {
   for (var i = 0; i < arr.length; i++) {
     if (arr[i] instanceof Array) {
@@ -1537,19 +1538,27 @@ var elementize /* not a word */ = function(maybeElement) {
            ? maybeElement
            : document.createTextNode(maybeElement.toString());
 };
-                                    
 
-var enstyle = function(obj, prop, val) {
+var staticEnstyle = function(obj, prop, val) {
+  if (val instanceof Object) {
+    mapWithKeys(val, function(k, v) { enstyle(obj[prop], k, v); });
+  }
+  else {
+    obj[prop] = val;
+  }
+};
+
+
+var dynamicEnstyle = function(obj, prop, val) {
   if (val instanceof Behavior) {
-    enstyle(obj, prop, val.valueNow());
-    // TODO: Must stop updates on nested behaviors.
+    staticEnstyle(obj, prop, val.valueNow());
     val.liftB(function(v) {
-      enstyle(obj, prop, v);
+      staticEnstyle(obj, prop, v);
     });
   }
   else if (val instanceof Object) {
     mapWithKeys(val, function(k, v) {
-      enstyle(obj[prop], k, v);
+      dynamicEnstyle(obj[prop], k, v);
     });
   }
   else {
@@ -1577,34 +1586,41 @@ var makeTagB = function(tagName) { return function() {
     if (val instanceof Behavior) {
       elt[name] = val.valueNow();
       val.liftB(function(v) { 
-        enstyle(elt, name, v); });
+        staticEnstyle(elt, name, v); });
     }
     else {
-      enstyle(elt, name, val);
+      dynamicEnstyle(elt, name, val);
     }
   });
 
   deepEach(children, function(child) {
     if (child instanceof Behavior) {
       var lastVal = child.valueNow();
-      lastVal = (lastVal instanceof Array) ? lastVal : [lastVal];
-      lastVal = map(elementize, lastVal);
-      forEach(function(dynChild) { elt.appendChild(dynChild); }, lastVal);
-
-      child.liftB(function(currentVal) {
-        currentVal = (currentVal instanceof Array) ? currentVal : [currentVal];
-        currentVal = map(elementize, currentVal);
-        swapChildren(elt, lastVal, currentVal);
-        lastVal = currentVal;
-      });
+      if (lastVal instanceof Array) {
+        lastVal = map(elementize, lastVal);
+        forEach(function(dynChild) { elt.appendChild(dynChild); }, lastVal);
+        child.liftB(function(currentVal) {
+          currentVal = map(elementize, currentVal);
+          swapChildren(elt, lastVal, currentVal);
+          lastVal = currentVal;
+        });
+      }
+      else {
+        lastVal = elementize(lastVal);
+        elt.appendChild(lastVal);
+        child.liftB(function(currentVal) {
+          currentVal = elementize(currentVal);
+          elt.replaceChild(currentVal, lastVal);
+          lastVal = currentVal;
+        });
+      }
     }
     else {
       elt.appendChild(elementize(child));
     }
   });
 
-  // constantB is for compatibility with the previous implementation.
-  return constantB(elt);
+  return elt;
 } };
 
 
