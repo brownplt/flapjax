@@ -76,6 +76,14 @@ var zip = function(arrays) {
 	return ret;
 }
 
+
+var map1 = function(f,src) { 
+  var dest = [ ];
+  for (var i = 0; i < src.length; i++) { dest.push(f(src[i])); }
+  return dest;
+};
+
+
 //map: (a * ... -> z) * [a] * ... -> [z]
 var map = function (fn) {
 	var arrays = slice(arguments, 1);
@@ -155,6 +163,9 @@ var foldR = function (fn, init /* arrays */) {
 // Sentinel value returned by updaters to stop propagation.
 var doNotPropagate = { };
 
+// 
+
+
 //Pulse: Stamp * Path * Obj
 var Pulse = function (stamp, value) {
   // Timestamps are used by liftB (and ifE).  Since liftB may receive multiple
@@ -182,6 +193,11 @@ var PQ = function () {
   this.isEmpty = function () { 
     return ctx.val.length === 0; 
   };
+
+  this.peek = function() {
+    return ctx.val[0];
+  };
+    
   this.pop = function () {
 		if(ctx.val.length == 1) {
 			return ctx.val.pop();
@@ -214,28 +230,65 @@ var lastRank = 0;
 var stamp = 1;
 var nextStamp = function () { return ++stamp; };
 
-//propagatePulse: Pulse * Array Node -> 
-//Send the pulse to each node 
-var propagatePulse = function (pulse, node) {
-  var queue = new PQ(); //topological queue for current timestep
+// A queue keyed by real time.
+var timeQueue = new PQ();
 
-  queue.insert({k:node.rank,n:node,v:pulse});
-  var len = 1;
+var currentlyPropagating = false;
 
-  var nextPulse, i;
+var propagate = function(now) {
+	// If when == now,  
+	if (currentlyPropagating) {
+		// If when <= now, pulseQueue will be reached by the existing call to
+		// propagatePulse
+		return;
+	}
 
-  while (len) {
-	  var qv = queue.pop();
-    len--;
-    var nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
-    if (nextPulse != doNotPropagate) {
-      for (i = 0; i < qv.n.sendsTo.length; i++) {
-        len++;
-			  queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
-      }
-    }
-  }
-};
+	currentlyPropagating = true;
+	try {
+		var pulseQueue = timeQueue.peek();
+		while (pulseQueue && pulseQueue.k <= now) {
+			pulseQueue = timeQueue.pop().pulses;
+	
+			var nextPulse, i;
+			var len = 1;
+			while (len) {
+				var qv = pulseQueue.pop();
+				len--;
+				nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
+				if (nextPulse != doNotPropagate) {
+					for (i = 0; i < qv.n.sendsTo.length; i++) {
+						len++;
+						pulseQueue.insert({ k:qv.n.sendsTo[i].rank,
+																n:qv.n.sendsTo[i],
+																v:nextPulse });
+					}
+				}
+			}
+	
+			pulseQueue = timeQueue.peek();
+      now = (new Date()).getTime();
+		}
+	}
+	finally {
+		currentlyPropagating = false;
+	}
+
+}
+
+var propagatePulse = function(pulse, node, when) {
+  var now = (new Date()).getTime();
+
+  // Create a new queue of pulses that starts with the incoming pulse.
+  var pulseQueue = new PQ();
+  pulseQueue.insert({ k: node.rank, n: node, v: pulse });
+
+  // Schedule the new pulse queue, possible in the future.
+  when = when ? (now + when) : now;  
+  timeQueue.insert({ k: when,  pulses: pulseQueue });
+
+  propagate(now);
+} 
+
 
 //Event: Array Node b * ( (Pulse a -> Void) * Pulse b -> Void)
 var EventStream = function (nodes,updater) {
@@ -392,10 +445,10 @@ var receiverE = function() {
 
 
 //note that this creates a new timestamp and new event queue
-var sendEvent = function (node, value) {
+var sendEvent = function (node, value, when) {
   if (!(node instanceof EventStream)) { throw 'sendEvent: expected Event as first arg'; } //SAFETY
   
-  propagatePulse(new Pulse(nextStamp(), value),node);
+  propagatePulse(new Pulse(nextStamp(), value), node, when);
 };
 
 // bindE :: EventStream a * (a -> EventStream b) -> EventStream b
@@ -579,11 +632,11 @@ EventStream.prototype.orE = function(/*others*/) {
 
 
 var delayStaticE = function (event, time) {
-  
+  updateResolution(time);
   var resE = internalE();
   
   createNode([event], function (p) { 
-    setTimeout(function () { sendEvent(resE, p.value);},  time ); 
+    sendEvent(resE, p.value, time);
     return doNotPropagate;
   });
   
@@ -1185,15 +1238,51 @@ var disableTimer = function (v) {
   }
 };
 
+var currentSchedulerResolution = 500; // fairly arbitrary
 
-var createTimerNodeStatic = function (interval) {
+var delayedScheduler = function() {
+  propagate((new Date()).getTime());
+};
+
+var updateResolution = function(newResolution) {
+  if (newResolution < currentSchedulerResolution) {
+    clearInterval(delayedScheduler);
+    currentSchedulerResolution = newResolution;
+    setInterval(delayedScheduler, newResolution);
+  }
+};
+
+
+setInterval(delayedScheduler, currentSchedulerResolution);
+
+
+var createTimerNodeStatic = function(interval) {
+  updateResolution(interval);
+
+  // Users listen to this.  
   var node = internalE();
+
+  // Schedules the next event.
+  var next = createNode([], function() { 
+    sendEvent(node, (new Date ()).getTime(), interval);
+    return doNotPropagate;
+  });
+
+  // Since next listens to node, it will receive its own sendEvent and
+  // reschedule itself.
+  attachListener(node, next);
+
   node.__timerId = __getTimerId();
-  var fn = function () { sendEvent(node, (new Date()).getTime());};
-  var timer = setInterval(fn, interval);
-  timerDisablers[node.__timerId] = function () {clearInterval(timer); };
+  timerDisablers[node.__timerId] = function() {
+    removeListener(node, next);
+ };
+  
+  sendEvent(node, (new Date ()).getTime(), interval);
+
   return node;
 };
+  
+
 
 var timerE = function (interval) {
   if (interval instanceof Behavior) {
@@ -2396,11 +2485,6 @@ var compilerEventStreamArg = function(x) {
   else {
     return x; }};
 
-var map1 = function(f,src) { 
-  var dest = [ ];
-  for (var i = 0; i < src.length; i++) { dest.push(f(src[i])); }
-  return dest;
-};
 
 var compilerUnbehavior = function(v) {
   if (typeof v == 'function') {
