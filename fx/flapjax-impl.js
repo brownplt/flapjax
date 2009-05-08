@@ -206,12 +206,13 @@ var PQ = function () {
 		ctx.val.unshift(ctx.val.pop());
 		var kvpos = 0;
 		var kv = ctx.val[0];
-		while(1) {
+		while(1) { 
 			var leftChild = (kvpos*2+1 < ctx.val.length ? ctx.val[kvpos*2+1].k : kv.k+1);
 			var rightChild = (kvpos*2+2 < ctx.val.length ? ctx.val[kvpos*2+2].k : kv.k+1);
 			if(leftChild > kv.k && rightChild > kv.k)
-				break;
-			else if(leftChild < rightChild) {
+				  break;
+
+			if(leftChild < rightChild) {
 				ctx.val[kvpos] = ctx.val[kvpos*2+1];
 				ctx.val[kvpos*2+1] = kv;
 				kvpos = kvpos*2+1;
@@ -246,8 +247,7 @@ var propagate = function(now) {
 	currentlyPropagating = true;
 	try {
 		var pulseQueue = timeQueue.peek();
-		var k = 0;
-    while (k++ < 100 && pulseQueue.k <= now) {
+    if (pulseQueue && pulseQueue.k <= now) {
 			pulseQueue = timeQueue.pop().pulses;
 	
 			var nextPulse, i;
@@ -270,10 +270,6 @@ var propagate = function(now) {
          
 		}
       
-    if (pulseQueue.k <= now) { 
-      window.setInterval(0, function() {
-        propagate(now); });
-    }
 	}
 	finally {
 		currentlyPropagating = false;
@@ -1245,6 +1241,7 @@ var disableTimer = function (v) {
 };
 
 var currentSchedulerResolution = 500; // fairly arbitrary
+var schedulerID;
 
 var delayedScheduler = function() {
   propagate((new Date()).getTime());
@@ -1252,14 +1249,14 @@ var delayedScheduler = function() {
 
 var updateResolution = function(newResolution) {
   if (newResolution < currentSchedulerResolution) {
-    clearInterval(delayedScheduler);
+    clearInterval(schedulerID);
     currentSchedulerResolution = newResolution;
-    setInterval(delayedScheduler, newResolution);
+    schedulerID = setInterval(delayedScheduler, newResolution);
   }
 };
 
 
-setInterval(delayedScheduler, currentSchedulerResolution);
+schedulerID = setInterval(delayedScheduler, currentSchedulerResolution);
 
 
 var createTimerNodeStatic = function(interval) {
@@ -1268,9 +1265,9 @@ var createTimerNodeStatic = function(interval) {
   var disabled = false;
 
   var node = createNode([], function(pulse) { 
-    // Since ourself an event in the future.
+    // Send ourself an event in the future.
     if (!disabled) { 
-      sendEvent(node, pulse.value + interval, interval);
+      sendEvent(node, (new Date ()).getTime() + interval, interval);
       return pulse;
     }
     else {
@@ -1278,11 +1275,14 @@ var createTimerNodeStatic = function(interval) {
     }
   });
 
+  var localSchedulerID = setInterval(delayedScheduler, interval);
+
   node.__timerId = __getTimerId();
   timerDisablers[node.__timerId] = function() {
+    clearInterval(localSchedulerID);
     disabled = true;
- };
-  
+  };
+
   sendEvent(node, (new Date ()).getTime(), interval);
 
   return node;
