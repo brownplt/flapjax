@@ -246,7 +246,8 @@ var propagate = function(now) {
 	currentlyPropagating = true;
 	try {
 		var pulseQueue = timeQueue.peek();
-		while (pulseQueue && pulseQueue.k <= now) {
+		var k = 0;
+    while (k++ < 100 && pulseQueue.k <= now) {
 			pulseQueue = timeQueue.pop().pulses;
 	
 			var nextPulse, i;
@@ -266,8 +267,13 @@ var propagate = function(now) {
 			}
 	
 			pulseQueue = timeQueue.peek();
-      now = (new Date()).getTime();
+         
 		}
+      
+    if (pulseQueue.k <= now) { 
+      window.setInterval(0, function() {
+        propagate(now); });
+    }
 	}
 	finally {
 		currentlyPropagating = false;
@@ -1259,22 +1265,22 @@ setInterval(delayedScheduler, currentSchedulerResolution);
 var createTimerNodeStatic = function(interval) {
   updateResolution(interval);
 
-  // Users listen to this.  
-  var node = internalE();
+  var disabled = false;
 
-  // Schedules the next event.
-  var next = createNode([], function() { 
-    sendEvent(node, (new Date ()).getTime(), interval);
-    return doNotPropagate;
+  var node = createNode([], function(pulse) { 
+    // Since ourself an event in the future.
+    if (!disabled) { 
+      sendEvent(node, pulse.value + interval, interval);
+      return pulse;
+    }
+    else {
+      return doNotPropagate;
+    }
   });
-
-  // Since next listens to node, it will receive its own sendEvent and
-  // reschedule itself.
-  attachListener(node, next);
 
   node.__timerId = __getTimerId();
   timerDisablers[node.__timerId] = function() {
-    removeListener(node, next);
+    disabled = true;
  };
   
   sendEvent(node, (new Date ()).getTime(), interval);
