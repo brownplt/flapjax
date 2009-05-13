@@ -174,6 +174,8 @@ compileAttributeExpr elemId opts
   (Html.Attribute id i p,
    ExprStmt p (mixedInsert [e,StringLit p elemId,StringLit p id])) where
      mixedInsert = J.call (J.ref (J.id "compilerInsertValueB"))
+compileAttributeExpr _ _ attr =
+  error $ "compileAttributeExpr: expected AttributeExpr, received " ++ show attr
 
 containsInlineExprs [] = False
 containsInlineExprs ((Html.AttributeExpr _ _ _ _):rest) = True

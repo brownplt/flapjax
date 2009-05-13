@@ -4,8 +4,8 @@
 module Flapjax.HtmlEmbedding(FjHtml) where
 
 import Control.Monad
-import BrownPLT.Html.Syntax (Script, parseScriptBlock, parseInlineScript,
-  attributeValue, parseAttributeScript, Html)
+import BrownPLT.Html.Syntax (Script (..),
+  attributeValue, Html)
 import qualified Flapjax.Parser
 import qualified BrownPLT.JavaScript.Parser
 import Flapjax.Syntax
@@ -23,13 +23,18 @@ scriptLang attrs =
 
 
 instance Script Flapjax where
+
+  prettyPrintScript script = prettyFlapjax script
+  
   parseScriptBlock attrs =
     case scriptLang attrs of
       (Just "flapjax")      -> Flapjax.Parser.parseScript
       (Just "text/flapjax") -> Flapjax.Parser.parseScript
       otherwise             -> 
         liftM Javascript BrownPLT.JavaScript.Parser.parseScript
+  
   parseInlineScript =
     Just Flapjax.Parser.parseInline
+  
   parseAttributeScript = 
     Just Flapjax.Parser.parseInlineAttribute
