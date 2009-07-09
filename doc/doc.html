@@ -1015,10 +1015,10 @@ constructed DOM node.</p>
 tagRec(
   ['mouseover', 'mouseout'],
   function (overE, outE) {
-    return DIVB(
+    return DIV(
       { style: {
         color:
-          merge(overE.constantE('#FFF'), outE.constantE('#000')).
+          mergeE(overE.constantE('#FFF'), outE.constantE('#000')).
           startsWith('#000')}},
       'mouse over me to change color!');
   });
