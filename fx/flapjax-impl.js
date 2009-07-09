@@ -257,8 +257,15 @@ var propagate = function(now) {
 				len--;
 				nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
 				if (nextPulse != doNotPropagate) {
+          if (qv.n.autoStrong) { qv.n.stronglyHeld = false; }
 					for (i = 0; i < qv.n.sendsTo.length; i++) {
 						len++;
+            // A node is strongly held if any of its receivers are strongly
+            // held.
+            if (qv.n.autoStrong) {
+              qv.n.stronglyHeld =
+                qv.n.stronglyHeld || qv.n.sendsTo[i].stronglyHeld;
+            }
 						pulseQueue.insert({ k:qv.n.sendsTo[i].rank,
 																n:qv.n.sendsTo[i],
 																v:nextPulse });
@@ -297,6 +304,8 @@ var EventStream = function (nodes,updater) {
   this.updater = updater;
   
   this.sendsTo = []; //forward link
+  this.stronglyHeld = true;
+  this.autoStrong = true;
   
   for (var i = 0; i < nodes.length; i++) {
     nodes[i].attachListener(this);
@@ -357,6 +366,12 @@ EventStream.prototype.removeListener = function (dependent) {
   }
 
   genericRemoveListener(this, dependent);
+};
+
+EventStream.prototype.pinE = function() {
+  var node = createNode([this], function(pulse) { return pulse; });
+  node.autoStrong = false;
+  node.stronglyHeld = true;
 };
 
 
@@ -474,7 +489,7 @@ EventStream.prototype.bindE = function(k) {
   outE.name = "bind outE";
   
   var inE = createNode([m], function (pulse) {
-    if (prevE) { console.log("deatching at bind");
+    if (prevE) {
       prevE.removeListener(outE);
     }
     prevE = k(pulse.value);
@@ -1488,7 +1503,7 @@ var generatedTags =
 
 forEach(function(tagName) {
   this[tagName.toUpperCase()] = makeTagB(tagName);
-}, generatedTags); // generatedTags is defined in flapjax-impl.js
+}, generatedTags);
 
 
 //TEXTB: Behavior a -> Behavior Dom TextNode    
@@ -1543,15 +1558,23 @@ var extractEventStaticE = function (domObj, eventName) {
   domObj = getObj(domObj);
   
   var primEventE = internalE();
+  
+  var isListening = false;
 
   var listener = function(evt) {
-    sendEvent(primEventE, evt || window.event);
-     // Important for IE; false would prevent things like a checkbox actually
-     // checking.
-     return true;
+    if (primEventE.stronglyHeld) {
+      sendEvent(primEventE, evt || window.event);
+    }
+    else {
+      console.log("detaching");
+      domObj.removeEventListener(eventName, listener, false);
+      isListening = false;
+    }
+    // Important for IE; false would prevent things like a checkbox actually
+    // checking.
+    return true;
   };
-
-  var isListening = false;
+  
 
   primEventE.attachListener = function(dependent) {
     if (!isListening) {
@@ -1565,7 +1588,6 @@ var extractEventStaticE = function (domObj, eventName) {
   primEventE.removeListener = function(dependent) {
     genericAttachListener(primEventE, dependent);
 
-      console.log("detaching");
     if (isListening && (primEventE.sendsTo.length == 0)) {
       domObj.removeEventListener(eventName, listener, false);
       isListening = false;
