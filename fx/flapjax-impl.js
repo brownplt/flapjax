@@ -299,7 +299,7 @@ var EventStream = function (nodes,updater) {
   this.sendsTo = []; //forward link
   
   for (var i = 0; i < nodes.length; i++) {
-    nodes[i].sendsTo.push(this);
+    nodes[i].attachListener(this);
   }
   
   this.rank = ++lastRank;
@@ -311,15 +311,10 @@ var createNode = function (nodes, updater) {
 	return new EventStream(nodes,updater);
 };
 
-//attachListener: Node * Node -> Void
-//flow from node to dependent
-//note: does not add flow as counting for rank nor updates parent ranks
-var attachListener = function (node, dependent) {
-  if (!(node instanceof EventStream)) { throw 'attachListenenerNode: expects event as first arg';} //SAFETY
-  if (!(dependent instanceof EventStream)) { throw 'attachListenenerNode: expects event as second arg';} //SAFETY
-  
+var genericAttachListener = function(node, dependent) {
   node.sendsTo.push(dependent);
-	if(node.rank > dependent.rank) {
+	
+  if(node.rank > dependent.rank) {
 		var lowest = lastRank+1;
 		var q = [dependent];
 		while(q.length) {
@@ -327,18 +322,10 @@ var attachListener = function (node, dependent) {
 			cur.rank = ++lastRank;
 			q = q.concat(cur.sendsTo);
 		}
-	}
+  }
 };
-module.attachListener = attachListener;
 
-//removeListener: Node * Node -> Boolean
-//remove flow from node to dependent
-//note: does not remove flow as counting for rank nor updates parent ranks
-var removeListener = function (node, dependent)
-{
-  if (!(node instanceof EventStream)) { throw 'removeListenerNode: expects event as first arg';} //SAFETY
-  if (!(dependent instanceof EventStream)) { throw 'removeListenenerNode: expects event as second arg';} //SAFETY
-  
+var genericRemoveListener = function (node, dependent) {
   var foundSending = false;
   for (var i = 0; i < node.sendsTo.length && !foundSending; i++) {
     if (node.sendsTo[i] == dependent) {
@@ -350,7 +337,28 @@ var removeListener = function (node, dependent)
   return foundSending;
 };
 
-module.removeListener = removeListener;
+//attachListener: Node * Node -> Void
+//flow from node to dependent
+//note: does not add flow as counting for rank nor updates parent ranks
+EventStream.prototype.attachListener = function(dependent) {
+  if (!(dependent instanceof EventStream)) {
+    throw 'attachListener: expected an EventStream';
+  }
+  genericAttachListener(this, dependent);
+};
+
+
+//removeListener: Node * Node -> Boolean
+//remove flow from node to dependent
+//note: does not remove flow as counting for rank nor updates parent ranks
+EventStream.prototype.removeListener = function (dependent) {
+  if (!(dependent instanceof EventStream)) {
+    throw 'removeListener: expected an EventStream';
+  }
+
+  genericRemoveListener(this, dependent);
+};
+
 
 // An internalE is a node that simply propagates all pulses it receives.  It's used internally by various 
 // combinators.
@@ -466,12 +474,12 @@ EventStream.prototype.bindE = function(k) {
   outE.name = "bind outE";
   
   var inE = createNode([m], function (pulse) {
-    if (prevE) { 
-      removeListener(prevE,outE);
+    if (prevE) { console.log("deatching at bind");
+      prevE.removeListener(outE);
     }
     prevE = k(pulse.value);
     if (prevE instanceof EventStream) {
-      attachListener(prevE,outE);
+      prevE.attachListener(outE);
     }
     else {
       throw "bindE : expected EventStream";
@@ -484,10 +492,6 @@ EventStream.prototype.bindE = function(k) {
   return outE;
 };
 
-/* Could be written as:
- *
- * e.bindE(function(v) { return oneE(f(v)); })
- */
 EventStream.prototype.mapE = function(f) {
   if (!(f instanceof Function)) {
     throw ('mapE : expected a function as the first argument; received ' + f);
@@ -663,7 +667,7 @@ EventStream.prototype.delayE = function (time) {
     createNode(
       [changes(time)],
       function (p) {
-        removeListener(link.from, link.towards); 
+        link.from.removeListener(link.towards); 
         link =
         {
           from: event, 
@@ -900,11 +904,11 @@ Behavior.prototype.switchB = function() {
     function (p) {
       if (!(p.value instanceof Behavior)) { throw 'switchB: expected Behavior as value of Behavior of first argument'; } //SAFETY
       if (prevSourceE != null) {
-        removeListener(prevSourceE, receiverE);
+        prevSourceE.removeListener(receiverE);
       }
       
       prevSourceE = changes(p.value);
-      attachListener(prevSourceE, receiverE);
+      prevSourceE.attachListener(receiverE);
       
       sendEvent(receiverE, valueNow(p.value));
       return doNotPropagate;
@@ -1108,9 +1112,6 @@ var calmB = function (srcB,intervalB) {
 // DOM Utilities
 
 //credit Scott Andrew
-//usage: addEvent(myDomObj, "mouseover", event->void )
-//warning: do not use 'this' as meaning depends on browser (myDomObj vs window)
-//addEvent: Dom * String DomEventEnum * (DomEvent -> a) -> Void
 var addEvent = function (obj, evType, fn) {
 	//TODO encode mouseleave evt, formalize new evt interface
   
@@ -1527,7 +1528,7 @@ var tagRec = function (eventNames, maker) {
   var elt = maker.apply(this, receivers);
 
   for (i = 0; i < numEvents; i++) {
-    attachListener(extractEventE(elt, eventNames[i]), receivers[i]);
+    extractEventE(elt, eventNames[i]).attachListener(receivers[i]);
   }
 
   return elt;
@@ -1542,12 +1543,34 @@ var extractEventStaticE = function (domObj, eventName) {
   domObj = getObj(domObj);
   
   var primEventE = internalE();
-  addEvent(domObj,eventName,function(evt) {
-     sendEvent(primEventE, evt || window.event);
+
+  var listener = function(evt) {
+    sendEvent(primEventE, evt || window.event);
      // Important for IE; false would prevent things like a checkbox actually
      // checking.
      return true;
-  });
+  };
+
+  var isListening = false;
+
+  primEventE.attachListener = function(dependent) {
+    if (!isListening) {
+      addEvent(domObj, eventName, listener);
+      isListening = true;
+    }
+  
+    genericAttachListener(primEventE, dependent);
+  };
+
+  primEventE.removeListener = function(dependent) {
+    genericAttachListener(primEventE, dependent);
+
+      console.log("detaching");
+    if (isListening && (primEventE.sendsTo.length == 0)) {
+      domObj.removeEventListener(eventName, listener, false);
+      isListening = false;
+    }
+  };
   
   return primEventE;
 };
@@ -2382,12 +2405,12 @@ var mixedSwitchB = function(behaviourCreatorsB) {
     [changes(behaviourCreatorsB)],
     function (p) {
       if (prevSourceE != null) {
-        removeListener(prevSourceE, receiverE);
+        prevSourceE.removeListener(receiverE);
         prevSourceE = null;
       }
       if (p.value instanceof Behavior) {
         prevSourceE = changes(p.value);
-        attachListener(prevSourceE, receiverE);
+        prevSourceE.attachListener(receiverE);
         sendEvent(receiverE, valueNow(p.value));
       }
       else {
@@ -2466,7 +2489,7 @@ var unBehavior = function(recompute) { return function(v) {
       return unBehavior(recompute)(v.valueNow());
     }
     else {
-      attachListener(v.changes(),recompute(v.changes()));
+      v.changes().attachListener(recompute(v.changes()));
       return unBehavior()(v.valueNow());
     }
   }
@@ -2510,7 +2533,7 @@ var compilerUnbehavior = function(v) {
       var recomputeE = createNode([],function(send,_) {
         // Some argument changed.  We will recompute new values for all
         // arguments.
-        map1(function(src) { removeListener(src,recomputeE); },srcs);
+        map1(function(src) { src.removeListener(recomputeE); },srcs);
         srcs = [ ];
         var args = map1(unBehavior(recompute),originalArgs);
         var r = v.apply(this,args);
