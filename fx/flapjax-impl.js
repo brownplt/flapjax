@@ -256,20 +256,20 @@ var propagate = function(now) {
 				var qv = pulseQueue.pop();
 				len--;
 				nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
+
+        var weaklyHeld = true;
+
 				if (nextPulse != doNotPropagate) {
-          if (qv.n.autoStrong) { qv.n.stronglyHeld = false; }
 					for (i = 0; i < qv.n.sendsTo.length; i++) {
+            weaklyHeld = weaklyHeld && qv.n.sendsTo[i].weaklyHeld;
 						len++;
-            // A node is strongly held if any of its receivers are strongly
-            // held.
-            if (qv.n.autoStrong) {
-              qv.n.stronglyHeld =
-                qv.n.stronglyHeld || qv.n.sendsTo[i].stronglyHeld;
-            }
 						pulseQueue.insert({ k:qv.n.sendsTo[i].rank,
 																n:qv.n.sendsTo[i],
 																v:nextPulse });
 					}
+          if (qv.n.sendsTo.length > 0 && weaklyHeld) {
+            qv.n.weaklyHeld = true;
+          }
 				}
 			}
 	
@@ -304,8 +304,7 @@ var EventStream = function (nodes,updater) {
   this.updater = updater;
   
   this.sendsTo = []; //forward link
-  this.stronglyHeld = true;
-  this.autoStrong = true;
+  this.weaklyHeld = false;
   
   for (var i = 0; i < nodes.length; i++) {
     nodes[i].attachListener(this);
@@ -334,13 +333,17 @@ var genericAttachListener = function(node, dependent) {
   }
 };
 
-var genericRemoveListener = function (node, dependent) {
+var genericRemoveListener = function (node, dependent, isWeakReference) {
   var foundSending = false;
   for (var i = 0; i < node.sendsTo.length && !foundSending; i++) {
     if (node.sendsTo[i] == dependent) {
       node.sendsTo.splice(i, 1);
       foundSending = true;
     }
+  }
+
+  if (isWeakReference === true && node.sendsTo.length == 0) {
+    node.weaklyHeld = true;
   }
   
   return foundSending;
@@ -357,21 +360,13 @@ EventStream.prototype.attachListener = function(dependent) {
 };
 
 
-//removeListener: Node * Node -> Boolean
-//remove flow from node to dependent
 //note: does not remove flow as counting for rank nor updates parent ranks
-EventStream.prototype.removeListener = function (dependent) {
+EventStream.prototype.removeListener = function (dependent, isWeak) {
   if (!(dependent instanceof EventStream)) {
     throw 'removeListener: expected an EventStream';
   }
 
-  genericRemoveListener(this, dependent);
-};
-
-EventStream.prototype.pinE = function() {
-  var node = createNode([this], function(pulse) { return pulse; });
-  node.autoStrong = false;
-  node.stronglyHeld = true;
+  genericRemoveListener(this, dependent, isWeak);
 };
 
 
@@ -490,7 +485,8 @@ EventStream.prototype.bindE = function(k) {
   
   var inE = createNode([m], function (pulse) {
     if (prevE) {
-      prevE.removeListener(outE);
+      prevE.removeListener(outE, true);
+      
     }
     prevE = k(pulse.value);
     if (prevE instanceof EventStream) {
@@ -1562,7 +1558,7 @@ var extractEventStaticE = function (domObj, eventName) {
   var isListening = false;
 
   var listener = function(evt) {
-    if (primEventE.stronglyHeld) {
+    if (!primEventE.weaklyHeld) {
       sendEvent(primEventE, evt || window.event);
     }
     else {
