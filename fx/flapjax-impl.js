@@ -2411,7 +2411,7 @@ var cumulativeOffset = function(element) {
 
 
 var mixedSwitchB = function(behaviourCreatorsB) {
-  var init = valueNow(behaviourCreatorsB);
+  var init = behaviourCreatorsB.valueNow();
   
   var prevSourceE = null;
   
@@ -2429,7 +2429,7 @@ var mixedSwitchB = function(behaviourCreatorsB) {
       if (p.value instanceof Behavior) {
         prevSourceE = changes(p.value);
         prevSourceE.attachListener(receiverE);
-        sendEvent(receiverE, valueNow(p.value));
+        sendEvent(receiverE, p.value.valueNow());
       }
       else {
         sendEvent(receiverE, p.value);
@@ -2446,10 +2446,15 @@ var mixedSwitchB = function(behaviourCreatorsB) {
 };
 
 var compilerInsertDomB = function(mixedB, target) {
-  insertDomB(mixedSwitchB(mixedB),target,"over"); };
+  if (mixedB instanceof Behavior) {
+    insertDomB(mixedSwitchB(mixedB), target, "over"); 
+  }
+  else {
+    insertDomB(mixedB, target, "over");
+  }
+};
 
 var compilerInsertValueB = function(mixedB,target,attrib) {
-console.log(mixedB);
   if (typeof(mixedB) == "object") {
     for (var ix in mixedB) {
       if (Object.prototype && Object.prototype[ix]) {
