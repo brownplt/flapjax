@@ -1394,6 +1394,7 @@ var swapChildren = function(parent, existingChildren, newChildren) {
 };
 
 
+// elementize :: any -> node
 var elementize /* not a word */ = function(maybeElement) {
   return (maybeElement.nodeType > 0) 
            ? maybeElement
@@ -1562,7 +1563,6 @@ var extractEventStaticE = function (domObj, eventName) {
       sendEvent(primEventE, evt || window.event);
     }
     else {
-      console.log("detaching");
       domObj.removeEventListener(eventName, listener, false);
       isListening = false;
     }
@@ -1678,13 +1678,13 @@ extractValueStaticB = function (domObj, triggerE) {
   
   var getter; // get value at any current point in time
   
-  
+  var result;
+
   switch (objD.type)  {
     
     //TODO: checkbox.value instead of status?
   case 'checkbox': 
-    
-    return startsWith(
+    result = startsWith(
       filterRepeatsE(
         extractDomFieldOnEventE(
           triggerE ? triggerE : 
@@ -1694,9 +1694,8 @@ extractValueStaticB = function (domObj, triggerE) {
           objD,
           'checked'),objD.checked),
       objD.checked);
-    
-    case 'select-one':
-      
+    break; 
+  case 'select-one':
       getter = function (_) {                         
         return objD.selectedIndex > -1 ? 
         (objD.options[objD.selectedIndex].value ?
@@ -1704,114 +1703,110 @@ extractValueStaticB = function (domObj, triggerE) {
           objD.options[objD.selectedIndex].innerText)
 		    : undefined;
       };
-      
-      return startsWith(
+      result = startsWith(
         filterRepeatsE(
             (triggerE ? triggerE :
             extractEventsE(
               objD,
               'click', 'keyup', 'change')).mapE(getter)),getter(),
         getter());
-      
-      case 'select-multiple':
-        //TODO ryan's cfilter adapted for equality check
-        
-        getter = function (_) {
-          var res = [];
-          for (var i = 0; i < objD.options.length; i++) {
-            if (objD.options[i].selected) {
-              res.push(objD.options[i].value ? objD.options[i].value : objD.options[i].innerText);
-            }
-          }
-          return res;
-        };
-        
-        
-        return startsWith(
-            (triggerE ? triggerE : 
-            extractEventsE(
-              objD,
-              'click', 'keyup', 'change')).mapE(getter),
-          getter());
-        
-        case 'text':
-        case 'textarea':
-        case 'hidden':
-        case 'password':
-          
-          return startsWith(
-            filterRepeatsE(
-              extractDomFieldOnEventE(
-                triggerE ? triggerE :
-                extractEventsE(
-                  objD, 
-                  'click', 'keyup', 'change'),
-                objD,
-                'value'),objD.value),
-            objD.value);
-          
-          case 'button': //same as above, but don't filter repeats
-            
-            return startsWith(
-              extractDomFieldOnEventE(
-                triggerE ? triggerE :
-                extractEventsE(
-                  objD, 
-                  'click', 'keyup', 'change'),
-                objD,
-                'value'),
-              objD.value);
-            
-            
-            case 'radio': 
-            case 'radio-group':
-              
-              //TODO returns value of selected button, but if none specified,
-              //      returns 'on', which is ambiguous. could return index,
-              //      but that is probably more annoying
-              
-              var radiosAD = filter(
-                function (elt) { 
-                  return (elt.type == 'radio') &&
-                  (elt.getAttribute('name') == objD.name); 
-                },
-                document.getElementsByTagName('input'));
-              
-              getter = 
-              objD.type == 'radio' ?
-              
-              function (_) {
-                return objD.checked;
-              } :
-              
-              function (_) {
-                for (var i = 0; i < radiosAD.length; i++) {
-                  if (radiosAD[i].checked) {
-                    return radiosAD[i].value; 
-                  }
-                }
-                return undefined; //TODO throw exn? 
-              };
-              
-              var actualTriggerE = triggerE ? triggerE :
-              mergeE.apply(
-                this,
-                map(
-                  function (radio) { 
-                    return extractEventsE(
-                      radio, 
-                  'click', 'keyup', 'change'); },
-                    radiosAD));
-              
-              return startsWith(
-                filterRepeatsE(
-                    actualTriggerE.mapE(getter),getter()),
-                getter());
-              
-              default:
-                
-                throw ('extractValueStaticB: unknown value type "' + objD.type + '"');
+      break;
+  case 'select-multiple':
+    //TODO ryan's cfilter adapted for equality check
+    getter = function (_) {
+      var res = [];
+      for (var i = 0; i < objD.options.length; i++) {
+        if (objD.options[i].selected) {
+          res.push(objD.options[i].value ? objD.options[i].value : objD.options[i].innerText);
+        }
+      }
+      return res;
+    };
+    result = startsWith(
+        (triggerE ? triggerE : 
+        extractEventsE(
+          objD,
+          'click', 'keyup', 'change')).mapE(getter),
+      getter());
+    break;
+    
+  case 'text':
+  case 'textarea':
+  case 'hidden':
+  case 'password':
+    result = startsWith(
+      filterRepeatsE(
+        extractDomFieldOnEventE(
+          triggerE ? triggerE :
+          extractEventsE(
+            objD, 
+            'click', 'keyup', 'change'),
+          objD,
+          'value'),objD.value),
+      objD.value);
+    break;
+    
+  case 'button': //same as above, but don't filter repeats
+    result = startsWith(
+      extractDomFieldOnEventE(
+        triggerE ? triggerE :
+        extractEventsE(
+          objD, 
+          'click', 'keyup', 'change'),
+        objD,
+        'value'),
+      objD.value);
+    break;
+    
+  case 'radio': 
+  case 'radio-group':
+    
+    //TODO returns value of selected button, but if none specified,
+    //      returns 'on', which is ambiguous. could return index,
+    //      but that is probably more annoying
+    
+    var radiosAD = filter(
+      function (elt) { 
+        return (elt.type == 'radio') &&
+        (elt.getAttribute('name') == objD.name); 
+      },
+      document.getElementsByTagName('input'));
+    
+    getter = 
+    objD.type == 'radio' ?
+    
+    function (_) {
+      return objD.checked;
+    } :
+    
+    function (_) {
+      for (var i = 0; i < radiosAD.length; i++) {
+        if (radiosAD[i].checked) {
+          return radiosAD[i].value; 
+        }
+      }
+      return undefined; //TODO throw exn? 
+    };
+    
+    var actualTriggerE = triggerE ? triggerE :
+    mergeE.apply(
+      this,
+      map(
+        function (radio) { 
+          return extractEventsE(
+            radio, 
+        'click', 'keyup', 'change'); },
+          radiosAD));
+    
+    result = startsWith(
+      filterRepeatsE(
+          actualTriggerE.mapE(getter),getter()),
+      getter());
+  default:
+    throw ('extractValueStaticB: unknown value type "' + objD.type + '"');
   }
+
+  return result;
 };
 
 var extractValueB = function (domObj) {
@@ -2396,53 +2391,31 @@ var cumulativeOffset = function(element) {
 ///////////////////////////////////////////////////////////////////////////////
 // Flapjax compiler support
 
-
-/* What is lifting?  Lifting a type-directed transformation that is applied to
- * functions that do not "know" behaviors.
- *
- * lift(Int)      ---> Behavior Int
- * lift(String)   ---> Behavior String
- * lift(t1 -> t2) ---> lift(t1) -> lift(t2)
- *
- * Consider f :: (t1 -> t2) -> t3.  Flapjax may apply f to a constant function
- * that returns a behavior.
- */
- 
-
-
-var mixedSwitchB = function(behaviourCreatorsB) {
-  var init = behaviourCreatorsB.valueNow();
+var mixedSwitchB = function(behaviorCreatorsB) {
+  var init = behaviorCreatorsB.valueNow();
   
   var prevSourceE = null;
-  
-  var receiverE = internalE();
 
-  
-  var makerE = 
-  createNode(
-    [changes(behaviourCreatorsB)],
-    function (p) {
-      if (prevSourceE != null) {
-        prevSourceE.removeListener(receiverE);
-        prevSourceE = null;
-      }
-      if (p.value instanceof Behavior) {
-        prevSourceE = changes(p.value);
-        prevSourceE.attachListener(receiverE);
-        sendEvent(receiverE, p.value.valueNow());
-      }
-      else {
-        sendEvent(receiverE, p.value);
-      }
-    });
-  
-  if (init instanceof Behavior) {
-    sendEvent(makerE, init);
-  }
-  
-  return startsWith(
-    receiverE,
-    init instanceof Behavior? valueNow(init) : init);
+  var resultE = internalE();
+  var listenerE = createNode([changes(behaviorCreatorsB)], function(pulse) {
+    if (prevSourceE != null) {
+      prevSourceE.removeListener(resultE);
+      prevSourceE = null;
+    }
+
+    if (pulse.value instanceof Behavior) {
+      prevSourceE = changes(pulse.value);
+      prevSourceE.attachListener(resultE); 
+      return { stamp: pulse.stamp, value: pulse.value.valueNow() };
+    }
+    else {
+      return pulse;
+    }
+  });
+
+  listenerE.attachListener(resultE);
+
+  return resultE.startsWith(init instanceof Behavior ? valueNow(init) : init);
 };
 
 var compilerInsertDomB = function(mixedB, target) {
