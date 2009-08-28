@@ -1,0 +1,30 @@
+<html>
+<head>
+<title>Flapjax Demo: Projections</title>
+<script type="text/javascript" src="../fx/flapjax-impl.js"></script>
+
+<script type="text/javascript">
+
+function loader() {
+  var clearE = $E("mybutton", "click").constantE("");
+
+  var valB = mergeE($B("field").changes(), clearE).startsWith("");
+  
+  insertDomB(valB, "mydiv");
+  insertValueE(clearE, "field", "value");
+}
+
+
+</script>
+</head>
+
+<body onload="javascript:loader()">
+
+
+<div id="mydiv"></div>
+
+<input type="text" id="field">
+<input id="mybutton" type="button" value="clear">
+</body>
+
+</html>

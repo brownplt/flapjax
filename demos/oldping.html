@@ -1,0 +1,95 @@
+<html>
+
+<head>
+<title>Flapjax: Ping</title>
+<script type="text/javascript" 
+        src="http://www.flapjax-lang.org/fx/flapjax-impl.js"></script>
+<script type="text/javascript">
+
+var dt = 10;
+
+Behavior.prototype.integrate = function(u, dt) {
+  var t = timerE(dt);
+  var count = 0;
+  return t.snapshotE(this).collectE(u, function(v, s) {
+    count++;
+    if (count == 500) { disableTimer(t); }
+    return s + v * dt;
+  }).startsWith(u);
+};
+
+function recB(i0, i1, f) {
+  var src = [ new Behavior(receiverE(), i0,
+                           function(pulse)  { return pulse; }),
+              new Behavior(receiverE(), i1,
+                           function(pulse) { return pulse; }) ];
+  var bs = f(src[0], src[1]);
+  bs[0].liftB(function(x) {  src[0].sendBehavior(x); });
+  bs[1].liftB(function(x) {  src[1].sendBehavior(x); });
+  return bs;
+};
+  
+
+var speed = 100;
+
+function ball(x0, y0) {
+  var printted = false;
+  var xs = recB(x0, speed, function(x, xVel) {
+    return [ xVel.integrate(x0 * 1000, dt).liftB(function(x) { 
+               return Math.floor(x / 1000); 
+             }),
+             x.changes().collectE(x0, function(s, v) {
+               if (s < 100) { return (Math.random() + 0.5) * speed; }
+               else if (s > 600) { return (Math.random() + 0.5) * -speed; }
+               else { return v; }
+             }).startsWith(speed) ];
+
+  });
+  
+  var ys = recB(y0, speed, function(y, yVel) {
+    return [ yVel.integrate(y0 * 1000, dt).liftB(function(y) { 
+               return Math.floor(y / 1000); 
+             }),
+             y.changes().collectE(y0, function(s, v) {
+               if (s < 100) { return (Math.random() + 0.5) * speed; }
+               else if (s > 600) { return (Math.random() + 0.5) * -speed; }
+               else { return v; }
+             }).startsWith(speed) ];
+
+  });
+
+  return DIV({ style: { position: 'absolute',
+                        top: ys[0],
+                        left: xs[0],
+                        width: '30px',
+                        height: '30px',
+                        opacity: '0.5',
+                        backgroundColor: 'green' } }, "");
+}
+
+function randCoord() {
+  var x =  Math.floor(Math.random() * 500 + 150);
+  return x;
+};
+
+function start() {
+
+  for (var i = 0; i < 200; i++) {
+    insertDomB(ball(randCoord(), randCoord()), document.body, "after");
+  }
+}
+
+</script>
+
+</head>
+
+<body onload="javascript:start()">
+
+<marquee direction="down">
+<font face="cursive" size="50">TODO: Boxes are not balls</font>
+</marquee>
+
+
+</body>
+
+</html>
