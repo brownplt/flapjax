@@ -36,19 +36,19 @@ var module = this;
 //credit 4umi
 //slice: Array a * Integer * Integer -> Array a
 var slice = function (arr, start, stop) {
-	var i, len = arr.length, r = [];
-	if( !stop ) { stop = len; }
-	if( stop < 0 ) { stop = len + stop; }
-	if( start < 0 ) { start = len - start; }
-	if( stop < start ) { i = start; start = stop; stop = i; }
-	for( i = 0; i < stop - start; i++ ) { r[i] = arr[start+i]; }
-	return r;
+  var i, len = arr.length, r = [];
+  if( !stop ) { stop = len; }
+  if( stop < 0 ) { stop = len + stop; }
+  if( start < 0 ) { start = len - start; }
+  if( stop < start ) { i = start; start = stop; stop = i; }
+  for( i = 0; i < stop - start; i++ ) { r[i] = arr[start+i]; }
+  return r;
 }
 
 var isEqual = function (a,b) {
-	return (a == b) ||
-		( (((typeof(a) == 'number') && isNaN(a)) || a == 'NaN') &&
-		  (((typeof(b) == 'number') && isNaN(b)) || b == 'NaN') );
+  return (a == b) ||
+    ( (((typeof(a) == 'number') && isNaN(a)) || a == 'NaN') &&
+      (((typeof(b) == 'number') && isNaN(b)) || b == 'NaN') );
 };
 
 var forEach = function(fn,arr) {
@@ -59,21 +59,21 @@ var forEach = function(fn,arr) {
 
 //member: a * Array b -> Boolean
 var member = function(elt, lst) {
-	for (var i = 0; i < lst.length; i++) { 
-		if (isEqual(lst[i], elt)) {return true;} 
-	}
-	return false;
+  for (var i = 0; i < lst.length; i++) { 
+    if (isEqual(lst[i], elt)) {return true;} 
+  }
+  return false;
 };
 
 var zip = function(arrays) {
-	if (arrays.length == 0) return [];
-	var ret = [];
-	for(var i=0; i<arrays[0].length;i++) {
-		ret.push([]);
-		for(var j=0; j<arrays.length;j++) 
-			ret[i].push(arrays[j][i]);
-	}
-	return ret;
+  if (arrays.length == 0) return [];
+  var ret = [];
+  for(var i=0; i<arrays[0].length;i++) {
+    ret.push([]);
+    for(var j=0; j<arrays.length;j++) 
+      ret[i].push(arrays[j][i]);
+  }
+  return ret;
 }
 
 
@@ -86,75 +86,75 @@ var map1 = function(f,src) {
 
 //map: (a * ... -> z) * [a] * ... -> [z]
 var map = function (fn) {
-	var arrays = slice(arguments, 1);
-	if (arrays.length === 0) { return []; }
-	else if (arrays.length === 1) {
-		var ret = [];
-		for(var i=0; i<arrays[0].length; i++) {ret.push(fn(arrays[0][i]));}
-		return ret;
-	}
-	else {
-		var ret = zip(arrays);
-		var o = new Object();
-		for(var i=0; i<ret.length; i++) {ret[i] = fn.apply(o,ret[i]);}
-		return ret;
-	}
+  var arrays = slice(arguments, 1);
+  if (arrays.length === 0) { return []; }
+  else if (arrays.length === 1) {
+    var ret = [];
+    for(var i=0; i<arrays[0].length; i++) {ret.push(fn(arrays[0][i]));}
+    return ret;
+  }
+  else {
+    var ret = zip(arrays);
+    var o = new Object();
+    for(var i=0; i<ret.length; i++) {ret[i] = fn.apply(o,ret[i]);}
+    return ret;
+  }
 };
   
 //filter: (a -> Boolean) * Array a -> Array a
 var filter = function (predFn, arr) {
-	var res = [];
-	for (var i = 0; i < arr.length; i++) { 
-		if (predFn(arr[i])) { res.push(arr[i]); }
-	}
-	return res;
+  var res = [];
+  for (var i = 0; i < arr.length; i++) { 
+    if (predFn(arr[i])) { res.push(arr[i]); }
+  }
+  return res;
 };
   
 //fold: (a * .... * accum -> accum) * accum * [a] * ... -> accum
 //fold over list(s), left to right
 var fold = function(fn, init /* arrays */) {
-	var lists = slice(arguments, 2);
-	if (lists.length === 0) { return init; }
-	else if(lists.length === 1) {
-		var acc = init;
-		for(var i = 0; i < lists[0].length; i++) {
-			acc = fn(lists[0][i],acc);
-		}
-		return acc;
-	}
-	else {
-		var acc = init;
-		for (var i = 0; i < lists[0].length; i++) {
-			var args = map( function (lst) { return lst[i];}, 
-	          lists);
-			args.push(acc);
-			acc = fn.apply({}, args);
-		}
-		return acc;
-	}
+  var lists = slice(arguments, 2);
+  if (lists.length === 0) { return init; }
+  else if(lists.length === 1) {
+    var acc = init;
+    for(var i = 0; i < lists[0].length; i++) {
+      acc = fn(lists[0][i],acc);
+    }
+    return acc;
+  }
+  else {
+    var acc = init;
+    for (var i = 0; i < lists[0].length; i++) {
+      var args = map( function (lst) { return lst[i];}, 
+            lists);
+      args.push(acc);
+      acc = fn.apply({}, args);
+    }
+    return acc;
+  }
 };
   
 //foldR: (a * .... * accum -> accum) * accum * [a] * ... -> accum
 //fold over list(s), right to left, fold more memory efficient (left to right)
 var foldR = function (fn, init /* arrays */) {
   var lists = slice(arguments, 2);
-	if (lists.length === 0) { return init; }
-	else if(lists.length === 1) {
-		var acc = init;
-		for(var i=lists[0].length - 1; i > -1; i--)
-			acc = fn(lists[0][i],acc);
-		return acc;
-	}
-	else {
-		var acc = init;
-		for (var i = lists[0].length - 1; i > -1; i--) {
-			var args = map( function (lst) { return lst[i];}, 
-	          lists);
-			args.push(acc);
-			acc = fn.apply({}, args);
-		}
-		return acc;     
-	}
+  if (lists.length === 0) { return init; }
+  else if(lists.length === 1) {
+    var acc = init;
+    for(var i=lists[0].length - 1; i > -1; i--)
+      acc = fn(lists[0][i],acc);
+    return acc;
+  }
+  else {
+    var acc = init;
+    for (var i = lists[0].length - 1; i > -1; i--) {
+      var args = map( function (lst) { return lst[i];}, 
+            lists);
+      args.push(acc);
+      acc = fn.apply({}, args);
+    }
+    return acc;     
+  }
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -181,14 +181,14 @@ var PQ = function () {
   var ctx = this;
   ctx.val = [];
   this.insert = function (kv) {
-		ctx.val.push(kv);
-		var kvpos = ctx.val.length-1;
-		while(kvpos > 0 && kv.k < ctx.val[Math.floor((kvpos-1)/2)].k) {
-			var oldpos = kvpos;
-			kvpos = Math.floor((kvpos-1)/2);
-			ctx.val[oldpos] = ctx.val[kvpos];
-			ctx.val[kvpos] = kv;
-		}
+    ctx.val.push(kv);
+    var kvpos = ctx.val.length-1;
+    while(kvpos > 0 && kv.k < ctx.val[Math.floor((kvpos-1)/2)].k) {
+      var oldpos = kvpos;
+      kvpos = Math.floor((kvpos-1)/2);
+      ctx.val[oldpos] = ctx.val[kvpos];
+      ctx.val[kvpos] = kv;
+    }
   };
   this.isEmpty = function () { 
     return ctx.val.length === 0; 
@@ -199,32 +199,32 @@ var PQ = function () {
   };
     
   this.pop = function () {
-		if(ctx.val.length == 1) {
-			return ctx.val.pop();
-		}
-		var ret = ctx.val.shift();
-		ctx.val.unshift(ctx.val.pop());
-		var kvpos = 0;
-		var kv = ctx.val[0];
-		while(1) { 
-			var leftChild = (kvpos*2+1 < ctx.val.length ? ctx.val[kvpos*2+1].k : kv.k+1);
-			var rightChild = (kvpos*2+2 < ctx.val.length ? ctx.val[kvpos*2+2].k : kv.k+1);
-			if(leftChild > kv.k && rightChild > kv.k)
-				  break;
+    if(ctx.val.length == 1) {
+      return ctx.val.pop();
+    }
+    var ret = ctx.val.shift();
+    ctx.val.unshift(ctx.val.pop());
+    var kvpos = 0;
+    var kv = ctx.val[0];
+    while(1) { 
+      var leftChild = (kvpos*2+1 < ctx.val.length ? ctx.val[kvpos*2+1].k : kv.k+1);
+      var rightChild = (kvpos*2+2 < ctx.val.length ? ctx.val[kvpos*2+2].k : kv.k+1);
+      if(leftChild > kv.k && rightChild > kv.k)
+          break;
 
-			if(leftChild < rightChild) {
-				ctx.val[kvpos] = ctx.val[kvpos*2+1];
-				ctx.val[kvpos*2+1] = kv;
-				kvpos = kvpos*2+1;
-			}
-			else {
-				ctx.val[kvpos] = ctx.val[kvpos*2+2];
-				ctx.val[kvpos*2+2] = kv;
-				kvpos = kvpos*2+2;
-			}
-		}
-		return ret;
-	};
+      if(leftChild < rightChild) {
+        ctx.val[kvpos] = ctx.val[kvpos*2+1];
+        ctx.val[kvpos*2+1] = kv;
+        kvpos = kvpos*2+1;
+      }
+      else {
+        ctx.val[kvpos] = ctx.val[kvpos*2+2];
+        ctx.val[kvpos*2+2] = kv;
+        kvpos = kvpos*2+2;
+      }
+    }
+    return ret;
+  };
 };
 
 var lastRank = 0;
@@ -237,50 +237,50 @@ var timeQueue = new PQ();
 var currentlyPropagating = false;
 
 var propagate = function(now) {
-	// If when == now,  
-	if (currentlyPropagating) {
-		// If when <= now, pulseQueue will be reached by the existing call to
-		// propagatePulse
-		return;
-	}
+  // If when == now,  
+  if (currentlyPropagating) {
+    // If when <= now, pulseQueue will be reached by the existing call to
+    // propagatePulse
+    return;
+  }
 
-	currentlyPropagating = true;
-	try {
-		var pulseQueue = timeQueue.peek();
+  currentlyPropagating = true;
+  try {
+    var pulseQueue = timeQueue.peek();
     if (pulseQueue && pulseQueue.k <= now) {
-			pulseQueue = timeQueue.pop().pulses;
-	
-			var nextPulse, i;
-			var len = 1;
-			while (len) {
-				var qv = pulseQueue.pop();
-				len--;
-				nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
+      pulseQueue = timeQueue.pop().pulses;
+  
+      var nextPulse, i;
+      var len = 1;
+      while (len) {
+        var qv = pulseQueue.pop();
+        len--;
+        nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
 
         var weaklyHeld = true;
 
-				if (nextPulse != doNotPropagate) {
-					for (i = 0; i < qv.n.sendsTo.length; i++) {
+        if (nextPulse != doNotPropagate) {
+          for (i = 0; i < qv.n.sendsTo.length; i++) {
             weaklyHeld = weaklyHeld && qv.n.sendsTo[i].weaklyHeld;
-						len++;
-						pulseQueue.insert({ k:qv.n.sendsTo[i].rank,
-																n:qv.n.sendsTo[i],
-																v:nextPulse });
-					}
+            len++;
+            pulseQueue.insert({ k:qv.n.sendsTo[i].rank,
+                                n:qv.n.sendsTo[i],
+                                v:nextPulse });
+          }
           if (qv.n.sendsTo.length > 0 && weaklyHeld) {
             qv.n.weaklyHeld = true;
           }
-				}
-			}
-	
-			pulseQueue = timeQueue.peek();
+        }
+      }
+  
+      pulseQueue = timeQueue.peek();
          
-		}
+    }
       
-	}
-	finally {
-		currentlyPropagating = false;
-	}
+  }
+  finally {
+    currentlyPropagating = false;
+  }
 
 }
 
@@ -316,20 +316,20 @@ EventStream.prototype = new Object();
 
 //createNode: Array Node a * ( (Pulse b ->) * (Pulse a) -> Void) -> Node b
 var createNode = function (nodes, updater) {
-	return new EventStream(nodes,updater);
+  return new EventStream(nodes,updater);
 };
 
 var genericAttachListener = function(node, dependent) {
   node.sendsTo.push(dependent);
-	
+  
   if(node.rank > dependent.rank) {
-		var lowest = lastRank+1;
-		var q = [dependent];
-		while(q.length) {
-			var cur = q.splice(0,1)[0];
-			cur.rank = ++lastRank;
-			q = q.concat(cur.sendsTo);
-		}
+    var lowest = lastRank+1;
+    var q = [dependent];
+    while(q.length) {
+      var cur = q.splice(0,1)[0];
+      cur.rank = ++lastRank;
+      q = q.concat(cur.sendsTo);
+    }
   }
 };
 
@@ -673,7 +673,7 @@ EventStream.prototype.delayE = function (time) {
       towards: delayStaticE(event, valueNow(time))
     };
     
-		//TODO: Change semantics such that we are always guaranteed to get an event going out?
+    //TODO: Change semantics such that we are always guaranteed to get an event going out?
     var switcherE = 
     createNode(
       [changes(time)],
@@ -732,7 +732,7 @@ var mapE = function (fn /*, [node0 | val0], ...*/) {
   }
   
   var context = this;
-	var nofnodes = slice(selectors,1);
+  var nofnodes = slice(selectors,1);
   
   if (nodes.length === 0) {
     return oneE(fn.apply(context, valsOrNodes));
@@ -807,7 +807,7 @@ var filterRepeatsE = function(sourceE,optStart) {
 
 //credit Pete Hopkins
 var calmStaticE = function (triggerE, time) {
-	var out = internalE();
+  var out = internalE();
   createNode(
     [triggerE],
     function() {
@@ -818,13 +818,13 @@ var calmStaticE = function (triggerE, time) {
         return doNotPropagate;
       };
     }());
-	return out;
+  return out;
 };
 
 //calmE: Event a * [Behavior] Number -> Event a
 EventStream.prototype.calmE = function(time) {
   if (time instanceof Behavior) {
-		var out = internalE();
+    var out = internalE();
     createNode(
       [this],
       function() {
@@ -835,7 +835,7 @@ EventStream.prototype.calmE = function(time) {
           return doNotPropagate;
         };
       }());
-		return out;
+    return out;
   } else {
     return calmStaticE(this,time);       
   }
@@ -908,7 +908,7 @@ Behavior.prototype.switchB = function() {
   
   var receiverE = new internalE();
   
-	//XXX could result in out-of-order propagation! Fix!
+  //XXX could result in out-of-order propagation! Fix!
   var makerE = 
   createNode(
     [changes(behaviourCreatorsB)],
@@ -1004,11 +1004,11 @@ var ifB = function(test,cons,altr) {
 var condB = function (/* . pairs */ ) {
   var pairs = slice(arguments, 0);
 return liftB.apply({},[function() {
-		for(var i=0;i<pairs.length;i++) {
-			if(arguments[i]) return arguments[pairs.length+i];
-		}
-		return undefined;
-	}].concat(map(function(pair) {return pair[0];},pairs).concat(map(function(pair) {return pair[1];},pairs))));
+    for(var i=0;i<pairs.length;i++) {
+      if(arguments[i]) return arguments[pairs.length+i];
+    }
+    return undefined;
+  }].concat(map(function(pair) {return pair[0];},pairs).concat(map(function(pair) {return pair[1];},pairs))));
 };
 
 
@@ -1067,8 +1067,8 @@ Behavior.prototype.liftB = function(/* args */) {
 
 var andB = function (/* . behaves */) {
 return liftB.apply({},[function() {
-		for(var i=0; i<arguments.length; i++) {if(!arguments[i]) return false;}
-		return true;
+    for(var i=0; i<arguments.length; i++) {if(!arguments[i]) return false;}
+    return true;
 }].concat(slice(arguments,0)));
 };
 
@@ -1080,8 +1080,8 @@ Behavior.prototype.andB = function() {
 
 var orB = function (/* . behaves */ ) {
 return liftB.apply({},[function() {
-		for(var i=0; i<arguments.length; i++) {if(arguments[i]) return true;}
-		return false;
+    for(var i=0; i<arguments.length; i++) {if(arguments[i]) return true;}
+    return false;
 }].concat(slice(arguments,0)));
 };
 
@@ -1124,17 +1124,17 @@ var calmB = function (srcB,intervalB) {
 
 //credit Scott Andrew
 var addEvent = function (obj, evType, fn) {
-	//TODO encode mouseleave evt, formalize new evt interface
+  //TODO encode mouseleave evt, formalize new evt interface
   
-	if (obj.addEventListener) {
+  if (obj.addEventListener) {
     obj.addEventListener(evType, fn, false); //TODO true fails on Opera
     return true;
-	} else if (obj.attachEvent) {
+  } else if (obj.attachEvent) {
     //some reason original had code bloat here
     return obj.attachEvent("on"+evType, fn); 
-	} else {
+  } else {
     return false; 
-	}
+  }
 };
 
 
@@ -1143,30 +1143,30 @@ var addEvent = function (obj, evType, fn) {
 //note: node/tag optional
 //getElementsByClass: Regexp CSSSelector * Dom * String DomNodeEnum -> Array Dom
 var getElementsByClass = function (searchClass, node, tag) {
-	var classElements = [];
-	if ( (node === null) || (node === undefined) ) { node = document; }
-	if ( (tag === null) || (tag === undefined) ) { tag = '*'; }
-	var els = node.getElementsByTagName(tag);
-	var elsLen = els.length;
-	var pattern = new RegExp("(^|\\s)"+searchClass+"(\\s|$)");
-	for (var i = 0, j = 0; i < elsLen; i++) {
+  var classElements = [];
+  if ( (node === null) || (node === undefined) ) { node = document; }
+  if ( (tag === null) || (tag === undefined) ) { tag = '*'; }
+  var els = node.getElementsByTagName(tag);
+  var elsLen = els.length;
+  var pattern = new RegExp("(^|\\s)"+searchClass+"(\\s|$)");
+  for (var i = 0, j = 0; i < elsLen; i++) {
     if ( pattern.test(els[i].className) ) {
       classElements.push(els[i]);
     }
-	}
-	return classElements;
+  }
+  return classElements;
 };
 
 
 //assumes IDs already preserved
 //swapDom: (Dom a U String) [* (Dom b U String)] -> Dom a
 var swapDom = function(replaceMe, withMe) {
-	if ((replaceMe === null) || (replaceMe === undefined)) { throw ('swapDom: expected dom node or id, received: ' + replaceMe); } //SAFETY
+  if ((replaceMe === null) || (replaceMe === undefined)) { throw ('swapDom: expected dom node or id, received: ' + replaceMe); } //SAFETY
   
-	var replaceMeD = getObj(replaceMe);
-	if (!(replaceMeD.nodeType > 0)) { throw ('swapDom expected a Dom node as first arg, received ' + replaceMeD); } //SAFETY
+  var replaceMeD = getObj(replaceMe);
+  if (!(replaceMeD.nodeType > 0)) { throw ('swapDom expected a Dom node as first arg, received ' + replaceMeD); } //SAFETY
   
-	if (withMe) {
+  if (withMe) {
     var withMeD = getObj(withMe);
     if (!(withMeD.nodeType > 0)) { throw 'swapDom: can only swap with a DOM object'; } //SAFETY
     try {
@@ -1175,10 +1175,10 @@ var swapDom = function(replaceMe, withMe) {
     } catch (e) {
       throw('swapDom error in replace call: withMeD: ' + withMeD + ', replaceMe Parent: ' + replaceMeD + ', ' + e + ', parent: ' + replaceMeD.parentNode);                    
     }
-	} else {
+  } else {
     replaceMeD.parentNode.removeChild(replaceMeD); //TODO isolate child and set innerHTML to "" to avoid psuedo-leaks?
-	}
-	return replaceMeD;
+  }
+  return replaceMeD;
 };
 
 
@@ -1190,21 +1190,21 @@ var swapDom = function(replaceMe, withMe) {
 //also known as '$'
 //TODO Maybe alternative?
 var getObj = function (name) {
-	if (typeof(name) == 'object') { return name; }
-	else if ((typeof(name) == 'null') || (typeof(name) == 'undefined')) {
+  if (typeof(name) == 'object') { return name; }
+  else if ((typeof(name) == 'null') || (typeof(name) == 'undefined')) {
     throw 'getObj: expects a Dom obj or Dom id as first arg';
-	} else {
+  } else {
     
     var res = 
-		document.getElementById ? document.getElementById(name) :
-		document.all ? document.all[name] :
-		document.layers ? document.layers[name] :
-		(function(){ throw 'getObj: flapjax: cannot access object';})();
+    document.getElementById ? document.getElementById(name) :
+    document.all ? document.all[name] :
+    document.layers ? document.layers[name] :
+    (function(){ throw 'getObj: flapjax: cannot access object';})();
     if ((res === null) || (res === undefined)) { 
       throw ('getObj: no obj to get: ' + name); 
     }
     return res;
-	}
+  }
 };
 
 var $ = getObj;
@@ -1394,6 +1394,7 @@ var swapChildren = function(parent, existingChildren, newChildren) {
 };
 
 
+// elementize :: any -> node
 var elementize /* not a word */ = function(maybeElement) {
   return (maybeElement.nodeType > 0) 
            ? maybeElement
@@ -1562,7 +1563,6 @@ var extractEventStaticE = function (domObj, eventName) {
       sendEvent(primEventE, evt || window.event);
     }
     else {
-      console.log("detaching");
       domObj.removeEventListener(eventName, listener, false);
       isListening = false;
     }
@@ -1670,7 +1670,7 @@ extractValueStaticB = function (domObj, triggerE) {
     objD = getObj(domObj);
     //This is for IE
     if(typeof(domObj) == 'string' && objD.id != domObj) {
-    	throw 'Make a radio group';
+      throw 'Make a radio group';
     }
   } catch (e) {
     objD = {type: 'radio-group', name: domObj};
@@ -1678,13 +1678,13 @@ extractValueStaticB = function (domObj, triggerE) {
   
   var getter; // get value at any current point in time
   
-  
+  var result;
+
   switch (objD.type)  {
     
     //TODO: checkbox.value instead of status?
   case 'checkbox': 
-    
-    return startsWith(
+    result = startsWith(
       filterRepeatsE(
         extractDomFieldOnEventE(
           triggerE ? triggerE : 
@@ -1694,124 +1694,119 @@ extractValueStaticB = function (domObj, triggerE) {
           objD,
           'checked'),objD.checked),
       objD.checked);
-    
-    case 'select-one':
-      
+    break; 
+  case 'select-one':
       getter = function (_) {                         
         return objD.selectedIndex > -1 ? 
         (objD.options[objD.selectedIndex].value ?
           objD.options[objD.selectedIndex].value :
           objD.options[objD.selectedIndex].innerText)
-		    : undefined;
+        : undefined;
       };
-      
-      return startsWith(
+      result = startsWith(
         filterRepeatsE(
             (triggerE ? triggerE :
             extractEventsE(
               objD,
               'click', 'keyup', 'change')).mapE(getter)),getter(),
         getter());
-      
-      case 'select-multiple':
-        //TODO ryan's cfilter adapted for equality check
-        
-        getter = function (_) {
-          var res = [];
-          for (var i = 0; i < objD.options.length; i++) {
-            if (objD.options[i].selected) {
-              res.push(objD.options[i].value ? objD.options[i].value : objD.options[i].innerText);
-            }
-          }
-          return res;
-        };
-        
-        
-        return startsWith(
-            (triggerE ? triggerE : 
-            extractEventsE(
-              objD,
-              'click', 'keyup', 'change')).mapE(getter),
-          getter());
-        
-        case 'text':
-        case 'textarea':
-        case 'hidden':
-        case 'password':
-          
-          return startsWith(
-            filterRepeatsE(
-              extractDomFieldOnEventE(
-                triggerE ? triggerE :
-                extractEventsE(
-                  objD, 
-                  'click', 'keyup', 'change'),
-                objD,
-                'value'),objD.value),
-            objD.value);
-          
-          case 'button': //same as above, but don't filter repeats
-            
-            return startsWith(
-              extractDomFieldOnEventE(
-                triggerE ? triggerE :
-                extractEventsE(
-                  objD, 
-                  'click', 'keyup', 'change'),
-                objD,
-                'value'),
-              objD.value);
-            
-            
-            case 'radio': 
-            case 'radio-group':
-              
-              //TODO returns value of selected button, but if none specified,
-              //      returns 'on', which is ambiguous. could return index,
-              //      but that is probably more annoying
-              
-              var radiosAD = filter(
-                function (elt) { 
-                  return (elt.type == 'radio') &&
-                  (elt.getAttribute('name') == objD.name); 
-                },
-                document.getElementsByTagName('input'));
-              
-              getter = 
-              objD.type == 'radio' ?
-              
-              function (_) {
-                return objD.checked;
-              } :
-              
-              function (_) {
-                for (var i = 0; i < radiosAD.length; i++) {
-                  if (radiosAD[i].checked) {
-                    return radiosAD[i].value; 
-                  }
-                }
-                return undefined; //TODO throw exn? 
-              };
-              
-              var actualTriggerE = triggerE ? triggerE :
-              mergeE.apply(
-                this,
-                map(
-                  function (radio) { 
-                    return extractEventsE(
-                      radio, 
-                  'click', 'keyup', 'change'); },
-                    radiosAD));
-              
-              return startsWith(
-                filterRepeatsE(
-                    actualTriggerE.mapE(getter),getter()),
-                getter());
-              
-              default:
-                
-                throw ('extractValueStaticB: unknown value type "' + objD.type + '"');
+      break;
+  case 'select-multiple':
+    //TODO ryan's cfilter adapted for equality check
+    getter = function (_) {
+      var res = [];
+      for (var i = 0; i < objD.options.length; i++) {
+        if (objD.options[i].selected) {
+          res.push(objD.options[i].value ? objD.options[i].value : objD.options[i].innerText);
+        }
+      }
+      return res;
+    };
+    result = startsWith(
+        (triggerE ? triggerE : 
+        extractEventsE(
+          objD,
+          'click', 'keyup', 'change')).mapE(getter),
+      getter());
+    break;
+    
+  case 'text':
+  case 'textarea':
+  case 'hidden':
+  case 'password':
+    result = startsWith(
+      filterRepeatsE(
+        extractDomFieldOnEventE(
+          triggerE ? triggerE :
+          extractEventsE(
+            objD, 
+            'click', 'keyup', 'change'),
+          objD,
+          'value'),objD.value),
+      objD.value);
+    break;
+    
+  case 'button': //same as above, but don't filter repeats
+    result = startsWith(
+      extractDomFieldOnEventE(
+        triggerE ? triggerE :
+        extractEventsE(
+          objD, 
+          'click', 'keyup', 'change'),
+        objD,
+        'value'),
+      objD.value);
+    break;
+    
+  case 'radio': 
+  case 'radio-group':
+    
+    //TODO returns value of selected button, but if none specified,
+    //      returns 'on', which is ambiguous. could return index,
+    //      but that is probably more annoying
+    
+    var radiosAD = filter(
+      function (elt) { 
+        return (elt.type == 'radio') &&
+        (elt.getAttribute('name') == objD.name); 
+      },
+      document.getElementsByTagName('input'));
+    
+    getter = 
+    objD.type == 'radio' ?
+    
+    function (_) {
+      return objD.checked;
+    } :
+    
+    function (_) {
+      for (var i = 0; i < radiosAD.length; i++) {
+        if (radiosAD[i].checked) {
+          return radiosAD[i].value; 
+        }
+      }
+      return undefined; //TODO throw exn? 
+    };
+    
+    var actualTriggerE = triggerE ? triggerE :
+    mergeE.apply(
+      this,
+      map(
+        function (radio) { 
+          return extractEventsE(
+            radio, 
+        'click', 'keyup', 'change'); },
+          radiosAD));
+    
+    result = startsWith(
+      filterRepeatsE(
+          actualTriggerE.mapE(getter),getter()),
+      getter());
+  default:
+    throw ('extractValueStaticB: unknown value type "' + objD.type + '"');
   }
+
+  return result;
 };
 
 var extractValueB = function (domObj) {
@@ -1875,7 +1870,7 @@ deepDynamicUpdate = function (into, from, index) {
 insertValue = function (val, domObj /* . indices */) {
   var indices = slice(arguments, 2);
   var parent = getMostDom(domObj, indices);
-  deepStaticUpdate(parent, val, indices ? indices[indices.length - 1] : undefined);    	
+  deepStaticUpdate(parent, val, indices ? indices[indices.length - 1] : undefined);      
 };
 
 //TODO convenience method (default to firstChild nodeValue) 
@@ -1985,8 +1980,8 @@ insertDom = function (replaceWithD, hook, optPosition) {
   insertDomInternal(
     getObj(hook), 
     ((typeof(replaceWithD) == 'object') && (replaceWithD.nodeType > 0)) ? replaceWithD :
-    document.createTextNode(replaceWithD),	    
-    optPosition);     	    
+    document.createTextNode(replaceWithD),      
+    optPosition);           
 };
 
 //TODO test
@@ -2018,7 +2013,7 @@ insertDomB = function (initTriggerB, optID, optPosition) {
     initTriggerB);
   
   var initD = valueNow(triggerB);
-  if (!((typeof(initD) == 'object') && (initD.nodeType == 1))) { throw ('insertDomB: initial value conversion failed: ' + initD); } //SAFETY	
+  if (!((typeof(initD) == 'object') && (initD.nodeType == 1))) { throw ('insertDomB: initial value conversion failed: ' + initD); } //SAFETY  
   
   insertDomInternal(
     optID === null || optID === undefined ? getObj(initD.getAttribute('id')) : getObj(optID), 
@@ -2396,53 +2391,31 @@ var cumulativeOffset = function(element) {
 ///////////////////////////////////////////////////////////////////////////////
 // Flapjax compiler support
 
-
-/* What is lifting?  Lifting a type-directed transformation that is applied to
- * functions that do not "know" behaviors.
- *
- * lift(Int)      ---> Behavior Int
- * lift(String)   ---> Behavior String
- * lift(t1 -> t2) ---> lift(t1) -> lift(t2)
- *
- * Consider f :: (t1 -> t2) -> t3.  Flapjax may apply f to a constant function
- * that returns a behavior.
- */
- 
-
-
-var mixedSwitchB = function(behaviourCreatorsB) {
-  var init = behaviourCreatorsB.valueNow();
+var mixedSwitchB = function(behaviorCreatorsB) {
+  var init = behaviorCreatorsB.valueNow();
   
   var prevSourceE = null;
-  
-  var receiverE = internalE();
 
-  
-  var makerE = 
-  createNode(
-    [changes(behaviourCreatorsB)],
-    function (p) {
-      if (prevSourceE != null) {
-        prevSourceE.removeListener(receiverE);
-        prevSourceE = null;
-      }
-      if (p.value instanceof Behavior) {
-        prevSourceE = changes(p.value);
-        prevSourceE.attachListener(receiverE);
-        sendEvent(receiverE, p.value.valueNow());
-      }
-      else {
-        sendEvent(receiverE, p.value);
-      }
-    });
-  
-  if (init instanceof Behavior) {
-    sendEvent(makerE, init);
-  }
-  
-  return startsWith(
-    receiverE,
-    init instanceof Behavior? valueNow(init) : init);
+  var resultE = internalE();
+  var listenerE = createNode([changes(behaviorCreatorsB)], function(pulse) {
+    if (prevSourceE != null) {
+      prevSourceE.removeListener(resultE);
+      prevSourceE = null;
+    }
+
+    if (pulse.value instanceof Behavior) {
+      prevSourceE = changes(pulse.value);
+      prevSourceE.attachListener(resultE); 
+      return { stamp: pulse.stamp, value: pulse.value.valueNow() };
+    }
+    else {
+      return pulse;
+    }
+  });
+
+  listenerE.attachListener(resultE);
+
+  return resultE.startsWith(init instanceof Behavior ? valueNow(init) : init);
 };
 
 var compilerInsertDomB = function(mixedB, target) {
