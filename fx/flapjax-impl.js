@@ -1993,7 +1993,7 @@ insertDom = function (replaceWithD, hook, optPosition) {
 //if optID not specified, id must be set in init val of trigger
 //if position is not specified, default to 'over'
 //performs initial swap onload    
-insertDomB = function (initTriggerB, optID, optPosition) {
+insertDomB = function (initTriggerB, optID, optPosition, unsafe) {
   
   if (!(initTriggerB instanceof Behavior)) { 
     initTriggerB = constantB(initTriggerB);
@@ -2002,7 +2002,12 @@ insertDomB = function (initTriggerB, optID, optPosition) {
   var triggerB = 
   liftB(
     function (d) { 
-      if ((typeof(d) == 'object') && (d.nodeType >  0)) {
+      if (unsafe === true) {
+        var res = document.createElement('span');
+        res.innerHTML = d;
+        return res;
+      }
+      else if ((typeof(d) == 'object') && (d.nodeType >  0)) {
         return d;
       } else {
         var res = document.createElement('span'); //TODO createText instead

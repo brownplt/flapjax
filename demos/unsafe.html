@@ -1,0 +1,30 @@
+<html>
+
+<head>
+<title>Flapjax Demo: Drag and Drop</title>
+<script type="text/javascript" src="../fx/flapjax-impl.js"></script>
+<script type="text/javascript">
+
+
+function loader() {
+
+  var b = timerB(1000).liftB(function(t) { 
+    return "<p>The time is <b>" + t.toString() + "</b></p>";
+  });
+
+  insertDomB(b, "target", "after", true);
+  
+}
+
+</script>
+<link rel="stylesheet" href="/demo.css"/>
+</head>
+
+<body onload="loader()">
+
+<div id="target"> After Me
+</div>
+
+</body>
+
+</html>
