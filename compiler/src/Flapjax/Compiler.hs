@@ -231,12 +231,12 @@ fixScopingM stmt = return $ everywhereBut (extQ (mkQ False stopFn) stopFnS) (mkT
 
   fixScope:: Statement SourcePos -> Statement SourcePos
   fixScope (FunctionStmt p f args stmt) =
-    ExprStmt p (AssignExpr p OpAssign (VarRef p f) (FuncExpr p args stmt))
+    ExprStmt p (AssignExpr p OpAssign (LVar p (unId f)) (FuncExpr p args stmt))
   fixScope (VarDeclStmt p decls) =
     let toAssign (VarDecl p id (Just expr)) = 
-          AssignExpr p OpAssign (VarRef p id) expr
+          AssignExpr p OpAssign (LVar p (unId id)) expr
         toAssign (VarDecl p id Nothing) =
-          AssignExpr p OpAssign (VarRef p id) 
+          AssignExpr p OpAssign (LVar p (unId id)) 
             (PrefixExpr p PrefixVoid (NumLit p 0))
         -- TODO: empty var-decls
       in ExprStmt p (ListExpr p (map toAssign decls))
@@ -333,8 +333,8 @@ liftExprM fxenv opts expr = liftM expr where
             args' <- mapM liftM args
             return $ mixedLift (lift:obj':args')
   -- All postfix operators are impure.
-  liftM e@(PostfixExpr p _ _) = do
-    warn "unlifted postfix operator" e p
+  liftM e@(UnaryAssignExpr p _ _) = do
+    warn "unlifted assignment" e p
     return e
   -- Some prefix operators are impure.  For those that are not
   --   op(arg): 
