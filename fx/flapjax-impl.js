@@ -76,14 +76,6 @@ var zip = function(arrays) {
   return ret;
 }
 
-
-var map1 = function(f,src) { 
-  var dest = [ ];
-  for (var i = 0; i < src.length; i++) { dest.push(f(src[i])); }
-  return dest;
-};
-
-
 //map: (a * ... -> z) * [a] * ... -> [z]
 var map = function (fn) {
   var arrays = slice(arguments, 1);
@@ -163,9 +155,6 @@ var foldR = function (fn, init /* arrays */) {
 // Sentinel value returned by updaters to stop propagation.
 var doNotPropagate = { };
 
-// 
-
-
 //Pulse: Stamp * Path * Obj
 var Pulse = function (stamp, value) {
   // Timestamps are used by liftB (and ifE).  Since liftB may receive multiple
@@ -193,11 +182,6 @@ var PQ = function () {
   this.isEmpty = function () { 
     return ctx.val.length === 0; 
   };
-
-  this.peek = function() {
-    return ctx.val[0];
-  };
-    
   this.pop = function () {
     if(ctx.val.length == 1) {
       return ctx.val.pop();
@@ -231,73 +215,32 @@ var lastRank = 0;
 var stamp = 1;
 var nextStamp = function () { return ++stamp; };
 
-// A queue keyed by real time.
-var timeQueue = new PQ();
+//propagatePulse: Pulse * Array Node -> 
+//Send the pulse to each node 
+var propagatePulse = function (pulse, node) {
+  var queue = new PQ(); //topological queue for current timestep
 
-var currentlyPropagating = false;
+  queue.insert({k:node.rank,n:node,v:pulse});
+  var len = 1;
 
-var propagate = function(now) {
-  // If when == now,  
-  if (currentlyPropagating) {
-    // If when <= now, pulseQueue will be reached by the existing call to
-    // propagatePulse
-    return;
-  }
+  while (len) {
+    var qv = queue.pop();
+    len--;
+    var nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
+    var weaklyHeld = true;
 
-  currentlyPropagating = true;
-  try {
-    var pulseQueue = timeQueue.peek();
-    if (pulseQueue && pulseQueue.k <= now) {
-      pulseQueue = timeQueue.pop().pulses;
-  
-      var nextPulse, i;
-      var len = 1;
-      while (len) {
-        var qv = pulseQueue.pop();
-        len--;
-        nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
-
-        var weaklyHeld = true;
-
-        if (nextPulse != doNotPropagate) {
-          for (i = 0; i < qv.n.sendsTo.length; i++) {
-            weaklyHeld = weaklyHeld && qv.n.sendsTo[i].weaklyHeld;
-            len++;
-            pulseQueue.insert({ k:qv.n.sendsTo[i].rank,
-                                n:qv.n.sendsTo[i],
-                                v:nextPulse });
-          }
-          if (qv.n.sendsTo.length > 0 && weaklyHeld) {
-            qv.n.weaklyHeld = true;
-          }
-        }
+    if (nextPulse != doNotPropagate) {
+      for (i = 0; i < qv.n.sendsTo.length; i++) {
+        weaklyHeld = weaklyHeld && qv.n.sendsTo[i].weaklyHeld;
+        len++;
+	queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
       }
-  
-      pulseQueue = timeQueue.peek();
-         
+      if (qv.n.sendsTo.length > 0 && weaklyHeld) {
+          qv.n.weaklyHeld = true;
+      }
     }
-      
   }
-  finally {
-    currentlyPropagating = false;
-  }
-
-}
-
-var propagatePulse = function(pulse, node, when) {
-  var now = (new Date()).getTime();
-
-  // Create a new queue of pulses that starts with the incoming pulse.
-  var pulseQueue = new PQ();
-  pulseQueue.insert({ k: node.rank, n: node, v: pulse });
-
-  // Schedule the new pulse queue, possible in the future.
-  when = when ? (now + when) : now;  
-  timeQueue.insert({ k: when,  pulses: pulseQueue });
-
-  propagate(now);
-} 
-
+};
 
 //Event: Array Node b * ( (Pulse a -> Void) * Pulse b -> Void)
 var EventStream = function (nodes,updater) {
@@ -465,10 +408,10 @@ var receiverE = function() {
 
 
 //note that this creates a new timestamp and new event queue
-var sendEvent = function (node, value, when) {
+var sendEvent = function (node, value) {
   if (!(node instanceof EventStream)) { throw 'sendEvent: expected Event as first arg'; } //SAFETY
   
-  propagatePulse(new Pulse(nextStamp(), value), node, when);
+  propagatePulse(new Pulse(nextStamp(), value),node);
 };
 
 // bindE :: EventStream a * (a -> EventStream b) -> EventStream b
@@ -649,11 +592,11 @@ EventStream.prototype.orE = function(/*others*/) {
 
 
 var delayStaticE = function (event, time) {
-  updateResolution(time);
+  
   var resE = internalE();
   
   createNode([event], function (p) { 
-    sendEvent(resE, p.value, time);
+    setTimeout(function () { sendEvent(resE, p.value);},  time ); 
     return doNotPropagate;
   });
   
@@ -1252,55 +1195,14 @@ var disableTimer = function (v) {
   }
 };
 
-var currentSchedulerResolution = 500; // fairly arbitrary
-var schedulerID;
-
-var delayedScheduler = function() {
-  propagate((new Date()).getTime());
-};
-
-var updateResolution = function(newResolution) {
-  if (newResolution < currentSchedulerResolution) {
-    clearInterval(schedulerID);
-    currentSchedulerResolution = newResolution;
-    schedulerID = setInterval(delayedScheduler, newResolution);
-  }
-};
-
-
-schedulerID = setInterval(delayedScheduler, currentSchedulerResolution);
-
-
-var createTimerNodeStatic = function(interval) {
-  updateResolution(interval);
-
-  var disabled = false;
-
-  var node = createNode([], function(pulse) { 
-    // Send ourself an event in the future.
-    if (!disabled) { 
-      sendEvent(node, (new Date ()).getTime() + interval, interval);
-      return pulse;
-    }
-    else {
-      return doNotPropagate;
-    }
-  });
-
-  var localSchedulerID = setInterval(delayedScheduler, interval);
-
+var createTimerNodeStatic = function (interval) {
+  var node = internalE();
   node.__timerId = __getTimerId();
-  timerDisablers[node.__timerId] = function() {
-    clearInterval(localSchedulerID);
-    disabled = true;
-  };
-
-  sendEvent(node, (new Date ()).getTime(), interval);
-
+  var fn = function () { sendEvent(node, (new Date()).getTime());};
+  var timer = setInterval(fn, interval);
+  timerDisablers[node.__timerId] = function () {clearInterval(timer); };
   return node;
 };
-  
-
 
 var timerE = function (interval) {
   if (interval instanceof Behavior) {
@@ -2515,6 +2417,11 @@ var compilerEventStreamArg = function(x) {
   else {
     return x; }};
 
+var map1 = function(f,src) { 
+  var dest = [ ];
+  for (var i = 0; i < src.length; i++) { dest.push(f(src[i])); }
+  return dest;
+};
 
 var compilerUnbehavior = function(v) {
   if (typeof v == 'function') {
