@@ -2,7 +2,7 @@
 <head>
 <title>Composing Interfaces</title>
 
-<script type="text/javascript" src="/flapjax.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 <script type="text/javascript">
 var candidates =
   [ { name: 'Frederick Algernon Trotteville', score: 1, gender: 'Male' }
@@ -63,8 +63,19 @@ var pickFilter = function() {
               subFilter.liftB(function(x) { return x.dom })),
     pred: subFilter.liftB(function(x) { return x.pred; }).switchB()};};
 
+
+var filterButton = function(innerFilter) {
+  var button = A({ href: "javascript: undefined" }, "Update");
+  var filterB = innerFilter.pred;
+
+  return {
+    dom: DIV(innerFilter.dom, button),
+    pred: clicksE(button).snapshotE(filterB).startsWith(filterB.valueNow())
+  };
+};
+
 function start() {
-  filterObj = pickFilter();
+  filterObj = filterButton(pickFilter());
   filteredCandidates = filterObj.pred.liftB(function(pred) {
     return filter(pred,candidates); });
 

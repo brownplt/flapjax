@@ -74,10 +74,15 @@ var examples =
   , { synopsis: "Filters"
     , id: "filters"
     , items:
-        { desc: "Composing functions and interfaces with Flapjax"
+      [ { desc: "Composing functions and interfaces with Flapjax"
         , url: "filters.html"
         , fx: "filters.fx"
         }
+      , { desc: "Filters that do not update immediately"
+        , url: "filters-button.html"
+        , fx: "filters.fx"
+        }
+      ]
     }
   , { synopsis: "Yaggle: Yahoo Local and Google Maps mashup", id: 'yaggle'
     , items: 
@@ -105,7 +110,12 @@ var examples =
       , url: "carousel.html"
       }
    }
-  ];
+  , { synopsis: "Flying Boxes", id: "ping"
+    , items:
+      { desc: "Boxes flying"
+      , url: "ping.html"
+      }
+   }  ];
 
 var exampleTable = { }; // populated by makeDemoLink; items indexed by id
 

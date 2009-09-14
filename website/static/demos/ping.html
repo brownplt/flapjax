@@ -2,13 +2,14 @@
 
 <head>
 <title>Flapjax: Ping</title>
-<script type="text/javascript" 
-        src="http://www.flapjax-lang.org/fx/flapjax-impl.js"></script>
+<script type="text/javascript" src="/fx/flapjax.js"></script>
 <script type="text/javascript">
 
 var dt = 10;
 
 Behavior.prototype.integrate = function(u, dt) {
+  // TODO: Total hack.  This should work with removable primitive event
+  // streams.
   var t = timerE(dt);
   var count = 0;
   return t.snapshotE(this).collectE(u, function(v, s) {
