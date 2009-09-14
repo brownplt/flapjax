@@ -95,6 +95,12 @@ var examples =
       , url:  "drag.html" } 
     , { desc: "Draging elements between lists."
       , url: "listdrag.html" } ] }
+  , { synopsis: "Carousel (jQuery integration)", id: "carousel"
+    , items:
+      { desc: "jQuery animations and Flapjax control (demo by Therac25)"
+      , url: "carousel.html"
+      }
+   }
   ];
 
 var exampleTable = { }; // populated by makeDemoLink; items indexed by id
@@ -105,9 +111,9 @@ function makeDemoLink(item) {
   
   exampleTable[item.id] = item;
   
-  var anchor = A_({href: '/demos/index.html#' + item.id, name: item.id},item.synopsis);
+  var anchor = A({href: '/demos/index.html#' + item.id, name: item.id},item.synopsis);
   // extractEventE(anchor,'click').mapE(function(_) { processAnchor(item.id); });
-  return DIV_({},anchor);
+  return DIV({},anchor);
 }
 
 var removeAllChildren = function(element) {
@@ -132,15 +138,15 @@ function processAnchor(id) {
     
     var items = (exampleTable[id].items instanceof Array) ? exampleTable[id].items : [ exampleTable[id].items ];
     var makeItem = function(item) {
-      var p = P_();
+      var p = P();
       p.innerHTML = item.desc;
-      return DIV_({},p,
-                 P_(A_({href: '/demos/' + item.url},'Run the demo')),
-                 item.fx ? [P_(A_({href: '/try/index.html?edit=' + item.fx}, "View and edit the code"))] : [],
-                 P_(A_({href: '/try/index.html?edit=' + item.url}, 'View and edit the code (Flapjax as a library)')));
+      return DIV({},p,
+                 P(A({href: '/demos/' + item.url},'Run the demo')),
+                 item.fx ? [P(A({href: '/try/index.html?edit=' + item.fx}, "View and edit the code"))] : [],
+                 P(A({href: '/try/index.html?edit=' + item.url}, 'View and edit the code (Flapjax as a library)')));
     }
     
-    var itemsDom = DIV_({},map(makeItem,items));
+    var itemsDom = DIV({},map(makeItem,items));
 
     insertDom(itemsDom,$('demo'),'beginning');
   }
@@ -173,7 +179,7 @@ var historyE = function() {
   
   
 function loader() {
-  var demos = DIV_({id: "demoLinks" },map(makeDemoLink,examples));
+  var demos = DIV({id: "demoLinks" },map(makeDemoLink,examples));
   insertDom(demos,'demoLinks');
   
   historyE().mapE(processAnchor);
