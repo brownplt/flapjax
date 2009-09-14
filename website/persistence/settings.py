@@ -14,7 +14,7 @@ host = os.uname()[1]
 if host == "peabody":
   DATABASE_ENGINE = "sqlite3"
   DATABASE_NAME = "/home/arjun/Projects/flapjax/website/persistence/sqlite3.db"
-elif host == "wanderlust.local":
+elif host == "wanderlust.local" or host == "wanderlust.brown.edu":
   DATABASE_ENGINE = "sqlite3"
   DATABASE_NAME = "/Users/arjun/Projects/flapjax/website/persistence/sqlite3.db"
 else: # Assume deployment
