@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+    <title>Flapjax Demo: Carousel</title>
+    
+    <style type="text/css" media="screen">
+      .carousel-control span { cursor:pointer; }
+      #slides { margin:0; padding:0; position:absolute; left:0; }
+      #viewport { overflow:hidden; position: relative; border:3px solid; }
+      #slides li { list-style-type:none; float:left;  background:pink; } 
+      #slides li .text { float:right; width:100px; background:#ddd;}
+      #slides li img { float:left; width:100px; background:green;}
+      #slides h3 { margin:0;}
+      #slides p { margin:0;}
+      .disable { display:none; }
+    </style>
+    
+    <script type="text/javascript" src="http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="../fx/flapjax.js"></script>
+    
+    <script type="text/javascript">
+    var options = {
+      height: 150,      // height of the slides (px)
+      autostart: false, // start playing on page load?
+      interval: 2000,   // time between slides on autoplay (ms)
+      width: 200,       // width of a slide (px)
+      perpage:2,        // nb of slides per page
+      slides: 5,        // nb of slides --> look iy up dynamically and remove from here
+      animation: 1500   // duration of animated slide transition (ms)
+    };
+
+      function slideshow() {
+
+        // helper functions
+        function roundUp(n) {
+          return (n % 2 !== 0) ? n + 1 : n;
+        }
+
+        function animate (obj, params, duration, cb) {
+          jQuery(obj).animate( params, duration, cb);
+        }
+
+
+        // dynamic styling of the slideshow
+        var viewport = $("viewport");
+        viewport.style.width = options.perpage * options.width + "px";
+        viewport.style.height = options.height + "px";
+        
+        var lis = jQuery("#slides li").css({'height' : viewport.height, 'width' : options.width + "px" });
+
+        var slides = $("slides");
+        slides.style.left = "0";
+        slides.style.width = roundUp(options.slides) * options.width + "px";
+
+        // Buttons events
+        var nextE = $E("next","click").constantE("next");
+        var prevE = $E("prev","click").constantE("prev");
+        var stopE = $E("stop","click").constantE("stop");
+        var playE = $E("play","click").constantE("play");
+        var buttonE = mergeE(playE, stopE, nextE, prevE);
+
+        // Auto timer event
+        var autoE = buttonE.mapE(function(c){
+          var clockE;
+
+          if(c === "play"){
+            // "play" start autoplay
+            clockE = timerE(options.interval);
+            return clockE;
+          }
+          else {
+            // "stop", "next" and "prev" cancel autoplay
+            disableTimer(clockE);
+            return zeroE();
+          }
+        }).switchE().constantE("next");
+
+        var controlE = mergeE(autoE, stopE, nextE, prevE);
+        var controlB = controlE.startsWith(options.autostart ? "next" : "stop")
+                               .blindB(constantB(options.animation)); // waits for the animation to finish beore next event
+
+        // slides position behaviour
+        var leftB = liftB(function(c){
+            var left = slides.style.left;
+            var width = slides.style.width;
+            var x = parseInt(left,10);
+            var w = parseInt(width,10);
+            var end = x + w;
+            var pageWidth = options.perpage * options.width;
+            switch(c) {
+              case "next": if(end > pageWidth) x -= pageWidth;
+                           else x = 0;
+                           break;
+            
+              case "prev": if(x < 0) x += pageWidth;
+                           else x = -w + pageWidth;
+                           break;
+            
+              case "stop": x = x;
+                           break;
+            }
+            animate(slides, { left: x + 'px'}, options.animation );
+            return x + 'px'; 
+          }, controlB);
+
+          
+          // buttons CSS
+          var playClassB = mergeE(stopE, playE)
+                           .mapE(function(s){ return s === "play" ? "disable" : ""; })
+                           .startsWith(options.autostart ? "disable" : "");
+
+          var stopClassB = liftB(function(c){ return c === "disable" ? "" : "disable"; }, playClassB);
+                                                        
+          insertValueB(playClassB, "play", "className");
+          insertValueB(stopClassB, "stop", "className");
+          insertValueB(playClassB, "next", "className");
+          insertValueB(playClassB, "prev", "className");
+
+      }
+
+    </script>
+
+
+</head>
+
+<body onload="slideshow()">
+
+<p id="debug"></p>
+<hr />
+<div class="carousel">
+  <div class="carousel-control">
+    <span id="play"> ▶</span>
+    <span id="stop"> ￭</span>
+    <span id="prev">&lt;</span>
+    <span id="next">&gt;</span>
+  </div>
+  <hr>
+
+<div id="viewport">
+<ul id="slides">
+    <li>
+      <img src="" alt="thumb 1"/>
+      <div class="text">
+        <h3>1 slide</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore. </p>
+      </div>
+    </li>
+    <li>
+      <img src="" alt="thumb 2"/>
+      <div class="text">
+        <h3>2 slide</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore. </p>
+      </div>
+    </li>
+    <li>
+      <img src="" alt="thumb 3"/>
+      <div class="text">
+        <h3>3 slide</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore. </p>
+      </div>
+    </li>
+    <li>
+      <img src="" alt="thumb 4"/>
+      <div class="text">
+        <h3>4 slide</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore. </p>
+      </div>
+    </li>
+    <li>
+      <img src="" alt="thumb 5"/>
+      <div class="text">
+        <h3>5 slide</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore. </p>
+      </div>
+    </li>
+  <!-- <li>
+    <img src="" alt="thumb 6"/>
+    <div class="text">
+      <h3>6 slide</h3>
+      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore. </p>
+    </div>
+  </li> -->
+</ul>
+
+</div>
+</div>
+
+
+
+</body>
+</html>
