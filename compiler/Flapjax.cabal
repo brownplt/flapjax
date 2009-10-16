@@ -14,11 +14,7 @@ Synopsis:       Flapjax compiler
 Data-Dir:       data
 Data-Files:     flapjax.js flapjax.debug.js flapjax.jsi
 Description:
-Flag Fxdev
-  Description: Build the Fxdev server
-  Default: False
  
-
 Executable fxc
   Main-Is: Fxc.hs
   Hs-Source-Dirs: src
@@ -31,3 +27,29 @@ Executable fxc
   ghc-options:
     -fwarn-incomplete-patterns
   Extensions: Generics DeriveDataTypeable
+
+Executable fxdev
+  Main-Is: Fxdev.hs
+  Hs-Source-Dirs: src
+
+  Build-Depends:
+    base>=4, mtl>=1.1.0.1, parsec<3.0.0, pretty>=0.1, containers>=0.1, syb>=0.1,
+    filepath>=1.1.0.1, random>=1.0.0.1, WebBits>=0.15, directory, 
+    JsContracts>=0.4, xhtml, WebServer >= 1.2, bytestring
+  ghc-options:
+    -fwarn-incomplete-patterns
+  Extensions:     
+    Generics DeriveDataTypeable
+
+Executable fxrepl
+  Main-Is: Fxrepl.hs
+  Hs-Source-Dirs: src
+
+  Build-Depends:
+    base>=4, mtl>=1.1.0.1, parsec<3.0.0, pretty>=0.1, containers>=0.1, syb>=0.1,
+    filepath>=1.1.0.1, random>=1.0.0.1, WebBits>=0.15, directory, 
+    JsContracts>=0.4, xhtml, WebServer >= 1.2, bytestring
+  ghc-options:
+    -fwarn-incomplete-patterns
+  Extensions:     
+    Generics DeriveDataTypeable

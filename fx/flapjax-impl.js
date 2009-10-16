@@ -2424,8 +2424,11 @@ var map1 = function(f,src) {
 };
 
 var compilerUnbehavior = function(v) {
-  if (typeof v == 'function') {
-    return function() {
+  if (v.nodeType > 0 || v == Date || v == Math || v == window) {
+    return v
+  }
+  else if (typeof v == 'function') {
+    var f =  function() {
       // These values may contain behaviors.
       var originalArgs = slice(arguments,0);
 
@@ -2451,6 +2454,7 @@ var compilerUnbehavior = function(v) {
       return resultE.startsWith(v.apply(this,map1(unBehavior(recompute),
                                               originalArgs)));
     }
+    return f;
   }
   else {
     return v;

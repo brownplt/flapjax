@@ -1,0 +1,283 @@
+<html>
+
+<!-- Flapjax REPL -->
+
+<head>
+<link rel="stylesheet" 
+      href="style.css"/>
+
+
+<style type="text/css">
+
+.valueNow {
+  border: 1px solid black;
+  margin: 0px;
+  padding: 5px;
+  float: left;
+  overflow: hidden;
+  background-color: pink;
+}
+
+#ui input {
+  position: fixed;
+  font-size: 30pt;
+  color:#050;
+  font-family: Helvetica, sans-serif;
+  background-color:#ffffff;
+  border:1px solid #363;
+  right: 200px;
+}
+
+.event {
+  margin: 0px;
+  border: 0px;
+  position: fixed;
+}
+
+#ui { 
+  padding: 25px;
+  background-color: #ccccff;
+  width: 900px;
+  height: 60px;
+}
+
+#ui #progressBorder {
+  width: 750px;
+  height: 60px;
+  position: fixed;
+  border: 3px solid black;
+}
+
+</style>
+
+<script type="text/javascript" lang="javascript" src="flapjax.js">
+</script>
+<script type="text/javascript" src="prototype.js"></script>
+<script type="text/javascript">
+<!--
+
+var empty = {};
+
+
+function cons(x, y) {
+  return { first: x, rest: y } }
+
+
+function first(lst) { 
+  return lst.first }
+
+
+function rest(lst) {
+  return lst.rest }
+
+
+function listToArray(lst) {
+  var arr = [];
+  while (lst != empty) {
+    arr.push(lst.first);
+    lst = lst.rest };
+  return arr };
+
+
+function firstN(n, lst) {
+  if (lst == empty) { return lst }
+  else if (n == 0) { return empty }
+  else { return cons(lst.first, firstN(n - 1, lst.rest)) } };
+
+
+function takeWhile(f, lst) {
+  if (lst == empty) { return lst }
+  else if (f(lst.first)) { return cons(lst.first, takeWhile(f, lst.rest)) }
+  else { return empty } }
+
+
+function mapPairs(f) { return function (lst) {
+  if (lst == empty || lst.rest == empty) { return empty }
+  else { return cons(f(lst.first, lst.rest.first), mapPairs(f)(lst.rest)) }}}
+
+
+function theRealMap(f) { return function(lst) {
+  if (lst == empty) { return empty }
+  else { return (cons(f(lst.first), theRealMap(f)(lst.rest))) } }};
+
+
+
+function tuple(x,y) { 
+  return { fst : x, snd: y } }
+
+
+function left(x) { return { left: x }}
+
+
+function right(x) { return { right: x }}
+
+
+function isRight(x) { return x.right != undefined }
+
+
+function showTime(val) {
+  $("progressBar").style.width = val + "px" }
+
+
+function isEnterPressed(keyEvt) {
+  return keyEvt.keyCode == 13 };
+
+
+var gensym = (function() {
+  var next = 0;
+  return function() {
+    return "__" + (next++).toString() }})();
+
+// Necessary to display event streams.
+var ticks = timerB(10);
+
+function withinSecondsOf(now) { return function(x) {
+
+  return now - x.fst <= 8000 }}
+
+
+function renderBehavior(b) {
+  
+   var withTimes = liftB(tuple, ticks, b).changes().collectE(empty, function(v, vals) {
+    if (vals == empty || v.snd != vals.first.snd) {
+      return takeWhile(withinSecondsOf(v.fst), cons(v, vals)) }
+    else {
+      return cons(tuple(v.fst, vals.first.snd), vals.rest) } });
+
+   var withWidths = withTimes.mapE(mapPairs(function(next, prev) { 
+    return tuple(Math.floor((next.fst - prev.fst) / 10), next.snd) }));
+
+   var asSpans = withWidths.mapE(theRealMap(function(p) {
+    return SPAN(SPAN({ className: "valueNow", style: { width: p.fst } }, p.snd)) }));
+
+  return asSpans.startsWith(empty).liftB(function(lst) {
+    return DIV.apply(this, listToArray(lst)) }) }
+
+function mapAccLR(acc, f) { return function(lst) {
+  if (lst == empty) { return empty }
+  else {
+    var r = f(acc, lst.first);
+    return cons(r.snd, mapAccLR(r.fst, f)(lst.rest)) }}}
+
+function renderEvent(evt) {
+  if (evt instanceof MouseEvent) {
+    return IMG({ src: "mouse.png" })}
+  else {
+    return SPAN(evt.toString()) }}
+
+
+function renderEventStream(e) { 
+
+  withBlanks = mergeE(ticks.changes().mapE(left), e.mapE(right));
+
+  var withTimes = withBlanks.collectE(empty, function(v, vals) {
+    if (v.right) {
+      return cons(tuple(Date.now(), v.right), vals) }
+    else {
+      return takeWhile(withinSecondsOf(Date.now()), vals) }});
+
+  var asSpans = withTimes.mapE(function(lst) {
+    var now = Date.now();
+    return theRealMap(function(v) {
+      var p = Math.floor((now - v.fst) / 10);
+      return SPAN({ className: "event",
+                         style: { left: p, zIndex: -i } },
+                       renderEvent(v.snd)) })
+      (lst)});
+
+
+  var spans = asSpans.startsWith(empty).liftB(function(lst) {
+    return DIV({ style: { position: "relative", height: "50px" } }, 
+               DIV.apply(this, listToArray(lst))) });
+
+  return spans }
+
+  
+
+function render(argE) {
+  return argE.mapE(function(arg) { 
+    if (arg instanceof Behavior) {
+      return renderBehavior(arg, 5) }
+    else if (arg instanceof EventStream) {
+      return renderEventStream(arg) }
+    if (typeof arg == "undefined") {
+      return constantB(DIV()) }
+    else if (arg.nodeType > 0) {
+      return constantB(DIV(arg)) }
+    else {
+      return constantB(DIV(arg.toString())) } })};
+
+
+function compile(srcE) {
+  return getWebServiceObjectE(srcE.mapE(function(txt) {
+    return {
+      url : "/compile",
+      request: "rest",
+      response: "plain",
+      fields: { expr: txt },
+      asynchronous: true }}))}
+
+
+function interact() {
+  var input = SPAN({ style: { position: "fixed", minWidth: "300px" }, 
+                     contentEditable: true}, "");
+
+  
+  var srcE = $E(input, "keypress").filterE(isEnterPressed).mapE(function(_) {
+    input.contentEditable = false;
+    return input.textContent });
+
+
+  var valE = compile(srcE).mapE(function(src) {
+    try {
+      var v = gensym();
+      eval(v + " = " +  src); 
+      return eval(v) }
+    catch(e) {
+      return SPAN({ style : { color: "red" } }, e.toString()) } });
+
+
+  var outputE = render(valE);
+
+
+  var nextE = srcE.mapE(function() { return interact() });
+  
+  var dom = DIV(
+    // without this DIV, the prompt occurs on the previous line.
+    DIV({ style: { color: "white" } }, "."), 
+    BR(),
+    "> ", input,
+    outputE.startsWith(constantB("")).switchB(),
+    nextE.startsWith(""));
+
+  oneE(true).mapE(function() { input.focus() });
+
+  return dom };
+
+function start() {
+  $("interactions").appendChild(interact());
+
+  }
+
+document.observe("dom:loaded", start);
+-->
+</script>
+
+</head>
+
+<body>
+
+
+<div id="ui">
+  <span id="progressBorder">
+  <div id="progressBar" style="background-color: red; width: 0px; height: 60px"></div>
+  </span>
+  <input type="button" value="Reset" id="reset"/>
+</div>
+
+<div id="interactions"></div>
+
+
+</body>
+
+</html>

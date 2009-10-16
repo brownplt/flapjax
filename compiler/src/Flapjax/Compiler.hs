@@ -2,6 +2,7 @@ module Flapjax.Compiler
   ( compilePage
   , defaults
   , CompilerOpts (..)
+  , compileExpr
   ) where
 
 import Control.Monad.State.Strict
@@ -586,3 +587,9 @@ compilePage opts page' = do
                       $ compileInlineAtAttribs opts 
                       $ compileInline opts page'
   return (msgs,addInitCode opts $ (addLoader opts page))
+
+compileExpr :: CompilerOpts -> ParsedExpression -> IO ParsedExpression
+compileExpr opts src = do
+  opts <- setupUnlifted opts
+  let (expr, msgs) = runWriter $ liftExprM S.empty opts src
+  return expr
