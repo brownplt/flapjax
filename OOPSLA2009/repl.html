@@ -18,6 +18,13 @@
   background-color: pink;
 }
 
+.constant {
+  margin: 0px;
+  padding: 5px;
+  float:left;
+  overflow: hidden;
+}
+
 #ui input {
   position: fixed;
   font-size: 30pt;
@@ -25,7 +32,7 @@
   font-family: Helvetica, sans-serif;
   background-color:#ffffff;
   border:1px solid #363;
-  right: 140px;
+  right: 200px;
 }
 
 .event {
@@ -35,7 +42,8 @@
 }
 
 #ui { 
-  padding: 25px;
+  padding: 5px;
+  position: relative;
   background-color: #ccccff;
   width: 900px;
   height: 60px;
@@ -43,7 +51,7 @@
 
 #ui #progressBorder {
   width: 750px;
-  height: 60px;
+  height: 50px;
   position: fixed;
   border: 3px solid black;
 }
@@ -161,7 +169,7 @@ function mapAccLR(acc, f) { return function(lst) {
 
 function renderEvent(evt) {
   if (evt instanceof MouseEvent) {
-    return IMG({ src: "mouse.png" })}
+    return IMG({ src: "mouse.png", height: "50", width: "50" })}
   else {
     return SPAN(evt.toString()) }}
 
@@ -187,7 +195,7 @@ function renderEventStream(e) {
 
 
   var spans = asSpans.startsWith(empty).liftB(function(lst) {
-    return DIV({ style: { position: "relative", height: "50px" } }, 
+    return DIV({ style: { position: "relative", height: "20px" } }, 
                DIV.apply(this, listToArray(lst))) });
 
   return spans }
@@ -205,7 +213,7 @@ function render(argE) {
     else if (arg.nodeType > 0) {
       return constantB(DIV(arg)) }
     else {
-      return constantB(DIV(arg.toString())) } })};
+    return constantB(DIV(DIV(SPAN({ className: "constant" }, arg.toString())))) } })};
 
 
 function compile(srcE) {
@@ -270,7 +278,8 @@ document.observe("dom:loaded", start);
 
 <div id="ui">
   <span id="progressBorder">
-  <div id="progressBar" style="background-color: red; width: 0px; height: 60px"></div>
+  <div id="progressBar" style="background-color: red; width: 0px; height: 50px">
+  </div>
   </span>
   <input type="button" value="Reset" id="reset"/>
 </div>
