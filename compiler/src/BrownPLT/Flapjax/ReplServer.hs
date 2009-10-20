@@ -6,14 +6,15 @@ import qualified Data.ByteString.Lazy.Char8 as BC
 import qualified Data.Map as M
 import System.FilePath
 import Control.Monad.Trans
-import Network.WebServer
-import Network.WebServer.Files
-import Network.WebServer.HTTP.Listen
 import Flapjax.Compiler
 import BrownPLT.JavaScript.Parser (parseExpression)
 import BrownPLT.JavaScript.Lexer
 import BrownPLT.JavaScript.PrettyPrint
 import Text.ParserCombinators.Parsec
+import Network.HTTP
+import Network.HTTP.Server
+import Network.URL
+import Network.URI
 
 parseExpr = do
   whiteSpace
@@ -22,25 +23,41 @@ parseExpr = do
   return e
 
 
-ret f = do
-  r <- f
-  return (setHeader "Cache-Control" "no-store, must-revalidate" r)
+ok :: String -> Response String
+ok str = 
+  Response (2,0,0) "ok" 
+           [ Header HdrCacheControl "no-store, must-revalidate"
+           , Header HdrContentLength (show $ length str)
+           ]
+           str
 
-compileExprService = do
-  src <- stringInput "expr"
-  liftIO $ putStrLn $ "Compiling: "  ++ src
-  case parse parseExpr "web request" src of
-    Left _ -> return $ ok "throw \'parse error\'"
-    Right e -> do
-      e <- liftIO $ compileExpr defaults e
-      return $ ok $ (renderExpression e)
+
+compileExprService req = case (rqBody req) of
+  'e':'x':'p':'r':'=':src -> do -- total disaster
+    putStrLn $ "Compiling: "  ++ src
+    case parse parseExpr "web request" src of
+      Left _ -> return $ ok "throw \'parse error\'"
+      Right fxExpr -> do
+        jsExpr <- compileExpr defaults fxExpr
+        return $ ok (renderExpression jsExpr)
+  _ -> do
+    putStrLn "compile: no expression provided"
+    return $ ok "throw \'expression not provided\'"
 
 
 flapjaxREPLServer :: Int -> FilePath -> IO ()
-flapjaxREPLServer port rootPath = do
-  putStrLn "Starting the REPL server..."
-  runServer port $ anyOf
-    [ dirEnd "ping" (return $ ok "Pong")
-    , dirEnd "compile" (ret compileExprService)
-    , serveFiles ["index.html"] rootPath
-    ]
+flapjaxREPLServer port rootPath = server (handler rootPath)
+
+handler :: FilePath -> Handler String
+handler rootPath sockAddr url request = do
+  let path = uriPath (rqURI request)
+  putStrLn path
+  case path of
+    "/compile" -> compileExprService request
+    "/ping" -> do
+      putStrLn "Responding to a ping."
+      return (ok "pong")
+    otherwise -> do
+      
+      bytes <- readFile (rootPath ++ path)
+      return (ok bytes)
