@@ -19,6 +19,7 @@ import System.Directory
 import qualified Data.ByteString as BS
 import Data.ByteString (ByteString)
 import Data.ByteString.Internal (c2w, w2c)
+import qualified Data.List as L
 
 parseExpr = do
   whiteSpace
@@ -63,13 +64,24 @@ handler :: FilePath -> Handler ByteString
 handler rootPath sockAddr url request = do
   let path = uriPath (rqURI request)
   putStrLn path
-  case path of
-    "/compile" -> compileExprService request
-    "/ping" -> do
+  case map tail (L.groupBy (const (/='/')) path) of
+    ["compile"] -> compileExprService request
+    ["ping"] -> do
       putStrLn "Responding to a ping."
       return (ok $ BS.pack $ map c2w "pong")
-    otherwise -> do
-      let filePath = rootPath ++ path
+    ("redirect":path) -> do
+      let remoteURL = "http://" ++  concat (L.intersperse "/" path)
+      putStrLn remoteURL
+      case parseURI remoteURL of
+        Just uri -> do
+          let req = mkRequest GET uri
+          r <- simpleHTTP req
+          case r of
+            Right rsp -> return rsp
+            Left err -> return four04 -- not really
+        Nothing -> return four04 -- not really
+    pathSegments -> do
+      let filePath = joinPath pathSegments -- totally, totally insecure
       exists <- doesFileExist filePath
       case exists of
         True -> do   
