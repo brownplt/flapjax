@@ -1,0 +1,69 @@
+textarea {
+  resize: none;
+  font: Helvetica, sans-serif;
+  font-size: 16pt;
+  border: 1px solid gray;
+  -webkit-border-radius: 5px;
+}
+
+.msg {
+  border-top: 1px solid gray;
+  margin: 5px;
+}
+
+.tweets {
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+  font-family: Helvetica, sans-serif;
+  font-size: 14pt;
+  color: #333333;
+  padding: 5px;
+  margin: 5px;
+  -webkit-border-bottom-right-radius: 10px;
+  -webkit-box-shadow: 5px 5px 5px #888;
+}
+
+.status {
+  font-family: Helvetica, sans-serif;
+  font-size: 12pt;
+  color: #333333;
+  margin: 5px;
+}
+
+body {
+  min-width: 400px;
+  max-width: 600px;
+}
+
+.inputPanel {
+
+
+}
+
+.inputPanel textarea {
+
+  width: 100%;
+}
+
+input {
+  border: 1px solid gray;
+  background-color: #ccccff;
+  height: 22pt;
+  margin: 5px;
+  font-family: Helvetica, sans-serif;
+  font-size: 16pt;
+  font-style: italic;
+  -webkit-border-radius: 5px;
+
+}
+
+.footer {
+  position: fixed;
+  bottom: 5px;
+
+  width: 100%;
+  text-align: center;
+  font-size: 8pt;
+  font-family: Helvetica, sans-serif;
+  color: #333333;
+}
