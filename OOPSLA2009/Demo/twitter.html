@@ -10,11 +10,20 @@
 
 <body>
 
+<div class="loginPanel" style="display: none">
+
+
+<div>Username: <input type="text" width="20" class="text"/></div>
+<div>Password: <input type="password" width="20" class="text"/></div>
+<div><input type="submit" value="Login" class="button" id="loginButton"/></div>
+</div>
+
 <div class="inputPanel">
 <textarea id="newstatus" rows="2" cols="30">
-What are you doing?
+What are you thinking?
 </textarea>
-<input type="submit" value="Tweet!"/>
+<input type="submit" value="Tweet!" class="button" id="tweetButton" />
+<span id="length">length here</span>
 <div class="status"><b>Latest:</b>
 <span id="status">
 Warning: incoming garbage twitter spam as a I test a Flapjax app for

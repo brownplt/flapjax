@@ -1,0 +1,112 @@
+
+var username = "arjunguha";
+var password = "redbull64!";
+
+
+function recE(fn) { 
+  var inE = receiverE(); 
+  var outE = fn(inE); 
+  outE.mapE(function(x) { 
+    inE.sendEvent(x) }); 
+  return outE; 
+}
+ 
+function mkTimelineRequest(username, password) {
+  return function(since) {
+    var fields = since == 0 ? { } : { "since_id" : since };
+    return {
+      url: "/redirect/" + username + ":" + password + 
+           "@twitter.com/statuses/friends_timeline.json",
+      request: "get",
+      response: "json",
+      fields: fields
+    }
+  }
+}
+
+function mkUpdateRequest(username, password) {
+  return function(status) {
+    return {
+      url: "/redirect/" + username + ":" + password +
+           "@twitter.com/statuses/update.json",
+      request: "post",
+      response: "json",
+      fields: { "status": status }
+    }
+  }
+}
+
+// timelineMaxId :: Timeline -> Int
+function timelineMaxId(timeline) {
+  if (typeof timeline[0] == "undefined") {
+    return 0;
+  }
+  else {
+    return timeline[0].id || 0;
+  }
+}
+
+function formatTweet(tweet) {
+  return DIV({ className: "msg"}, B(tweet.user.name, " says "), tweet.text);
+}
+
+
+function getTweetsSince(whenE, sinceB) {
+  var reqE = whenE.snapshotE(sinceB)
+                  .mapE(mkTimelineRequest(username, password));
+  return getWebServiceObjectE(reqE);
+}
+
+function getTweets(whenE) {
+  return recE(function(resultE) {
+    return getTweetsSince(
+      whenE, 
+      resultE.collectE(0, function(timeline, lastMaxId) {
+        return timelineMaxId(timeline) || lastMaxId }).startsWith(0));
+  });
+}
+
+
+// formatTweets : EventStream Timeline -> Behavior Element
+function formatTweets(tweetsE) {
+
+    var divsE = tweetsE.collectE(DIV(), function(timeline, prev) {
+
+        var d = DIV({ className: "tweetBlock" }, map(formatTweet, timeline));
+                    d.style.opacity = 1;
+        return DIV(d, prev);
+  });
+
+    return DIV({ className: "tweets" }, divsE.startsWith(DIV("Loading")));
+}
+
+
+function start() {
+
+  var entryB = $B("newstatus");
+
+  var entryLengthB = entryB.liftB(function(txt) { return txt.length });
+
+  var entryColorB = entryLengthB.liftB(function(len) {
+    if (len > 140) { return "red" }
+    else if (len > 100) { return "orange" }
+    else { return "green" } });
+
+  var lengthElt = 
+    SPAN({ className: "length", style: { color: entryColorB } },
+         entryLengthB);
+        
+  insertDomB(lengthElt, "length");
+
+  var cannotTweetB = entryLengthB.liftB(function(len) { 
+    return len > 140 });
+
+  insertValueB(cannotTweetB, "tweetButton", "disabled");
+
+  var statusUpdates = clicksE("tweetButton").snapshotE($B("newstatus"));
+
+  insertDomB(formatTweets(getTweets(timerE(120000))), "tweets");
+    
+}
+
+window.addEventListener("load", start);

@@ -81,7 +81,8 @@ handler rootPath sockAddr url request = do
                    Just auth -> uriUserInfo auth
                    Nothing -> ""
       let remoteURL = uriScheme (rqURI request) ++ "//" ++ auth ++
-                      concat (L.intersperse "/" path)
+                      concat (L.intersperse "/" path) ++
+                      uriQuery (rqURI request)
       putStrLn $ "Proxying remote URL: " ++ remoteURL
       (code, rsp) <- curlGetString_ remoteURL []
       return (ok rsp)

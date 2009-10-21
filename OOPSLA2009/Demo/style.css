@@ -11,6 +11,20 @@ textarea {
   margin: 5px;
 }
 
+.msg b {
+  color: black
+}
+
+.length {
+  font-family: Times;
+  font-size: 20pt;
+}
+
+.tweetBlock {
+  opacity: 0;
+  -webkit-transition: opacity 3s linear;
+}
+
 .tweets {
   border-right: 1px solid black;
   border-bottom: 1px solid black;
@@ -41,11 +55,31 @@ body {
 }
 
 .inputPanel textarea {
-
   width: 100%;
 }
 
-input {
+.loginPanel {
+  position: absolute;
+  background-color: #eeeeee;
+  border: 1px solid black;
+  font-family: Helvetica, sans-serif;
+  font-size: 14pt;
+  color: #333333;
+  left: 50px;
+  top: 50px;
+  padding: 5px;
+  margin: 5px;
+  -webkit-border-radius: 10px;
+  -webkit-box-shadow: 5px 5px 5px #888;
+}
+
+.loginPanel input {
+  font-family: Helvetica, sans-serif;
+  font-size: 14pt;
+  color: #333333;
+}
+  
+.button {
   border: 1px solid gray;
   background-color: #ccccff;
   height: 22pt;
@@ -54,7 +88,11 @@ input {
   font-size: 16pt;
   font-style: italic;
   -webkit-border-radius: 5px;
+}
 
+.text {
+  border: 1px solid gray;
+  -webkit-border-radius: 5px;  
 }
 
 .footer {

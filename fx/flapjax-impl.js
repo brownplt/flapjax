@@ -1375,9 +1375,13 @@ var makeTagB = function(tagName) { return function() {
       else {
         lastVal = elementize(lastVal);
         elt.appendChild(lastVal);
+        var lastValIx = elt.children.length - 1; 
         child.liftB(function(currentVal) {
           currentVal = elementize(currentVal);
-          elt.replaceChild(currentVal, lastVal);
+          if (lastVal.parentNode != elt) {
+            elt.appendChild(currentVal) }
+          else {
+            elt.replaceChild(currentVal, lastVal) }
           lastVal = currentVal;
         });
       }
