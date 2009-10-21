@@ -11,7 +11,6 @@ import BrownPLT.JavaScript.Parser (parseExpression)
 import BrownPLT.JavaScript.Lexer
 import BrownPLT.JavaScript.PrettyPrint
 import Text.ParserCombinators.Parsec
-import Network.HTTP
 import Network.HTTP.Server
 import Network.URL
 import Network.BufferType
@@ -21,7 +20,8 @@ import qualified Data.ByteString as BS
 import Data.ByteString (ByteString)
 import Data.ByteString.Internal (c2w, w2c)
 import qualified Data.List as L
-import qualified Codec.Binary.Base64.String as Base64
+import Network.Curl
+import Network.HTTP
 
 parseExpr = do
   whiteSpace
@@ -60,34 +60,10 @@ compileExprService req = case (map w2c $ BS.unpack $ rqBody req) of
 
 
 flapjaxREPLServer :: Int -> FilePath -> IO ()
-flapjaxREPLServer port rootPath = server (handler rootPath)
+flapjaxREPLServer port rootPath = withCurlDo $ server (handler rootPath)
 
 
 agentString = "Flapjax REPL Server (www.flapjax-lang.org)"
-
---
--- Derived from:
--- http://hackage.haskell.org/packages/archive/HTTP/4000.0.8/
---
---
-
-toBufOps :: BufferType a => Request a -> BufferOp a
-toBufOps _ = bufferOps
-
-
-mkAuthRequest :: HStream ty => RequestMethod -> URI -> Request ty
-mkAuthRequest method uri = req
-  where req = Request uri method headers empty
-        basicHeaders = [ Header HdrContentLength "0"
-                       , Header HdrUserAgent agentString]
-        headers = case uriAuthority uri of
-          Just (URIAuth userInfo _ _) | length userInfo > 1 -> 
-            let auth = (head.tail) (L.tails userInfo) -- drops the trailing @
-                authBase64 = Base64.encode auth
-              in (Header HdrWWWAuthenticate authBase64):basicHeaders
-          otherwise -> basicHeaders
-        empty = buf_empty (toBufOps req)
-
 
 
 
@@ -106,16 +82,9 @@ handler rootPath sockAddr url request = do
                    Nothing -> ""
       let remoteURL = uriScheme (rqURI request) ++ "//" ++ auth ++
                       concat (L.intersperse "/" path)
-      case parseURI remoteURL of
-        Just uri -> do
-          putStrLn $ "Proxying remote URL: " ++ show uri
-          let req = mkAuthRequest GET uri
-          putStrLn (show req)
-          r <- simpleHTTP req
-          case r of
-            Right rsp -> putStrLn (show rsp) >> return rsp
-            Left err -> return four04 -- not really
-        Nothing -> return four04 -- not really
+      putStrLn $ "Proxying remote URL: " ++ remoteURL
+      (code, rsp) <- curlGetString_ remoteURL []
+      return (ok rsp)
     pathSegments -> do
       let filePath = joinPath pathSegments -- totally, totally insecure
       exists <- doesFileExist filePath
