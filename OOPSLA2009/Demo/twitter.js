@@ -3,13 +3,6 @@ var username = "";
 var password = "";
 
 
-function recE(fn) { 
-  var inE = receiverE(); 
-  var outE = fn(inE); 
-  outE.mapE(function(x) { 
-    inE.sendEvent(x) }); 
-  return outE; 
-}
  
 function mkTimelineRequest(since) {
     var fields = since == 0 ? { } : { "since_id" : since };

@@ -268,6 +268,7 @@ mergeE :: EventStream ... -> EventStream;
 switchE :: EventStreamOf(EventStream) -> EventStream;
 filterE :: EventStream anyFunction -> EventStream;
 ifE :: EventStream EventStream -> EventStream;
+recE :: (EventStream -> EventStream) -> EventStream;
 constantE :: EventStream any -> EventStream;
 collectE :: EventStream any anyFunction -> EventStream;
 andE :: EventStream ... -> EventStream;

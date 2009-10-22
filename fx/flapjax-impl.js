@@ -527,6 +527,15 @@ EventStream.prototype.switchE = function() {
 };
 
 
+var recE = function(fn) {
+  var inE = receiverE(); 
+  var outE = fn(inE); 
+  outE.mapE(function(x) { 
+    inE.sendEvent(x) }); 
+  return outE; 
+}
+
+
 var switchE = function(e) { return e.switchE(); };
 
 
