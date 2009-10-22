@@ -59,6 +59,24 @@ body {
 }
 
 .loginPanel {
+  position: absolute; 
+  left: 0px; 
+  top: 0px; 
+  height: 100%; 
+  width: 100%;
+}
+
+.lightbox {
+  position: absolute; 
+  left: 0px; 
+  top: 0px; 
+  height: 100%; 
+  width: 100%;
+  background-color: black;
+  opacity: 0.7;
+}
+
+.loginPanel .controls {
   position: absolute;
   background-color: #eeeeee;
   border: 1px solid black;
@@ -71,6 +89,7 @@ body {
   margin: 5px;
   -webkit-border-radius: 10px;
   -webkit-box-shadow: 5px 5px 5px #888;
+  opacity: 1;
 }
 
 .loginPanel input {

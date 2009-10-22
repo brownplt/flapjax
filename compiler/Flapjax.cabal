@@ -36,8 +36,8 @@ Executable fxrepl
     base>=4, mtl>=1.1.0.1, parsec<3.0.0, pretty>=0.1, containers>=0.1, syb>=0.1,
     filepath>=1.1.0.1, random>=1.0.0.1, WebBits>=0.15, directory, 
     JsContracts>=0.4, xhtml, bytestring, http-server, HTTP, network, url,
-    curl
+    base64-string
   ghc-options:
     -fwarn-incomplete-patterns
   Extensions:     
-    Generics DeriveDataTypeable
+    Generics DeriveDataTypeable ScopedTypeVariables

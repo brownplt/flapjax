@@ -1,6 +1,6 @@
 
-var username = "arjunguha";
-var password = "redbull64!";
+var username = "";
+var password = "";
 
 
 function recE(fn) { 
@@ -11,8 +11,7 @@ function recE(fn) {
   return outE; 
 }
  
-function mkTimelineRequest(username, password) {
-  return function(since) {
+function mkTimelineRequest(since) {
     var fields = since == 0 ? { } : { "since_id" : since };
     return {
       url: "/redirect/" + username + ":" + password + 
@@ -21,19 +20,16 @@ function mkTimelineRequest(username, password) {
       response: "json",
       fields: fields
     }
-  }
 }
 
-function mkUpdateRequest(username, password) {
-  return function(status) {
+function mkUpdateRequest(status) {
     return {
       url: "/redirect/" + username + ":" + password +
            "@twitter.com/statuses/update.json",
-      request: "post",
+      request: "rest",
       response: "json",
       fields: { "status": status }
     }
-  }
 }
 
 // timelineMaxId :: Timeline -> Int
@@ -53,7 +49,7 @@ function formatTweet(tweet) {
 
 function getTweetsSince(whenE, sinceB) {
   var reqE = whenE.snapshotE(sinceB)
-                  .mapE(mkTimelineRequest(username, password));
+                  .mapE(mkTimelineRequest);
   return getWebServiceObjectE(reqE);
 }
 
@@ -80,8 +76,36 @@ function formatTweets(tweetsE) {
     return DIV({ className: "tweets" }, divsE.startsWith(DIV("Loading")));
 }
 
+// auth :: -> EventStream({ username: String, password: String })
+function auth() {
+  var usernameB = $B("username");
+  var passwordB = $B("password");
+  var credentialsB = liftB(function(username, password) {
+    return { username: username, password: password } },
+    usernameB, passwordB);
+
+  var loginE = clicksE("loginButton");
+  var logoutE = clicksE("logoutButton");
+  insertValueB(mergeE(loginE.constantE("none"),
+                      logoutE.constantE("block"))
+               .startsWith("block"),
+               "loginPanel", "style", "display");
+  return loginE.snapshotE(credentialsB).mapE(function(cred) {
+    username = cred.username;
+    password = cred.password;
+  });
+};
+
+var hist = [];
 
 function start() {
+
+  var authE = auth();
+
+  var refreshE = mergeE(authE, timerE(30000)).filterE(function(_) {
+    return username !== "" && password !== "" });
+
+  insertDomB(formatTweets(getTweets(refreshE)), "tweets");
 
   var entryB = $B("newstatus");
 
@@ -103,9 +127,10 @@ function start() {
 
   insertValueB(cannotTweetB, "tweetButton", "disabled");
 
-  var statusUpdates = clicksE("tweetButton").snapshotE($B("newstatus"));
+  var statusUpdatesE = clicksE("tweetButton").snapshotE($B("newstatus"));
 
-  insertDomB(formatTweets(getTweets(timerE(120000))), "tweets");
+  getWebServiceObjectE(statusUpdatesE.mapE(mkUpdateRequest))
+  .mapE(function(x) { console.log(x); });
     
 }
 

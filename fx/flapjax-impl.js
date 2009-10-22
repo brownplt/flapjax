@@ -1196,12 +1196,23 @@ var disableTimer = function (v) {
 };
 
 var createTimerNodeStatic = function (interval) {
-  var node = internalE();
-  node.__timerId = __getTimerId();
-  var fn = function () { sendEvent(node, (new Date()).getTime());};
-  var timer = setInterval(fn, interval);
-  timerDisablers[node.__timerId] = function () {clearInterval(timer); };
-  return node;
+  var primEventE = internalE();
+  primEventE.__timerId = __getTimerId();
+
+  var listener = function(evt) {
+    if (!primEventE.weaklyHeld) {
+      sendEvent(primEventE, (new Date()).getTime());
+    }
+    else {
+      clearInterval(timer);
+      isListening = false;
+    }
+    return true;
+  };
+
+  var timer = setInterval(listener, interval);
+  timerDisablers[primEventE.__timerId] = function () {clearInterval(timer); };
+  return primEventE;
 };
 
 var timerE = function (interval) {
@@ -2222,7 +2233,7 @@ var toJSONString = (function() {
  
 var serverRequestE = function(useFlash,requestE) {
   var responseE = receiverE();
-  
+
   requestE.mapE(function (obj) {
       var body = '';
       var method = 'GET';
@@ -2274,6 +2285,7 @@ var serverRequestE = function(useFlash,requestE) {
       else {
         throw('Unknown response format: ' + obj.response);
       }
+    return doNotPropagate;
   });
   
   return responseE;

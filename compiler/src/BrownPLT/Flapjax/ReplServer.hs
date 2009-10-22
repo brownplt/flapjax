@@ -20,8 +20,9 @@ import qualified Data.ByteString as BS
 import Data.ByteString (ByteString)
 import Data.ByteString.Internal (c2w, w2c)
 import qualified Data.List as L
-import Network.Curl
 import Network.HTTP
+import Data.Maybe
+import qualified Codec.Binary.Base64.String as Base64
 
 parseExpr = do
   whiteSpace
@@ -60,11 +61,27 @@ compileExprService req = case (map w2c $ BS.unpack $ rqBody req) of
 
 
 flapjaxREPLServer :: Int -> FilePath -> IO ()
-flapjaxREPLServer port rootPath = withCurlDo $ server (handler rootPath)
+flapjaxREPLServer port rootPath = server (handler rootPath)
 
 
 agentString = "Flapjax REPL Server (www.flapjax-lang.org)"
 
+
+removeHostHdr :: [Header] -> [Header]
+removeHostHdr hdrs = filter f hdrs
+  where f hdr = case hdrName hdr of
+                  HdrHost -> False
+                  otherwise -> True
+
+
+addBasicAuthHdr :: URI -> [Header] -> [Header]
+addBasicAuthHdr uri hdrs = case uriAuthority uri of
+  Just (URIAuth userInfo regName _) | length userInfo > 1 ->
+    hdrs ++ [Header HdrHost regName, Header HdrAuthorization info]
+    where withoutTrailingAtSign = L.takeWhile (/='@') userInfo
+          base64UserInfo = Base64.encode withoutTrailingAtSign
+          info = "Basic " ++ base64UserInfo
+  otherwise -> hdrs
 
 
 handler :: FilePath -> Handler ByteString
@@ -77,16 +94,33 @@ handler rootPath sockAddr url request = do
       putStrLn "Responding to a ping."
       return (ok $ BS.pack $ map c2w "pong")
     ("redirect":path) -> do
+      putStrLn "Redirecting..."
       let auth = case uriAuthority (rqURI request) of
                    Just auth -> uriUserInfo auth
                    Nothing -> ""
-      let remoteURL = uriScheme (rqURI request) ++ "//" ++ auth ++
+      let remoteURI = uriScheme (rqURI request) ++ "//" ++ auth ++
                       concat (L.intersperse "/" path) ++
                       uriQuery (rqURI request)
-      putStrLn $ "Proxying remote URL: " ++ remoteURL
-      (code, rsp) <- curlGetString_ remoteURL []
-      return (ok rsp)
+      case parseURI remoteURI of
+        Just uri -> do
+          let hdrs = addBasicAuthHdr uri
+                     $ removeHostHdr
+                     $ rqHeaders request
+          let fwdRequest =  request
+                { rqBody = rqBody request,
+                  rqURI = uri,
+                  rqHeaders = hdrs }
+          result <- simpleHTTP fwdRequest
+          case result of
+            Right resp -> return resp
+            Left err -> do
+              putStrLn (show err)
+              return four04
+        Nothing -> do
+          putStrLn "COuld not parse URL"
+          return four04
     pathSegments -> do
+      putStrLn "Serving local file..."
       let filePath = joinPath pathSegments -- totally, totally insecure
       exists <- doesFileExist filePath
       case exists of
