@@ -1,0 +1,39 @@
+Name:           FakeTwitter
+Version:        1.0
+Cabal-Version:	>= 1.2.3
+Copyright:      Copyright (c) 2009 Arjun Guha
+License:        BSD3
+License-file:   LICENSE
+Author:         Arjun Guha
+Maintainer:     Arjun Guha <arjun@cs.brown.edu>
+Homepage:       http://www.flapjax-lang.org/
+Stability:      provisional
+Category:       Language
+Build-Type:     Custom
+Synopsis:       A "fake" Twitter server.
+Description:
+
+	Flapjax includes some demos that interact with Twitter.  In case the Web is
+  inaccessible during a demo session, this programs acts as a fake Twitter
+  client.  It only implements a tiny subset of Twitter's protocol that is used 
+  by our demos.
+ 
+
+Executable faketwitter
+  Main-Is: FakeTwitter.hs
+  Hs-Source-Dirs: src
+
+  Build-Depends:
+    base >= 4 && < 5,
+    mtl >= 1.1.0.1,
+    containers >= 0.1,
+    http-server,
+    HTTP,
+    network,
+    url,
+    CouchDB >= 0.10.0,
+    base64-string,
+    json >= 0.4.3
+  ghc-options:
+    -fwarn-incomplete-patterns
+  Extensions:     

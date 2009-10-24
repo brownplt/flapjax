@@ -12,6 +12,7 @@ import BrownPLT.JavaScript.Lexer
 import BrownPLT.JavaScript.PrettyPrint
 import Text.ParserCombinators.Parsec
 import Network.HTTP.Server
+import Network.HTTP.Server.Logger (stdLogger)
 import Network.URL
 import Network.BufferType
 import Network.URI
@@ -61,7 +62,8 @@ compileExprService req = case (map w2c $ BS.unpack $ rqBody req) of
 
 
 flapjaxREPLServer :: Int -> FilePath -> IO ()
-flapjaxREPLServer port rootPath = server (handler rootPath)
+flapjaxREPLServer port rootPath = 
+  serverWith (Config stdLogger "localhost" 8000)  (handler rootPath)
 
 
 agentString = "Flapjax REPL Server (www.flapjax-lang.org)"
@@ -76,12 +78,22 @@ removeHostHdr hdrs = filter f hdrs
 
 addBasicAuthHdr :: URI -> [Header] -> [Header]
 addBasicAuthHdr uri hdrs = case uriAuthority uri of
-  Just (URIAuth userInfo regName _) | length userInfo > 1 ->
-    hdrs ++ [Header HdrHost regName, Header HdrAuthorization info]
+  Just (URIAuth userInfo regName port) | length userInfo > 1 ->
+    hdrs ++ [Header HdrAuthorization info]
     where withoutTrailingAtSign = L.takeWhile (/='@') userInfo
           base64UserInfo = Base64.encode withoutTrailingAtSign
           info = "Basic " ++ base64UserInfo
+          hostname = regName ++ ':':(show port)
   otherwise -> hdrs
+
+
+redirLocalhost :: Maybe URI -> Maybe URI
+redirLocalhost (Just uri) = case uriAuthority uri of
+  Just auth -> case uriRegName auth == "localhost" of
+    True -> Just $ uri { uriAuthority = Just $ auth { uriPort = ":8001" } }
+    False -> Just uri
+  Nothing -> Just uri
+redirLocalhost Nothing = Nothing
 
 
 handler :: FilePath -> Handler ByteString
@@ -101,7 +113,8 @@ handler rootPath sockAddr url request = do
       let remoteURI = uriScheme (rqURI request) ++ "//" ++ auth ++
                       concat (L.intersperse "/" path) ++
                       uriQuery (rqURI request)
-      case parseURI remoteURI of
+      putStrLn $ "Parsing " ++ remoteURI
+      case redirLocalhost $ parseURI remoteURI of
         Just uri -> do
           let hdrs = addBasicAuthHdr uri
                      $ removeHostHdr

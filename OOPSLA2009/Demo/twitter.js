@@ -2,13 +2,14 @@
 var username = "";
 var password = "";
 
-
+var host = "twitter.com";
+var host = "localhost"; // for emergency
  
 function mkTimelineRequest(since) {
     var fields = since == 0 ? { } : { "since_id" : since };
     return {
       url: "/redirect/" + username + ":" + password + 
-           "@twitter.com/statuses/friends_timeline.json",
+           "@" + host + "/statuses/friends_timeline.json",
       request: "get",
       response: "json",
       fields: fields
@@ -18,7 +19,7 @@ function mkTimelineRequest(since) {
 function mkUpdateRequest(status) {
     return {
       url: "/redirect/" + username + ":" + password +
-           "@twitter.com/statuses/update.json",
+           "@" + host + "/statuses/update.json",
       request: "rest",
       response: "json",
       fields: { "status": status }
