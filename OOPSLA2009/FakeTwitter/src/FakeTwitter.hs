@@ -16,6 +16,8 @@ import Text.JSON
 import System.CPUTime
 import qualified Codec.Binary.Base64.String as Base64
 import qualified Network.HTTP.Server.HtmlForm as Forms
+import System.Environment
+
 
 -- ----------------------------------------------------------------------------
 -- Database Interface
@@ -27,8 +29,8 @@ data User = User
   } deriving (Show)
 
 data Tweet = Tweet
-  { 
-   tweetText :: String
+  { tweetId :: Integer
+  , tweetText :: String
   , tweetUserId :: Doc
   } deriving (Show)
 
@@ -50,12 +52,14 @@ instance JSON Tweet where
 
   readJSON val = do
     obj <- jsonObject val
+    id <- jsonField "id" obj
     text <- jsonField "text" obj
     userId <- jsonField "user" obj
-    return (Tweet text userId)
+    return (Tweet id text userId)
   
-  showJSON (Tweet text userId) = JSObject $ toJSObject
-    [ ("user", showJSON userId)
+  showJSON (Tweet id text userId) = JSObject $ toJSObject
+    [ ("id", showJSON id)
+    , ("user", showJSON userId)
     , ("text", showJSON text)
     ]
 
@@ -104,7 +108,8 @@ updateStatus :: Request String
 updateStatus req userId = case rqBody req of
   's':'t':'a':'t':'u':'s':'=':statusEncoded -> do
     let status = unEscapeString statusEncoded
-    let tweet = Tweet status userId
+    id <- liftIO $ getCPUTime
+    let tweet = Tweet id status userId
     (doc, rev) <- newDoc (db "tweets") tweet
     liftIO $ putStrLn $ "Created new tweet with _id " ++ show doc
     return (ok "true") -- inconsequential
@@ -123,11 +128,12 @@ ok str =
 getTweets :: Maybe String -> CouchMonad JSValue
 getTweets sinceId = do
   let args = case sinceId of
-               Nothing ->  [("include_docs", JSBool True)]
-               Just id -> [ ("startkey", showJSON sinceId)
-                          , ("include_docs", JSBool True)]
-  rows <- getAllDocs (db "tweets") args
-  let f (id, Tweet text userId) = JSObject $ toJSObject
+               Nothing ->  [("descending", JSBool True)]
+               Just id -> [ ("endkey", showJSON sinceId)
+                          , ("descending", JSBool True)
+                          ] 
+  rows <- queryView (db "tweets") (doc "byid") (doc "byid") args
+  let f (_, Tweet id text userId) = JSObject $ toJSObject
         [ ("text", showJSON text)
         , ("user", JSObject $ toJSObject [("name", showJSON userId)])
         , ("id", showJSON id)
@@ -163,4 +169,17 @@ handler sockAddr url request = do
       return (Response (4,0,4) "not found" [ Header HdrContentLength "0" ] "")
 
 
-main = serverWith (Config stdLogger "localhost" 8001) handler
+initDB = runCouchDB' $ do
+  dropDB "users"
+  createDB "users"
+  dropDB "tweets"
+  createDB "tweets"
+  newView "tweets" "byid" 
+    [ ViewMap "byid" "function(doc) { emit(doc.id, doc) }" ]
+
+
+main = do
+  args <- getArgs
+  case args of
+    ["init"] -> initDB
+    otherwise -> serverWith (Config stdLogger "localhost" 8001) handler
