@@ -29,9 +29,9 @@ Executable fxc
     filepath >= 1.1.0.1,
     random >= 1.0.0.1,
     WebBits == 1.0,
-    WebBits-Html == 1.0,
+    WebBits-Html == 1.0.1,
     directory, 
-    JsContracts == 0.5,
+    JsContracts == 0.5.3,
     xhtml
   ghc-options:
     -fwarn-incomplete-patterns

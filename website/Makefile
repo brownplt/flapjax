@@ -1,8 +1,8 @@
-.PHONY: build
+.PHONY: build static
 
 SHTMLS = $(shell find static -name "*.shtml")
 
-all: build-static build .static
+all: build-static build static
 
 clean:
 	rm -rf build
@@ -23,7 +23,5 @@ build:
 	mkdir build
 endif
 
-# Use the timestamp on .static to determine if we need to build-static
-.static: $(SHTMLS) build-static
+static: $(SHTMLS) build-static
 	./build-static static build
-	touch .static

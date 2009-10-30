@@ -117,15 +117,13 @@ var BehaviorOf = function(name) { return function(valueContract) {
 
 
 any = :function(x) { return true; };
+anyDefined = :function(x) { return typeof x !== "undefined" };
 staticAttributes = any;
 
 anyBehavior = any; // or(any,Behavior) = any
 bool = any;
 object = any;
-// The first argument may be an attribute object (any) or an html element.
-elementMaker = any or(html,string) ... -> html;
-elementMakerB = any or(string,or(html,BehaviorOf(or(string,html)))) ... 
-                -> BehaviorOf(html);
+elementMaker = anyDefined ... -> html;
 
 anyFunction = :function(x) {
     return typeof x  == "function";
@@ -240,13 +238,12 @@ insertValueB :: Behavior htmlOrId string ... -> any;
 tagRec :: [ string, ... ] (EventStream ... -> Behavior)
        -> Behavior;
 getWebServiceObjectE
-  :: { url : string
-     , request : request
-     , response : response
-     , fields : any
-     , body : optional(string)
-     , asynchronous : optional(bool)
-     }
+  :: EventStream ({ url : string,
+                    request : request,
+                    response : response,
+                    fields : any,
+                    body : optional(string),
+                    asynchronous : optional(bool) })
   -> EventStream;
 getForeignWebServiceObjectE
   :: { url : string
@@ -299,46 +296,46 @@ map :: anyFunction anyArray ... -> anyArray;
 
 // Element constructors
 
-A :: elementMakerB;
-B :: elementMakerB;
-BLOCKQUOTE :: elementMakerB;
-BR :: elementMakerB;
-BUTTON :: elementMakerB;
-CANVAS :: elementMakerB;
-DIV :: elementMakerB;
-FIELDSET :: elementMakerB;
-FORM :: elementMakerB;
-FONT :: elementMakerB;
-H1 :: elementMakerB;
-H2 :: elementMakerB;
-H3 :: elementMakerB;
-H4 :: elementMakerB;
-HR :: elementMakerB;
-IMG :: elementMakerB;
-IFRAME :: elementMakerB;
-INPUT :: elementMakerB;
-LABEL :: elementMakerB;
-LEGEND :: elementMakerB;
-LI :: elementMakerB;
-OL :: elementMakerB;
-OPTGROUP :: elementMakerB;
-OPTION :: elementMakerB;
-P :: elementMakerB;
-PRE :: elementMakerB;
-SELECT :: elementMakerB;
-SPAN :: elementMakerB;
-STRONG :: elementMakerB;
-TABLE :: elementMakerB;
-TBODY :: elementMakerB;
-TD :: elementMakerB;
-TEXTAREA :: elementMakerB;
-TFOOT :: elementMakerB;
-TH :: elementMakerB;
-THEAD :: elementMakerB;
-TR :: elementMakerB;
-TT :: elementMakerB;
-UL ::elementMakerB;
-TEXT :: elementMakerB;
+A :: elementMaker;
+B :: elementMaker;
+BLOCKQUOTE :: elementMaker;
+BR :: elementMaker;
+BUTTON :: elementMaker;
+CANVAS :: elementMaker;
+DIV :: elementMaker;
+FIELDSET :: elementMaker;
+FORM :: elementMaker;
+FONT :: elementMaker;
+H1 :: elementMaker;
+H2 :: elementMaker;
+H3 :: elementMaker;
+H4 :: elementMaker;
+HR :: elementMaker;
+IMG :: elementMaker;
+IFRAME :: elementMaker;
+INPUT :: elementMaker;
+LABEL :: elementMaker;
+LEGEND :: elementMaker;
+LI :: elementMaker;
+OL :: elementMaker;
+OPTGROUP :: elementMaker;
+OPTION :: elementMaker;
+P :: elementMaker;
+PRE :: elementMaker;
+SELECT :: elementMaker;
+SPAN :: elementMaker;
+STRONG :: elementMaker;
+TABLE :: elementMaker;
+TBODY :: elementMaker;
+TD :: elementMaker;
+TEXTAREA :: elementMaker;
+TFOOT :: elementMaker;
+TH :: elementMaker;
+THEAD :: elementMaker;
+TR :: elementMaker;
+TT :: elementMaker;
+UL ::elementMaker;
+TEXT :: elementMaker;
 
 fold :: any;
 foldR :: any;
@@ -348,7 +345,7 @@ member :: any;
 slice :: any;
 forEach :: any;
 
-toJSONString :: Any -> optional(String);
+toJSONString :: any -> optional(string);
 
 compilerInsertDomB :: any;
 compilerInsertValueB :: any;

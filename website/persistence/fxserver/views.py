@@ -3,12 +3,7 @@ from django.http import HttpResponse
 import settings
 import subprocess
 
-if settings.host == "peabody":
-  fxc = "fxc"
-elif settings.host == "wanderlust.local":
-  fxc = "fxc"
-else:
-  fxc = "/home/flapjax/compiler/bin/fxc"
+fxc = "fxc"
 
 flapjaxCmd = [fxc,"--flapjax","/fx/flapjax.js","--stdin","--stdout",
               "--web-mode"]

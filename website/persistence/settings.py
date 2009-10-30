@@ -11,18 +11,21 @@ MANAGERS = ADMINS
 
 host = os.uname()[1]
 
-if host == "peabody":
-  DATABASE_ENGINE = "sqlite3"
-  DATABASE_NAME = "/home/arjun/Projects/flapjax/website/persistence/sqlite3.db"
-elif host == "wanderlust.local" or host == "wanderlust.brown.edu":
-  DATABASE_ENGINE = "sqlite3"
-  DATABASE_NAME = "/Users/arjun/Projects/flapjax/website/persistence/sqlite3.db"
-else: # Assume deployment
-  DATABASE_ENGINE = "mysql"
-  DATABASE_NAME = "flapjax"
-  DATABASE_USER = "flapjax"
-  DATABASE_PASSWORD = "flapjax"
- 
+DATABASE_ENGINE = "sqlite3"
+DATABASE_NAME = "/Users/arjun/Projects/flapjax/website/persistence/sqlite3.db"
+
+# if host == "peabody":
+#   DATABASE_ENGINE = "sqlite3"
+#   DATABASE_NAME = "/home/arjun/Projects/flapjax/website/persistence/sqlite3.db"
+# elif host == "wanderlust.local" or host == "wanderlust.brown.edu":
+#   DATABASE_ENGINE = "sqlite3"
+#   DATABASE_NAME = "/Users/arjun/Projects/flapjax/website/persistence/sqlite3.db"
+# # else: # Assume deployment
+#   DATABASE_ENGINE = "mysql"
+#   DATABASE_NAME = "flapjax"
+#   DATABASE_USER = "flapjax"
+#   DATABASE_PASSWORD = "flapjax"
+#  
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.

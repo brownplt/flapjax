@@ -196,7 +196,7 @@ function compile(srcE) {
   return srcE.mapE(function(src) {
     if (src.doNotCompile) {
       return oneE(src.txt) }
-    else {
+    else { console.log(src.txt);
       return getWebServiceObjectE(oneE({
         url : "/fxserver/compile_expr",
         request: "rawPost",
@@ -247,10 +247,6 @@ function interact(compileB) {
   return dom };
 
 function startInteractions() {
-  try {
-    initFlapjaxForeignWSO('.')
-  } catch(_) { } ;
-
   var compile = INPUT({ type: "checkbox"});
   var options = DIV({ style: { position: "fixed", 
                                top: "0px", 
