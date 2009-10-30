@@ -2236,7 +2236,7 @@ var toJSONString = (function() {
   return function(val) {
     var f = s[typeof val];
     if (f) { return f(val); }
-    else { throw 'parseJSON: unknown object type: ' + (typeof val); }
+    else { return undefined }
   };
 })();
  
@@ -2449,7 +2449,8 @@ var map1 = function(f,src) {
 };
 
 var compilerUnbehavior = function(v) {
-  if (v.nodeType > 0 || v == Date || v == Math || v == window) {
+  if (typeof v == 'undefined' || v.nodeType > 0 || 
+      v == Date || v == Math || v == window) {
     return v
   }
   else if (typeof v == 'function') {

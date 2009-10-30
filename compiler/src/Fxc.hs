@@ -15,8 +15,11 @@ import Text.ParserCombinators.Parsec(ParseError,parseFromFile)
 import Flapjax.HtmlEmbedding()
 import Flapjax.Parser(parseScript) -- for standalone mode
 import BrownPLT.Html.PermissiveParser (parseHtmlFromString)
-import Flapjax.Compiler(compilePage,defaults,CompilerOpts(..))
-
+import Flapjax.Compiler
+import BrownPLT.JavaScript.Parser (parseExpression)
+import BrownPLT.JavaScript.Lexer
+import BrownPLT.JavaScript.PrettyPrint
+import Text.ParserCombinators.Parsec hiding (getInput)
 import BrownPLT.Flapjax.CompilerMessage
 import BrownPLT.Flapjax.Interface
 
@@ -28,6 +31,7 @@ data Option
   | Stdin
   | Output String
   | Stdout
+  | ExprMode
   | WebMode
   deriving (Eq,Ord)
 
@@ -38,6 +42,7 @@ options =
  , Option ['o'] ["output"] (ReqArg Output "FILE") "output path"
  , Option [] ["stdout"] (NoArg Stdout) "write to standard output"
  , Option [] ["stdin"] (NoArg Stdin) "read from standard input"
+ , Option [] ["expression"] (NoArg ExprMode) "compile a single expression"
  , Option [] ["web-mode"] (NoArg WebMode) "web-compiler mode"
  ]
 
@@ -75,8 +80,28 @@ getOutput inputName options = do
   return (h,options)
 
 getWebMode :: [Option] -> IO (Bool,[Option])
-getWebMode (WebMode:rest) = return (True,rest)
+getWebMode (WebMode:[]) = return (True, [])
+getWebMode (WebMode:_) = do
+  hPutStrLn stderr "invalid arguments, use -h for help"
+  exitFailure
 getWebMode options = return (False,options)
+
+
+getExprMode (ExprMode:[]) = 
+  return (True, [])
+getExprMode (ExprMode:_) = do
+  hPutStrLn stderr "invalid arguments, use -h for help"
+  exitFailure
+getExprMode args =
+  return (False, args)
+
+
+parseExpr = do
+  whiteSpace
+  e <- parseExpression
+  eof
+  return e
+
 
 main = do
   argv <- getArgs
@@ -90,7 +115,8 @@ main = do
   (fxPath,args) <- getFlapjaxPath args
   (inputHandle,inputName,args) <- getInput files args
   (outputHandle,args) <- getOutput inputName args
-  (isWebMode,args) <- getWebMode args
+  (isExprMode, args) <- getExprMode args
+  (isWebMode, args) <- getWebMode args
 
   unless (null args) $ do
     hPutStrLn stderr "invalid arguments, use -h for help"
@@ -101,16 +127,26 @@ main = do
       showErr = if isWebMode then showHtml.toHtml else show
 
   inputText <- hGetContents inputHandle
-  case parseHtmlFromString inputName inputText of
-    Left err -> do -- TODO: web mode is different
-      hPutStrLn stderr (showErr err)
-      exitFailure
-    Right (html,_) -> do -- ignoring all warnings
-      (msgs,outHtml) <- compilePage (defaults { flapjaxPath = fxPath })  html
-      
-      -- TODO: web mode is different
-      mapM_ (hPutStrLn stderr . showErr) msgs
 
-      hPutStrLn outputHandle (renderHtml outHtml)
-      hClose outputHandle
-      exitSuccess
+  case isExprMode of
+    True -> case parse parseExpr "web request" inputText of
+      Left _ -> do
+        hPutStr outputHandle "throw \'parse error\'"
+        exitFailure
+      Right fxExpr -> do
+        jsExpr <- compileExpr defaults fxExpr
+        hPutStr outputHandle (renderExpression jsExpr)
+        exitSuccess
+    False -> case parseHtmlFromString inputName inputText of
+      Left err -> do -- TODO: web mode is different
+        hPutStrLn stderr (showErr err)
+        exitFailure
+      Right (html,_) -> do -- ignoring all warnings
+        (msgs,outHtml) <- compilePage (defaults { flapjaxPath = fxPath })  html
+        
+        -- TODO: web mode is different
+        mapM_ (hPutStrLn stderr . showErr) msgs
+
+        hPutStrLn outputHandle (renderHtml outHtml)
+        hClose outputHandle
+        exitSuccess

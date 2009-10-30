@@ -348,6 +348,8 @@ member :: any;
 slice :: any;
 forEach :: any;
 
+toJSONString :: Any -> optional(String);
+
 compilerInsertDomB :: any;
 compilerInsertValueB :: any;
 compilerLift :: any;

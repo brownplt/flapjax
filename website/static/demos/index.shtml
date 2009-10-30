@@ -114,8 +114,16 @@ var examples =
     , items:
       { desc: "Boxes flying"
       , url: "ping.html"
-      }
-   }  ];
+      } },
+  { synopsis: "Flickr Search",
+    id: "flickr",
+    items: { desc: "Search Flickr", url: "flickr.html" }},
+  { synopsis: "Stopwatch Builder",
+    id: "timer",
+    items: { desc: "Custom REPL for building a stopwatch.  Hover the mouse " +
+                   "over the bottom-right corner for the code.",
+              url: "timer.html" }} 
+  ];
 
 var exampleTable = { }; // populated by makeDemoLink; items indexed by id
 
@@ -187,9 +195,6 @@ var historyE = function() {
     return extractAnchor(v.loc); 
   });
 }
-  
-      
-  
   
   
 function loader() {

@@ -1,5 +1,5 @@
 Name:           Flapjax
-Version:        2.0.1
+Version:        2.5
 Cabal-Version:	>= 1.2.3
 Copyright:      Copyright (c) 2006-2009 The Flapjax Team
 License:        BSD3
@@ -20,24 +20,20 @@ Executable fxc
   Hs-Source-Dirs: src
 
   Build-Depends:
-    base>=4, mtl>=1.1.0.1, parsec<3.0.0, pretty>=0.1, containers>=0.1, syb>=0.1,
-    filepath>=1.1.0.1, random>=1.0.0.1, WebBits==1.0, WebBits-Html==1.0,
+    base >= 4 && < 5,
+    mtl >= 1.1.0.1,
+    parsec < 3.0.0,
+    pretty >= 0.1,
+    containers >= 0.1,
+    syb >= 0.1,
+    filepath >= 1.1.0.1,
+    random >= 1.0.0.1,
+    WebBits == 1.0,
+    WebBits-Html == 1.0,
     directory, 
-    JsContracts==0.5, xhtml
+    JsContracts == 0.5,
+    xhtml
   ghc-options:
     -fwarn-incomplete-patterns
   Extensions: Generics DeriveDataTypeable
 
-Executable fxrepl
-  Main-Is: Fxrepl.hs
-  Hs-Source-Dirs: src
-
-  Build-Depends:
-    base>=4, mtl>=1.1.0.1, parsec<3.0.0, pretty>=0.1, containers>=0.1, syb>=0.1,
-    filepath>=1.1.0.1, random>=1.0.0.1, WebBits>=0.15, directory, 
-    JsContracts>=0.4, xhtml, bytestring, http-server, HTTP, network, url,
-    base64-string
-  ghc-options:
-    -fwarn-incomplete-patterns
-  Extensions:     
-    Generics DeriveDataTypeable ScopedTypeVariables

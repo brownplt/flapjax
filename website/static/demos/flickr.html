@@ -29,16 +29,16 @@ function flickrResponseToUrls(response) {
 
 // makeImg :: Url -> Element
 function makeImg(url) {
-  return IMG_({ src: url }); }
+  return IMG({ src: url }); }
 
 function loader() {
   initFlapjaxForeignWSO('/fx');
 
-  var requestE = extractValueE("search").mapE(flickrSearchRequest);
+  var requestE = extractValueE("search").calmE(500).mapE(flickrSearchRequest);
   var responseE = getForeignWebServiceObjectE(requestE);
  
   var thumbsE = responseE.mapE(function(response) {
-    return DIV_(map(makeImg,flickrResponseToUrls(response)))});
+    return DIV(map(makeImg,flickrResponseToUrls(response)))});
 
   insertDomE(thumbsE, "thumbnails");
 
