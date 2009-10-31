@@ -31,8 +31,7 @@ function collapsedItemsB(linksE,maxLength) {
   .startsWith([ ])
   .liftB(function (items) {
       return items.length == 0 ? 'Type to start' : UL(items);
-  })
-  .switchB();
+  });
 };
 
 function loader() {

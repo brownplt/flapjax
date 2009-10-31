@@ -33,8 +33,7 @@ function collapsedItemsB(linksE,maxLength) {
   .startsWith([ ])
   .liftB(function (items) {
       return items.length == 0 ? 'Type to start' : UL(items);
-  })
-  .switchB();
+  });
 };
 
 var historyE = function(nextE) {
@@ -57,8 +56,7 @@ var historyE = function(nextE) {
       return map(function(item) { return item.anchor; },items);
     })
     .startsWith('No requests yet.')
-    .liftB(function (anchors) { return DIV(anchors); })
-    .switchB();
+    .liftB(function (anchors) { return DIV(anchors); });
   
   var oldE = linksE.mapE(function(items) {
       return mergeE.apply(this,

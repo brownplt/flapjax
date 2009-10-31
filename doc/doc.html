@@ -703,42 +703,21 @@ intervalB : Behavior Int
 
 <chapter title="DOM Manipulation">
 
-<article title="Creating DOM elements">
+<article title="Time-varying DOM Elements">
 
 <programlisting>
-TAG :: { attribute-name: attribute-value, ...} * HTMLElement * ... -> HTMLElement
-TAG :: HTMLElement * ... -> HTMLElement // no attributes
+TAG :: Behavior { attribute-name: attribute-value, ...} * Behavior HTMLElement * ... -> Behavior HTMLElement
+TAG :: Behavior HTMLElement * ... -> Behavior HTMLElement // no attributes
 </programlisting>
 
-<p>Flapjax defines functions for building DOM elements compositionally.  For each HTML element, Flapjax defines a function
-with the same name, that constructs the corresponding element.</p>
-
-<example>
-<programlisting>
-var anchor = A({href: 'http://www.flapjax-lang.org/'},'Flapjax');
-
-var list = UL(LI('Reactive Programming'),
-              LI('JavaScript Framework'),
-              LI({style: { 'font-weight': 'bold' }}, 'No Download Required!'));
-</programlisting>
-</example>
-
-</article>
-
-<article title="Time-varying DOM elements">
-
-<programlisting>
-TAGB :: Behavior { attribute-name: attribute-value, ...} * Behavior HTMLElement * ... -> Behavior HTMLElement
-TAGB :: Behavior HTMLElement * ... -> Behavior HTMLElement // no attributes
-</programlisting>
-
-<p>Flapjax includes support for DOM elements with time-varying components. For each HTML Element, Flapjax defines a
-function with the same name, suffixed with &quot;B&quot;, that constructions the corresponding element.</p>
+<p>Flapjax includes support for DOM elements with time-varying components. For
+each HTML Element, Flapjax defines a function with the same name that
+constructions the corresponding element.</p>
 
 <example>
 <programlisting>
 var secondsB = timerE(1000).collectE(0,function(_,x) { return x + 1; }).startsWith(0);
-var spanB = SPANB("We've been running for ",secondsB," seconds");
+var spanB = SPAN("We've been running for ",secondsB," seconds");
 </programlisting>
 
 <p>Note that this example intersperses a behavior (<code>spanB</code>) with constant values.</p>

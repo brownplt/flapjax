@@ -65,7 +65,7 @@ startSec = Math.floor(start / 1000)
 now = timerB(1000)
 nowSec = Math.floor(now / 1000)
 clickE = $E("reset", "click")
-clickSecE = clicks.snapshotE(nowSec)
+clickSecE = clickE.snapshotE(nowSec)
 diff = nowSec - clickSecE.startsWith(startSec)
 -- click Reset --
 showTime(diff * 25)

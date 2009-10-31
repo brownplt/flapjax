@@ -120,15 +120,21 @@ function renderBehavior(b) {
     return tuple(Math.floor((next.fst - prev.fst) / 10), next.snd) }));
 
 
-   var asSpans = withWidths.mapE(theRealMap(function(p) {
-    return SPAN(SPAN({ style: { width: p.fst,
-                                border: "1px solid black",
-                                margin: "0px",
-                                padding: "5px",
-                                float: "left",
-                                overflow: "hidden",
-                                backgroundColor: "pink" } }, 
-                     p.snd)) }));
+   var asSpans = withWidths.mapE(function(lst) {
+    var left = 0;
+    return theRealMap(function(p) {
+      var myLeft = left;
+      left = left + p.fst;
+      return SPAN(SPAN({ style: { width: p.fst,
+                                  border: "1px solid black",
+                                  left: myLeft,
+                                  margin: "0px",
+                                  padding: "5px",
+                                  position: "absolute",
+                                  overflow: "hidden",
+                                  backgroundColor: "pink" } }, 
+                       p.snd))})
+      (lst)});
 
   return asSpans.startsWith(empty).liftB(function(lst) {
     return DIV.apply(this, listToArray(lst)) }) }
@@ -196,7 +202,7 @@ function compile(srcE) {
   return srcE.mapE(function(src) {
     if (src.doNotCompile) {
       return oneE(src.txt) }
-    else { console.log(src.txt);
+    else { 
       return getWebServiceObjectE(oneE({
         url : "/fxserver/compile_expr",
         request: "rawPost",
@@ -206,11 +212,15 @@ function compile(srcE) {
 
 
 function interact(compileB) {
-  var input = DIV({ style: { minWidth: "90%", 
+  var input = DIV({ contentEditable: true });
+  var inputWrapper = DIV({ style: { minWidth: "90%", position: "absolute",
+                                    display: "inline" }},
+                         input);
+  /* var input = DIV({ style: { minWidth: "90%", 
                              position: "absolute", 
                              display: "inline" }, 
                      contentEditable: true}, "");
-
+  */
   
   var srcE = $E(input, "keypress").filterE(isAltEnterPressed)
              .snapshotE(compileB).mapE(function(doNotCompile) {
@@ -238,7 +248,7 @@ function interact(compileB) {
     DIV({ style: { fontSize: valE.constantE("14pt").startsWith("24pt"), 
                    position: "relative", 
                    width: "100%",  } },
-        "> ", input),
+        "> ", inputWrapper),
     outputE.startsWith(constantB("")).switchB(),
     nextE.startsWith(""));
 

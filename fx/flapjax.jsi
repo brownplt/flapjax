@@ -1,9 +1,3 @@
-// Behavior contract is either a higher-order behavior or a flat (constant) 
-// value
-// remove condE it is stupid
-// DOM contract list
-// dictionary contract (on $O)
-
 {
   
 function isHtml(x) {

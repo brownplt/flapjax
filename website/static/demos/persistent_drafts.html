@@ -36,7 +36,7 @@ function load(ignored_arg) {
 // autoSave :: String * EventStream save 
 //          -> { input: TEXTAREA, savedE: EventStream }
 function autoSave(initial,saveE) {
-  var input = TEXTAREA_(initial);
+  var input = TEXTAREA(initial);
 
   var savedE = 
     getWebServiceObjectE(saveE.snapshotE($B(input)).mapE(save));
@@ -91,7 +91,7 @@ Last Saved: <span id='savedTime'></span>
 
 <form>
 <span id="inputPlaceholder"></span><br/>
-<input type='button' id='saveButton' value='Save Now'></input>
+<input type='button' id='saveButton' value='Save Now'/>
 </form>
 
 <p>The currently saved draft is:</p>

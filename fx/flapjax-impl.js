@@ -1283,7 +1283,7 @@ var mapWithKeys = function(obj, f) {
 
 
 var insertAfter = function(parent, newChild, refChild) {
-  if (refChild.nextSibling) {
+  if (typeof refChild != "undefined" && refChild.nextSibling) {
     parent.insertBefore(newChild, refChild.nextSibling);
   }
   else {
@@ -1607,7 +1607,6 @@ extractValueStaticB = function (domObj, triggerE) {
   var result;
 
   switch (objD.type)  {
-    
     //TODO: checkbox.value instead of status?
   case 'checkbox': 
     result = startsWith(
@@ -1728,6 +1727,7 @@ extractValueStaticB = function (domObj, triggerE) {
       filterRepeatsE(
           actualTriggerE.mapE(getter),getter()),
       getter());
+    break;
   default:
     throw ('extractValueStaticB: unknown value type "' + objD.type + '"');
   }

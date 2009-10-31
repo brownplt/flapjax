@@ -125,12 +125,12 @@ function loader() {
   var extra = 10;
   var backgroundBarB =
   insertValueB(
-    'menu',
     startsWith(
       mergeE(
         menuMouseLeaveE.constantE( (minSize + extra) + 'px'),
         menuMouseOverE.constantE( (maxSize + extra) + 'px')),
       (minSize + extra) + 'px'),
+    'menu',
     'style', 'height');
   
 }
@@ -145,6 +145,6 @@ function loader() {
 <div class="menuBox">Last item has a lot of text and it overflows nicely</div>
 
 </div>
-<span id="msgs"/>
+<span id="msgs"></span>
 </body>
 </html>
