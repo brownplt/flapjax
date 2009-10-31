@@ -224,7 +224,7 @@ class="html">left</code> and <code class="html">top</code>, which are
 set to be those of the mouse.  But because Flapjax provides these as
 behaviors, the values of the style setting update automatically,
 moving the box to follow the mouse.  <a
-href="demos/mouse1.html">See the mouse move</a>.
+href="/demos/mouse1.html">See the mouse move</a>.
 </p>
 
 <p>
@@ -603,7 +603,7 @@ var getTime = function (_) {
 </pre>
 
 <p>
-<a href="demos/transient_drafts.html">Watch this run</a>.  You notice
+<a href="/demos/transient_drafts.html">Watch this run</a>.  You notice
 that there's something rather unsatisfactory about it: it only
 registers drafts when the user clicks the button, which means a user
 immersed in their work who forgets to click may lose their draft.
