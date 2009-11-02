@@ -1090,6 +1090,19 @@ var addEvent = function (obj, evType, fn) {
 };
 
 
+var removeEvent = function(obj, eventName, handler) {
+  if (obj.removeEventListener) {
+    return obj.removeEventListener(eventName, handler, false);
+  }
+  else if (obj.detachEvent) {
+    return obj.detachEvent(eventName, handler);
+  }
+  else {
+    throw "removeEvent: neither removeEventListener nor detachEvent found";
+  }
+};
+
+
 // The Flapjax library does not use this function  
 //credit Dustin Diaz 
 //note: node/tag optional
@@ -1489,7 +1502,7 @@ var extractEventStaticE = function (domObj, eventName) {
       sendEvent(primEventE, evt || window.event);
     }
     else {
-      domObj.removeEventListener(eventName, listener, false);
+      removeEvent(domObj, eventName, listener);
       isListening = false;
     }
     // Important for IE; false would prevent things like a checkbox actually
