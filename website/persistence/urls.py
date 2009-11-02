@@ -2,7 +2,7 @@ from django.conf.urls.defaults import *
 from django.conf import settings
 import settings
 
-if True: # settings.host == "peabody" or settings.host == "wanderlust.local":
+if settings.host == "peabody" or settings.host == "wanderlust.local":
   urlpatterns = patterns('',
     (r'^fxserver/compile/','fxserver.views.compile'),
     (r'^fxserver/compile_expr', 'fxserver.views.compileExpr'),
