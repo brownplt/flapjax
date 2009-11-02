@@ -1,3 +1,12 @@
+Installing the compiler on a system without Haskell
+---------------------------------------------------
+
+cd compiler
+./Setup.hs configure --prefix=/home/flapjax/compiler
+./Setup.hs build
+./Setup.hs copy --destdir=dist
+scp -r dist/home/flapjax/compiler flapjax@flapjax-vista:~
+
 On fxinternal
 -------------
 
