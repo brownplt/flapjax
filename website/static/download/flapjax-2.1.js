@@ -1413,7 +1413,7 @@ var makeTagB = function(tagName) { return function() {
       else {
         lastVal = elementize(lastVal);
         elt.appendChild(lastVal);
-        var lastValIx = elt.children.length - 1; 
+        var lastValIx = elt.childNodes.length - 1; 
         child.liftB(function(currentVal) {
           currentVal = elementize(currentVal);
           if (lastVal.parentNode != elt) {

@@ -212,7 +212,7 @@ function compile(srcE) {
 
 
 function interact(compileB) {
-  var input = DIV({ contentEditable: true });
+  var input = DIV({ style: { minHeight: "24pt" }, contentEditable: true });
   var inputWrapper = DIV({ style: { minWidth: "90%", position: "absolute",
                                     display: "inline" }},
                          input);
