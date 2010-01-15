@@ -2373,7 +2373,10 @@ var compilerInsertDomB = function(mixedB, target) {
 };
 
 var compilerInsertValueB = function(mixedB,target,attrib) {
-  if (typeof(mixedB) == "object") {
+  if (mixedB instanceof Behavior) {
+    insertValueB(mixedSwitchB(mixedB), target, attrib);
+  }
+  else if (typeof(mixedB) == "object") {
     for (var ix in mixedB) {
       if (Object.prototype && Object.prototype[ix]) {
         continue; }
