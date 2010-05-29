@@ -43,7 +43,7 @@ var slice = function (arr, start, stop) {
   if( stop < start ) { i = start; start = stop; stop = i; }
   for( i = 0; i < stop - start; i++ ) { r[i] = arr[start+i]; }
   return r;
-}
+};
 
 var isEqual = function (a,b) {
   return (a == b) ||
@@ -74,7 +74,7 @@ var zip = function(arrays) {
       ret[i].push(arrays[j][i]);
   }
   return ret;
-}
+};
 
 //map: (a * ... -> z) * [a] * ... -> [z]
 var map = function (fn) {
@@ -317,7 +317,7 @@ EventStream.prototype.removeListener = function (dependent, isWeak) {
 // combinators.
 var internalE = function(dependsOn) {
   return createNode(dependsOn || [ ],function(pulse) { return pulse; });
-}
+};
 
 var zeroE = function() {
   return createNode([],function(pulse) {
@@ -391,7 +391,7 @@ var Behavior = function (event, init, updater) {
       } 
     : function (p) {
         behave.last = p.value;
-        return p
+        return p;
       });
 };
 Behavior.prototype = new Object();
@@ -531,9 +531,9 @@ var recE = function(fn) {
   var inE = receiverE(); 
   var outE = fn(inE); 
   outE.mapE(function(x) { 
-    inE.sendEvent(x) }); 
+    inE.sendEvent(x); }); 
   return outE; 
-}
+};
 
 
 var switchE = function(e) { return e.switchE(); };
@@ -766,7 +766,9 @@ var calmStaticE = function (triggerE, time) {
       var towards = null;
       return function (p) {
         if (towards !== null) { clearTimeout(towards); }
-        towards = setTimeout( function () { towards = null; sendEvent(out,p.value) }, time );
+        towards = setTimeout( function () { 
+            towards = null; 
+            sendEvent(out,p.value); }, time );
         return doNotPropagate;
       };
     }());
@@ -783,7 +785,9 @@ EventStream.prototype.calmE = function(time) {
         var towards = null;
         return function (p) {
           if (towards !== null) { clearTimeout(towards); }
-          towards = setTimeout( function () { towards = null; sendEvent(out,p.value) }, valueNow(time));
+          towards = setTimeout( function () { 
+              towards = null;
+              sendEvent(out,p.value); }, valueNow(time));
           return doNotPropagate;
         };
       }());
@@ -849,7 +853,7 @@ Behavior.prototype.changes = function() {
 };
 
 
-var changes = function (behave) { return behave.changes(); }
+var changes = function (behave) { return behave.changes(); };
 
 
 Behavior.prototype.switchB = function() {
@@ -1292,7 +1296,7 @@ var mapWithKeys = function(obj, f) {
       f(ix, obj[ix]);
     }
   }
-}
+};
 
 
 var insertAfter = function(parent, newChild, refChild) {
@@ -1412,9 +1416,9 @@ var makeTagB = function(tagName) { return function() {
         child.liftB(function(currentVal) {
           currentVal = elementize(currentVal);
           if (lastVal.parentNode != elt) {
-            elt.appendChild(currentVal) }
+            elt.appendChild(currentVal); }
           else {
-            elt.replaceChild(currentVal, lastVal) }
+            elt.replaceChild(currentVal, lastVal); }
           lastVal = currentVal;
         });
       }
@@ -1425,7 +1429,7 @@ var makeTagB = function(tagName) { return function() {
   });
 
   return elt;
-} };
+}; };
 
 
 
@@ -2004,7 +2008,7 @@ var mouseE = function(elem) {
 
 var mouseB = function(elem) {
   return mouseE(elem).startsWith({ left: 0, top: 0 });
-}
+};
 
 
 var mouseLeftB = function(elem) {
