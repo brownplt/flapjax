@@ -532,13 +532,13 @@ representing the length:
 
 <pre class="code-disp">
 &lt;p&gt;
-Length: {! extractValueE('toLength').transform(
+Length: {! extractValueE('toLength').mapE(
              function (s) {return s.length; }) !}
 &lt;p&gt;
 </pre>
 
 <p>
-The method <code class="fx">transform</code> iterates the supplied
+The method <code class="fx">mapE</code> iterates the supplied
 function over the given event stream, generating a transformed event
 stream as its output.  In this case, it iterates the event stream of
 the string in the <code class="html">toLength</code> entity into a
@@ -588,7 +588,7 @@ time there's a click, we want to update the time of last save:
 
 <pre class="code-disp">
 var saveClickE = extractEventE(saveD, 'click');
-var savedTimeE = saveClickE.transform(getTime);
+var savedTimeE = saveClickE.mapE(getTime);
 insertValueE(savedTimeE, savedTimeD, 'textContent');
 </pre>
 
@@ -612,7 +612,7 @@ Instead, we'd like to use a timer that periodically saves the text:
 
 <pre class="code-disp">
 var autoSaveE = timerE(100);
-var savedTimeE = autoSaveE.transform(getTime);
+var savedTimeE = autoSaveE.mapE(getTime);
 insertValueE(savedTimeE, savedTimeD, 'textContent');
 </pre>
 
@@ -630,7 +630,7 @@ class="fx">mergeE</code> does:
 var saveClickE = extractEventE(saveD, 'click');
 var autoSaveE = timerE(10000);
 var saveE = mergeE(saveClickE, autoSaveE);
-var savedTimeE = saveE.transform(getTime);
+var savedTimeE = saveE.mapE(getTime);
 insertValueE(savedTimeE, savedTimeD, 'textContent');
 </pre>
 
@@ -685,38 +685,6 @@ of the entire expression <code
 class="fx">extractValueB('textField1').length</code> is defined to be
 the length of that entity at all points in time, which means its value
 updates as the entity's content updates.
-</p>
-
-<p>
-This works for event streams as it does for behaviors.  Arguably it's
-even more convenient when used with event streams, since it often
-saves the bother of writing <code class="fx">transform</code>.
-Consider a
-simple program that presents a text buffer and prints the length of
-the string entered in the buffer.  First we set up the page:
-
-<pre class="code-disp">
-&lt;p&gt;Text buffer: &lt;input type="text" id="toCount"&gt;&lt;/input&gt;&lt;/p&gt;
-&lt;p id="result"&gt;Start Typing!&lt;/p&gt;
-</pre>
-
-Now to write the Flapjax code.  The first step is standard:
-
-<pre class="code-disp">
-var valE = extractValueE('toCount', 'value');
-</pre>
-
-where <code class="fx">value</code> indicates which event to extract,
-so we only get notified about changes to the value.  Now we can use
-``dot notation'' over events just as we did for behaviors:
-
-<pre class="code-disp">
-insertDomE('length: ' + valE.length, 'result');	
-</pre>
-
-This too behaves just as you would expect, effectively automatically
-applying <code class="fx">transform</code>.
-<a href="/demos/#lettercount">See the demo</a>.
 </p>
 
 <h3 class="section">Static Initialization</h3>
