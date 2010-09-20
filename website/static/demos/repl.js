@@ -222,7 +222,7 @@ function interact(compileB) {
                      contentEditable: true}, "");
   */
   
-  var srcE = $E(input, "keypress").filterE(isAltEnterPressed)
+  var srcE = $E(input, "keydown").filterE(isAltEnterPressed)
              .snapshotE(compileB).mapE(function(doNotCompile) {
     input.contentEditable = false;
     return { doNotCompile: doNotCompile, txt: input.textContent } });
