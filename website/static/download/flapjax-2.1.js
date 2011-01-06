@@ -517,7 +517,7 @@ EventStream.prototype.skipFirstE = function() {
     if (skipped)
       { return pulse; }
     else
-      { return doNotPropagate; }
+      { skipped = true; return doNotPropagate; }
   });
 };
 
