@@ -1,0 +1,88 @@
+<html>
+
+<head>
+<script type="text/javascript" src="http://www.flapjax-lang.org/fx/flapjax.js"></script>
+<script type="text/javascript" src="calc.js"></script>
+
+<style type="text/css">
+#display { 
+  text-align: right;
+  background-color: white;
+}
+
+.buttons {
+  display: table;
+  width: 200pt;
+  padding: 0pt;
+  border: 1px solid black;
+  background-color: #d0d0d0;
+
+}
+
+.buttons > div {
+  display: table-row;
+}
+
+.buttons > div >  * {
+  display: table-cell;
+  border-width: 0px;
+  font-family: courier;
+  font-size: 24pt;
+  width: 40pt;
+  margin: 5pt;
+  padding: 0pt;
+}
+
+.digit {
+  background-color: gray;
+}
+
+  .operator {
+  background-color: orange;
+}
+
+</style>
+</head>
+
+<body>
+
+
+
+<div class="buttons">
+
+<div>
+<div id="display">0.</div>
+</div>
+
+<div>
+<input type="button" class="digit" value="7" />
+<input type="button" class="digit" value="8" />
+<input type="button" class="digit" value="9" />
+<input type="button" class="operator" value="*" />
+</div>
+
+<div>
+<input type="button" class="digit" value="4" />
+<input type="button" class="digit" value="5" />
+<input type="button" class="digit" value="6" />
+<input type="button" class="operator" value="-" />
+</div>
+
+<div>
+<input type="button" class="digit" value="1" />
+<input type="button" class="digit" value="2" />
+<input type="button" class="digit" value="3" />
+<input type="button" class="operator" value="+" />
+</div>
+
+<div>
+<input type="button" class="digit" style="width:90pt" value="0" />
+<input type="button" class="operator" value="/" />
+<input type="button" class="operator" value="=" />
+</div>
+
+</div>
+
+</body>
+
+</html>
