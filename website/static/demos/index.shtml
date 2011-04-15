@@ -122,7 +122,10 @@ var examples =
     id: "timer",
     items: { desc: "Custom REPL for building a stopwatch.  Hover the mouse " +
                    "over the bottom-right corner for the code.",
-              url: "timer.html" }} 
+              url: "timer.html" }},
+  { synopsis: "Calculator",
+    id: "timer",
+    items: { desc: "Basic calculator in Flapjax", url: "calc.html" } }
   ];
 
 var exampleTable = { }; // populated by makeDemoLink; items indexed by id
