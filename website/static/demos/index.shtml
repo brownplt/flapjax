@@ -124,7 +124,7 @@ var examples =
                    "over the bottom-right corner for the code.",
               url: "timer.html" }},
   { synopsis: "Calculator",
-    id: "timer",
+    id: "calc",
     items: { desc: "Basic calculator in Flapjax", url: "calc.html" } }
   ];
 
