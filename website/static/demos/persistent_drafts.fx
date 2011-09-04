@@ -21,7 +21,7 @@ function save(draft) {
               savetime: (new Date()).toLocaleString() },
     request: 'post', 
     response: 'json',
-    asynchronous: true }};
+    async: true }};
 
 function load(ignored_arg) {
   var obj = { savedtext: "",
@@ -30,7 +30,7 @@ function load(ignored_arg) {
     fields: obj,
     request: 'post', 
     response: 'json',
-    asynchronous: true  }};
+    async: true  }};
 </script>
 
 <script type="text/flapjax">
