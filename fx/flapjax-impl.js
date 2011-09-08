@@ -227,16 +227,11 @@ var propagatePulse = function (pulse, node) {
     var qv = queue.pop();
     len--;
     var nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
-    var weaklyHeld = true;
 
     if (nextPulse != doNotPropagate) {
       for (i = 0; i < qv.n.sendsTo.length; i++) {
-        weaklyHeld = weaklyHeld && qv.n.sendsTo[i].weaklyHeld;
         len++;
 	queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
-      }
-      if (qv.n.sendsTo.length > 0 && weaklyHeld) {
-          qv.n.weaklyHeld = true;
       }
     }
   }
@@ -247,7 +242,6 @@ var EventStream = function (nodes,updater) {
   this.updater = updater;
   
   this.sendsTo = []; //forward link
-  this.weaklyHeld = false;
   
   for (var i = 0; i < nodes.length; i++) {
     nodes[i].attachListener(this);
@@ -283,10 +277,6 @@ var genericRemoveListener = function (node, dependent, isWeakReference) {
       node.sendsTo.splice(i, 1);
       foundSending = true;
     }
-  }
-
-  if (isWeakReference === true && node.sendsTo.length == 0) {
-    node.weaklyHeld = true;
   }
   
   return foundSending;
@@ -1226,13 +1216,7 @@ var createTimerNodeStatic = function (interval) {
   primEventE.__timerId = __getTimerId();
 
   var listener = function(evt) {
-    if (!primEventE.weaklyHeld) {
-      sendEvent(primEventE, (new Date()).getTime());
-    }
-    else {
-      clearInterval(timer);
-      isListening = false;
-    }
+    sendEvent(primEventE, (new Date()).getTime());
     return true;
   };
 
@@ -1499,16 +1483,8 @@ var extractEventStaticE = function (domObj, eventName) {
   
   var primEventE = internalE();
   
-  var isListening = false;
-
   var listener = function(evt) {
-    if (!primEventE.weaklyHeld) {
       sendEvent(primEventE, evt || window.event);
-    }
-    else {
-      removeEvent(domObj, eventName, listener);
-      isListening = false;
-    }
     // Important for IE; false would prevent things like a checkbox actually
     // checking.
     return true;
@@ -1516,21 +1492,14 @@ var extractEventStaticE = function (domObj, eventName) {
   
 
   primEventE.attachListener = function(dependent) {
-    if (!isListening) {
       addEvent(domObj, eventName, listener);
-      isListening = true;
-    }
   
     genericAttachListener(primEventE, dependent);
   };
 
   primEventE.removeListener = function(dependent) {
     genericAttachListener(primEventE, dependent);
-
-    if (isListening && (primEventE.sendsTo.length == 0)) {
-      domObj.removeEventListener(eventName, listener, false);
-      isListening = false;
-    }
+    domObj.removeEventListener(eventName, listener, false);
   };
   
   return primEventE;
