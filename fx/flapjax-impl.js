@@ -1473,40 +1473,7 @@ var tagRec = function (eventNames, maker) {
   return elt;
 };
 
-
-//extractEventStaticE: Dom * String -> Event
-var extractEventStaticE = function (domObj, eventName) {
-  if (!eventName) { throw 'extractEventE : no event name specified'; }
-  if (!domObj) { throw 'extractEventE : no DOM element specified'; }
-  
-  domObj = getObj(domObj);
-  
-  var primEventE = internalE();
-  
-  var listener = function(evt) {
-      sendEvent(primEventE, evt || window.event);
-    // Important for IE; false would prevent things like a checkbox actually
-    // checking.
-    return true;
-  };
-  
-
-  primEventE.attachListener = function(dependent) {
-      addEvent(domObj, eventName, listener);
-  
-    genericAttachListener(primEventE, dependent);
-  };
-
-  primEventE.removeListener = function(dependent) {
-    genericAttachListener(primEventE, dependent);
-    domObj.removeEventListener(eventName, listener, false);
-  };
-  
-  return primEventE;
-};
-
-// extractEvent2E : Behavior<DOMNode>  * String -> EventStream DOMEvent
-var extractEvent2E = function(eltB, eventName) {
+var extractEventDynamicE = function(eltB, eventName) {
   var eventStream = receiverE();
   var callback = function(evt) {
     eventStream.sendEvent(evt); 
@@ -1522,26 +1489,25 @@ var extractEvent2E = function(eltB, eventName) {
     }
   });
   return eventStream;
-}
+};
 
-//extractEventE: [Behavior] Dom * String -> Event
-var extractEventE = function (domB, eventName) {
-  if (!(domB instanceof Behavior)) {
-    return extractEventStaticE(domB,eventName);
+var extractEventStaticE = function(elt, eventName) {
+  var eventStream = receiverE();
+  var callback = function(evt) {
+    eventStream.sendEvent(evt); 
+  };
+  elt.addEventListener(eventName, callback);
+  return eventStream;
+};
+
+// extractEventE : Behavior<DOMNode> + DOMNode * String -> EventStream DOMEvent
+var extractEventE = function(elt, eventName) {
+  if (elt instanceof Behavior) {
+    return extractEventDynamicE(elt, eventName);
   }
   else {
-    var domE = domB.changes();
-    
-    var eventEE = domE.mapE(function(dom) {
-      return extractEventStaticE(dom,eventName);
-    });
-    
-    var resultE = eventEE.switchE();
-    
-    sendEvent(domE,domB.valueNow());
-    
-    return resultE;
-  };
+    return extractEventStaticE(elt, eventName);
+  }
 };
 
 var $E = extractEventE;
