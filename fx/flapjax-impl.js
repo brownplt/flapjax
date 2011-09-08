@@ -1536,6 +1536,25 @@ var extractEventStaticE = function (domObj, eventName) {
   return primEventE;
 };
 
+// extractEvent2E : Behavior<DOMNode>  * String -> EventStream DOMEvent
+var extractEvent2E = function(eltB, eventName) {
+  var eventStream = receiverE();
+  var callback = function(evt) {
+    eventStream.sendEvent(evt); 
+  };
+  var currentElt = false;
+  eltB.liftB(function(elt) {
+    if (currentElt) {
+      currentElt.removeEventListener(eventName, callback); 
+    }
+    currentElt = elt;
+    if (elt && elt.addEventListener && elt.removeEventListener) {
+      elt.addEventListener(eventName, callback);
+    }
+  });
+  return eventStream;
+}
+
 //extractEventE: [Behavior] Dom * String -> Event
 var extractEventE = function (domB, eventName) {
   if (!(domB instanceof Behavior)) {

@@ -2,31 +2,37 @@
 
 <head>
 <title>Flapjax Demo: Drag and Drop</title>
-<script type="text/javascript" src="/fx/flapjax.js"></script>
+<script type="text/javascript" src="../../../fx/flapjax-impl.js"></script>
 <script type="text/javascript">
 
-// dragE(element) -> EventStream { left: int, top: int }
+// dragE : element -> EventStream { left: int, top: int }
 function dragE(target) {
+  var i = 0;
+
+  var upE = extractEventE(document, "mouseup");
+
   // moveEe :: EventStream (EventStream { left: int, top: int })
   var moveEe = extractEventE(target,'mousedown').mapE(function(md) {
     var startX = md.layerX;
     var startY = md.layerY;
 
-    return extractEventE(document,'mousemove').mapE(function(mm) {
+    var moveEltE = upE.mapE(function(_) { return false; });
+    var documentB = moveEltE.startsWith(document);
+
+    return extractEvent2E(documentB,'mousemove').mapE(function(mm) {
+      console.log('move ...', i++);
       // Stop the text from getting selected
        mm.preventDefault();
 
       return { element: target, // convenience
-               left: mm.clientX - startX,  
+               left: mm.clientX - startX, 
                top: mm.clientY - startY };
     });
   });
-  
   // dropEe :: EventStream (EventStream 'a)
-  var dropEe = extractEventE(document,'mouseup').mapE(function() {
+  var dropEe = upE.mapE(function() {
     return zeroE();
   });
-  
   return switchE(mergeE(moveEe,dropEe));
 }
 
