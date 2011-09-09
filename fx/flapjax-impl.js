@@ -957,55 +957,6 @@ var calmB = function (srcB,intervalB) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DOM Utilities
 
-//credit Scott Andrew
-var addEvent = function (obj, evType, fn) {
-  //TODO encode mouseleave evt, formalize new evt interface
-  
-  if (obj.addEventListener) {
-    obj.addEventListener(evType, fn, false); //TODO true fails on Opera
-    return true;
-  } else if (obj.attachEvent) {
-    //some reason original had code bloat here
-    return obj.attachEvent("on"+evType, fn); 
-  } else {
-    return false; 
-  }
-};
-
-
-var removeEvent = function(obj, eventName, handler) {
-  if (obj.removeEventListener) {
-    return obj.removeEventListener(eventName, handler, false);
-  }
-  else if (obj.detachEvent) {
-    return obj.detachEvent(eventName, handler);
-  }
-  else {
-    throw "removeEvent: neither removeEventListener nor detachEvent found";
-  }
-};
-
-
-// The Flapjax library does not use this function  
-//credit Dustin Diaz 
-//note: node/tag optional
-//getElementsByClass: Regexp CSSSelector * Dom * String DomNodeEnum -> Array Dom
-var getElementsByClass = function (searchClass, node, tag) {
-  var classElements = [];
-  if ( (node === null) || (node === undefined) ) { node = document; }
-  if ( (tag === null) || (tag === undefined) ) { tag = '*'; }
-  var els = node.getElementsByTagName(tag);
-  var elsLen = els.length;
-  var pattern = new RegExp("(^|\\s)"+searchClass+"(\\s|$)");
-  for (var i = 0, j = 0; i < elsLen; i++) {
-    if ( pattern.test(els[i].className) ) {
-      classElements.push(els[i]);
-    }
-  }
-  return classElements;
-};
-
-
 //assumes IDs already preserved
 //swapDom: (Dom a U String) [* (Dom b U String)] -> Dom a
 var swapDom = function(replaceMe, withMe) {
