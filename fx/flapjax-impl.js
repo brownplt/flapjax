@@ -1842,43 +1842,6 @@ var clicksE = function(elem) {
 //////////////////////////////////////////////////////////////////////////////
 // Combinators for web services
 
-
-//credit Matt White
-var getURLParam = function (param) {
-  var lparam = param.toLowerCase();
-  var aReturn = [];
-  var strHref = window.location.href;
-  var endstr = (strHref.indexOf('#') > -1) ? strHref.indexOf('#') : strHref.length;
-  if ( strHref.indexOf("?") > -1 ) {
-    var strQueryString = strHref.substring(strHref.indexOf("?")+1,endstr);
-    strQueryString.split("&").map(function(qp) {
-        var eq = qp.indexOf('=');
-        var qname = qp.substr(0,eq+1).toLowerCase();
-        if(qname == lparam+"=") aReturn.push(decodeURIComponent(qp.substr(eq+1)));
-    });
-  }
-  if (aReturn.length == 0) return undefined;
-  else if(aReturn.length == 1) return aReturn[0];
-  else return aReturn;
-};
-
-
-//credit Quirksmode
-//readCookie: String -> String U Undefined
-var readCookie = function (name) {
-  var nameEQ = name + "=";
-  var ca = document.cookie.split(';');
-  for (var i=0; i < ca.length; i++) {
-    var co = ca[i];
-    while (co.charAt(0) == ' ') { co = co.substring(1, co.length); }
-    if (co.indexOf(nameEQ) === 0) { 
-      return co.substring(nameEQ.length, co.length);
-    }
-  }
-  return undefined;       
-};
-
-
 //========== dynamic scripts ==========
 var scriptCounter = 0;
 var deleteScript = function (scriptID) {
@@ -1929,7 +1892,6 @@ var evalForeignScriptValE = function(urlArgE) {
   
   return result;
 };
-
 
 var ajaxRequest = function(method,url,body,async,callback) {
   var xhr;
