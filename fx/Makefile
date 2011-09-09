@@ -17,7 +17,7 @@ flapjax.debug.js: flapjax-impl.js flapjax.jsi
 	cp flapjax.debug.js $(WEBSITEFX)/flapjax.debug.js
 
 flapjax.js: flapjax-impl.js flapjax.jsi
-	$(JSCC) --release --namespace flapjax --interface flapjax.jsi flapjax-impl.js > flapjax.js
+	cp flapjax-impl.js flapjax.js
 	cp flapjax.js $(COMPILERDATA)/flapjax.js
 	mkdir $(WEBSITEFX) || true
 	cp flapjax.js $(WEBSITEFX)/flapjax.js
