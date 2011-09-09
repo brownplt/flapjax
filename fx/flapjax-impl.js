@@ -33,120 +33,8 @@
 
 var module = this;
 
-//credit 4umi
-//slice: Array a * Integer * Integer -> Array a
-var slice = function (arr, start, stop) {
-  var i, len = arr.length, r = [];
-  if( !stop ) { stop = len; }
-  if( stop < 0 ) { stop = len + stop; }
-  if( start < 0 ) { start = len - start; }
-  if( stop < start ) { i = start; start = stop; stop = i; }
-  for( i = 0; i < stop - start; i++ ) { r[i] = arr[start+i]; }
-  return r;
-};
-
-var isEqual = function (a,b) {
-  return (a == b) ||
-    ( (((typeof(a) == 'number') && isNaN(a)) || a == 'NaN') &&
-      (((typeof(b) == 'number') && isNaN(b)) || b == 'NaN') );
-};
-
-var forEach = function(fn,arr) {
-  for (var i = 0 ; i < arr.length; i++) {
-    fn(arr[i]);
-  }
-};
-
-//member: a * Array b -> Boolean
-var member = function(elt, lst) {
-  for (var i = 0; i < lst.length; i++) { 
-    if (isEqual(lst[i], elt)) {return true;} 
-  }
-  return false;
-};
-
-var zip = function(arrays) {
-  if (arrays.length == 0) return [];
-  var ret = [];
-  for(var i=0; i<arrays[0].length;i++) {
-    ret.push([]);
-    for(var j=0; j<arrays.length;j++) 
-      ret[i].push(arrays[j][i]);
-  }
-  return ret;
-};
-
-//map: (a * ... -> z) * [a] * ... -> [z]
-var map = function (fn) {
-  var arrays = slice(arguments, 1);
-  if (arrays.length === 0) { return []; }
-  else if (arrays.length === 1) {
-    var ret = [];
-    for(var i=0; i<arrays[0].length; i++) {ret.push(fn(arrays[0][i]));}
-    return ret;
-  }
-  else {
-    var ret = zip(arrays);
-    var o = new Object();
-    for(var i=0; i<ret.length; i++) {ret[i] = fn.apply(o,ret[i]);}
-    return ret;
-  }
-};
-  
-//filter: (a -> Boolean) * Array a -> Array a
-var filter = function (predFn, arr) {
-  var res = [];
-  for (var i = 0; i < arr.length; i++) { 
-    if (predFn(arr[i])) { res.push(arr[i]); }
-  }
-  return res;
-};
-  
-//fold: (a * .... * accum -> accum) * accum * [a] * ... -> accum
-//fold over list(s), left to right
-var fold = function(fn, init /* arrays */) {
-  var lists = slice(arguments, 2);
-  if (lists.length === 0) { return init; }
-  else if(lists.length === 1) {
-    var acc = init;
-    for(var i = 0; i < lists[0].length; i++) {
-      acc = fn(lists[0][i],acc);
-    }
-    return acc;
-  }
-  else {
-    var acc = init;
-    for (var i = 0; i < lists[0].length; i++) {
-      var args = map( function (lst) { return lst[i];}, 
-            lists);
-      args.push(acc);
-      acc = fn.apply({}, args);
-    }
-    return acc;
-  }
-};
-  
-//foldR: (a * .... * accum -> accum) * accum * [a] * ... -> accum
-//fold over list(s), right to left, fold more memory efficient (left to right)
-var foldR = function (fn, init /* arrays */) {
-  var lists = slice(arguments, 2);
-  if (lists.length === 0) { return init; }
-  else if(lists.length === 1) {
-    var acc = init;
-    for(var i=lists[0].length - 1; i > -1; i--)
-      acc = fn(lists[0][i],acc);
-    return acc;
-  }
-  else {
-    var acc = init;
-    for (var i = lists[0].length - 1; i > -1; i--) {
-      var args = map( function (lst) { return lst[i];}, 
-            lists);
-      args.push(acc);
-      acc = fn.apply({}, args);
-    }
-    return acc;     
-  }
+var mkArray = function(arrayLike) {
+  return Array.prototype.slice.call(arrayLike);
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -336,14 +224,14 @@ var mergeE = function() {
     return zeroE();
   }
   else {
-    var deps = slice(arguments,0);
+    var deps = mkArray(arguments);
     return internalE(deps);
   }
 };
 
 
 EventStream.prototype.mergeE = function() {
-  var deps = slice(arguments,0);
+  var deps = mkArray(arguments);
   deps.push(this);
   return internalE(deps);
 };
@@ -549,7 +437,7 @@ var ifE = function(test,thenE,elseE) {
 
     
 var andE = function (/* . nodes */) {
-  var nodes = slice(arguments, 0);
+  var nodes = mkArray(arguments);
   
   var acc = (nodes.length > 0)? 
   nodes[nodes.length - 1] : oneE(true);
@@ -565,13 +453,13 @@ var andE = function (/* . nodes */) {
 
 
 EventStream.prototype.andE = function( /* others */ ) {
-  var deps = [this].concat(slice(arguments,0));
+  var deps = [this].concat(mkArray(arguments));
   return andE.apply(this,deps);
 };
 
 
 var orE = function () {
-  var nodes = slice(arguments, 0);
+  var nodes = mkArray(arguments);
   var acc = (nodes.length > 2)? 
   nodes[nodes.length - 1] : oneE(false); 
   for (var i = nodes.length - 2; i > -1; i--) {
@@ -585,7 +473,7 @@ var orE = function () {
 
 
 EventStream.prototype.orE = function(/*others*/) {
-  var deps = [this].concat(slice(arguments,0));
+  var deps = [this].concat(mkArray(arguments));
   return orE.apply(this,deps);
 };
 
@@ -648,7 +536,7 @@ var delayE = function(sourceE,interval) {
 var mapE = function (fn /*, [node0 | val0], ...*/) {
   //      if (!(fn instanceof Function)) { throw 'mapE: expected fn as second arg'; } //SAFETY
   
-  var valsOrNodes = slice(arguments, 0);
+  var valsOrNodes = mkArray(arguments);
   //selectors[i]() returns either the node or real val, optimize real vals
   var selectors = [];
   var selectI = 0;
@@ -674,7 +562,7 @@ var mapE = function (fn /*, [node0 | val0], ...*/) {
   }
   
   var context = this;
-  var nofnodes = slice(selectors,1);
+  var nofnodes = selectors.slice(1);
   
   if (nodes.length === 0) {
     return oneE(fn.apply(context, valsOrNodes));
@@ -684,7 +572,7 @@ var mapE = function (fn /*, [node0 | val0], ...*/) {
         var args = arguments;
         return fn.apply(
           context, 
-          map(function (s) {return s(args);}, nofnodes));
+          nofnodes.map(function (s) {return s(args);}));
       });
   } else if (nodes.length === 1) {
     return fn.mapE(
@@ -692,21 +580,21 @@ var mapE = function (fn /*, [node0 | val0], ...*/) {
         var args = arguments;
         return v.apply(
           context, 
-          map(function (s) {return s(args);}, nofnodes));
+          nofnodes.map(function (s) {return s(args);}));
       });                
   } else if (fn instanceof Function) {
     return createTimeSyncNode(nodes).mapE(
       function (arr) {
         return fn.apply(
           this,
-          map(function (s) { return s(arr); }, nofnodes));
+          nofnodes.map(function (s) { return s(arr); }));
       });
   } else if (fn instanceof EventStream) {
     return createTimeSyncNode(nodes).mapE(
       function (arr) {
         return arr[0].apply(
           this, 
-          map(function (s) {return s(arr); }, nofnodes));
+          nofnodes.map(function (s) {return s(arr); }));
       });
       } else {throw 'unknown mapE case';}
 };
@@ -730,7 +618,7 @@ EventStream.prototype.filterRepeatsE = function(optStart) {
   var prev = optStart;
 
   return this.filterE(function (v) {
-    if (!hadFirst || !(isEqual(prev,v))) {
+    if (!hadFirst || prev !== v) {
       hadFirst = true;
       prev = v;
       return true;
@@ -948,13 +836,14 @@ var ifB = function(test,cons,altr) {
 
 //condB: . [Behavior boolean, Behavior a] -> Behavior a
 var condB = function (/* . pairs */ ) {
-  var pairs = slice(arguments, 0);
+  var pairs = mkArray(arguments);
 return liftB.apply({},[function() {
     for(var i=0;i<pairs.length;i++) {
       if(arguments[i]) return arguments[pairs.length+i];
     }
     return undefined;
-  }].concat(map(function(pair) {return pair[0];},pairs).concat(map(function(pair) {return pair[1];},pairs))));
+  }].concat(pairs.map(function(pair) {return pair[0];})
+            .concat(pairs.map(function(pair) {return pair[1];}))));
 };
 
 
@@ -967,13 +856,13 @@ var constantB = function (val) {
 
 var liftB = function (fn /* . behaves */) {
 
-  var args = slice(arguments, 1);
+  var args = Array.prototype.slice.call(arguments, 1);
   
   //dependencies
   var constituentsE =
-    map(changes,
-    filter(function (v) { return v instanceof Behavior; },
-      arguments));
+    mkArray(arguments)
+    .filter(function (v) { return v instanceof Behavior; })
+    .map(changes);
   
   //calculate new vals
   var getCur = function (v) {
@@ -982,7 +871,7 @@ var liftB = function (fn /* . behaves */) {
   
   var ctx = this;
   var getRes = function () {
-    return getCur(fn).apply(ctx, map(getCur, args));
+    return getCur(fn).apply(ctx, args.map(getCur));
   };
 
   if(constituentsE.length == 1) {
@@ -1006,7 +895,7 @@ var liftB = function (fn /* . behaves */) {
 
 
 Behavior.prototype.liftB = function(/* args */) {
-  var args= slice(arguments,0).concat([this]);
+  var args= mkArray(arguments).concat([this]);
   return liftB.apply(this,args);
 };
 
@@ -1015,7 +904,7 @@ var andB = function (/* . behaves */) {
 return liftB.apply({},[function() {
     for(var i=0; i<arguments.length; i++) {if(!arguments[i]) return false;}
     return true;
-}].concat(slice(arguments,0)));
+}].concat(mkArray(arguments));
 };
 
 
@@ -1028,7 +917,7 @@ var orB = function (/* . behaves */ ) {
 return liftB.apply({},[function() {
     for(var i=0; i<arguments.length; i++) {if(arguments[i]) return true;}
     return false;
-}].concat(slice(arguments,0)));
+}].concat(mkArray(arguments)));
 };
 
 
@@ -1332,11 +1221,11 @@ var makeTagB = function(tagName) { return function() {
       !(arguments[0].nodeType > 0 || arguments[0] instanceof Behavior || 
         arguments[0] instanceof Array)) {
     attribs = arguments[0];
-    children = slice(arguments, 1);
+    children = Array.prototype.slice.call(arguments, 1);
   }
   else {
     attribs = { };
-    children = slice(arguments, 0);
+    children = mkArray(arguments);
   }
  
   var elt = document.createElement(tagName);
@@ -1356,10 +1245,10 @@ var makeTagB = function(tagName) { return function() {
     if (child instanceof Behavior) {
       var lastVal = child.valueNow();
       if (lastVal instanceof Array) {
-        lastVal = map(elementize, lastVal);
-        forEach(function(dynChild) { elt.appendChild(dynChild); }, lastVal);
+        lastVal = lastVal.map(elementize);
+        lastVal.forEach(function(dynChild) { elt.appendChild(dynChild); });
         child.liftB(function(currentVal) {
-          currentVal = map(elementize, currentVal);
+          currentVal = currentVal.map(elementize);
           swapChildren(elt, lastVal, currentVal);
           lastVal = currentVal;
         });
@@ -1396,10 +1285,9 @@ var generatedTags =
 "p", "pre", "select", "span", "strong", "table", "tbody", 
 "td", "textarea", "tfoot", "th", "thead", "tr", "tt", "ul" ];
 
-forEach(function(tagName) {
+generatedTags.forEach(function(tagName) {
   this[tagName.toUpperCase()] = makeTagB(tagName);
-}, generatedTags);
-
+});
 
 //TEXTB: Behavior a -> Behavior Dom TextNode    
 TEXTB = function (strB) {
@@ -1490,13 +1378,12 @@ var $E = extractEventE;
 //      -> Event
 // ex: extractEventsE(m, 'body', 'mouseover', 'mouseout')
 extractEventsE = function (domObj /* . eventNames */) {
-  var eventNames = slice(arguments, 1);
+  var eventNames = Array.prototype.slice.call(arguments, 1);
   
-  var events = map(
-    function (eventName) {
-      return extractEventE(domObj, eventName); 
-    },
-    eventNames.length === 0 ? [] : eventNames);
+  var events = (eventNames.length === 0 ? [] : eventNames)
+    .map(function (eventName) {
+           return extractEventE(domObj, eventName); 
+         });
   
   return mergeE.apply(this, events);
 };
@@ -1512,7 +1399,7 @@ extractValueOnEventE = function (triggerE, domObj) {
 //extractDomFieldOnEventE: Event * Dom U String . Array String -> Event a
 extractDomFieldOnEventE = function (triggerE, domObj /* . indices */) {
   if (!(triggerE instanceof EventStream)) { throw 'extractDomFieldOnEventE: expected Event as first arg'; } //SAFETY
-  var indices = slice(arguments, 2);
+  var indices = Array.prototype.slice.call(arguments, 2);
   var res =
   triggerE.mapE(
     function () { return getDomVal(domObj, indices); });
@@ -1632,12 +1519,13 @@ extractValueStaticB = function (domObj, triggerE) {
     //      returns 'on', which is ambiguous. could return index,
     //      but that is probably more annoying
     
-    var radiosAD = filter(
+    var radiosAD = 
+      mkArray(document.getElementsByTagName('input'))
+      .filter(
       function (elt) { 
         return (elt.type == 'radio') &&
         (elt.getAttribute('name') == objD.name); 
-      },
-      document.getElementsByTagName('input'));
+      });
     
     getter = 
     objD.type == 'radio' ?
@@ -1658,12 +1546,11 @@ extractValueStaticB = function (domObj, triggerE) {
     var actualTriggerE = triggerE ? triggerE :
     mergeE.apply(
       this,
-      map(
+      radiosAD.map(
         function (radio) { 
           return extractEventsE(
             radio, 
-        'click', 'keyup', 'change'); },
-          radiosAD));
+        'click', 'keyup', 'change'); }));
     
     result = startsWith(
       filterRepeatsE(
@@ -1736,7 +1623,7 @@ deepDynamicUpdate = function (into, from, index) {
 
 
 insertValue = function (val, domObj /* . indices */) {
-  var indices = slice(arguments, 2);
+  var indices = Array.prototype.slice.call(arguments, 2);
   var parent = getMostDom(domObj, indices);
   deepStaticUpdate(parent, val, indices ? indices[indices.length - 1] : undefined);      
 };
@@ -1745,7 +1632,7 @@ insertValue = function (val, domObj /* . indices */) {
 insertValueE = function (triggerE, domObj /* . indices */) {
   if (!(triggerE instanceof EventStream)) { throw 'insertValueE: expected Event as first arg'; } //SAFETY
   
-  var indices = slice(arguments, 2);
+  var indices = Array.prototype.slice.call(arguments, 2);
   var parent = getMostDom(domObj, indices);
   
     triggerE.mapE(function (v) {
@@ -1757,7 +1644,7 @@ insertValueE = function (triggerE, domObj /* . indices */) {
 //TODO notify adapter of initial state change?
 insertValueB = function (triggerB, domObj /* . indices */) { 
   
-  var indices = slice(arguments, 2);
+  var indices = Array.prototype.slice.call(arguments, 2);
   var parent = getMostDom(domObj, indices);
   
   
@@ -1964,11 +1851,11 @@ var getURLParam = function (param) {
   var endstr = (strHref.indexOf('#') > -1) ? strHref.indexOf('#') : strHref.length;
   if ( strHref.indexOf("?") > -1 ) {
     var strQueryString = strHref.substring(strHref.indexOf("?")+1,endstr);
-    map(function(qp) {
+    strQueryString.split("&").map(function(qp) {
         var eq = qp.indexOf('=');
         var qname = qp.substr(0,eq+1).toLowerCase();
         if(qname == lparam+"=") aReturn.push(decodeURIComponent(qp.substr(eq+1)));
-    },strQueryString.split("&"));
+    });
   }
   if (aReturn.length == 0) return undefined;
   else if(aReturn.length == 1) return aReturn[0];
@@ -2323,7 +2210,7 @@ var compilerLift = function(f /* , args ... */) {
     for (var i = 0; i < arguments.length; i++) {
       if (arguments[i] instanceof Behavior) {
         break checkBehavior; } }
-    return f.apply(this,slice(arguments,1));
+    return f.apply(this,Array.prototype.slice.call(arguments,1));
   }
 
   // Assume some argument is a behavior.  This should always work.  We can
@@ -2401,7 +2288,7 @@ var compilerUnbehavior = function(v) {
   else if (typeof v == 'function') {
     var f =  function() {
       // These values may contain behaviors.
-      var originalArgs = slice(arguments,0);
+      var originalArgs = mkArray(arguments);
 
       var srcs = [ ];
 
