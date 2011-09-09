@@ -1933,25 +1933,12 @@ var evalForeignScriptValE = function(urlArgE) {
 
 var ajaxRequest = function(method,url,body,async,callback) {
   var xhr;
-  if (window.XMLHttpRequest && !(window.ActiveXObject)) {
-    xhr = new window.XMLHttpRequest();
-    xhr.onload = function() { callback(xhr); };
-  }
-  else if (window.ActiveXObject) {
-    try { xhr = new ActiveXObject("Msxml2.XMLHTTP"); }
-    catch(e) { xhr = new ActiveXObject("Microsoft.XMLHTTP"); }
-    
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState == 4) { callback(xhr); }
-    };
-  };
-  
+  var xhr = new window.XMLHttpRequest();
+  xhr.onload = function() { callback(xhr); };
   xhr.open(method,url,async);
-  
   if (method == 'POST') {
     xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
   }
-  
   xhr.send(body);
   return xhr;
 };
