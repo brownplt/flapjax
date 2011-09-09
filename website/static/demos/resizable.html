@@ -34,11 +34,13 @@
 <script type="text/javascript"> 
 // dragE(element) -> EventStream { left: int, top: int } 
 function dragE(target) { 
+  var upE = extractEventE(document, 'mouseup');
   // moveEe :: EventStream (EventStream { left: int, top: int }) 
   var moveEe = extractEventE(target,'mousedown').mapE(function(md) { 
     var startX = md.layerX; 
     var startY = md.layerY; 
-    return extractEventE(document,'mousemove').mapE(function(mm) { 
+    var docB = upE.constantE(false).startsWith(document);
+    return extractEventE(docB,'mousemove').mapE(function(mm) { 
       // Stop the text from getting selected 
        mm.preventDefault(); 
       return { element: target, // convenience 
@@ -47,7 +49,7 @@ function dragE(target) {
     }); 
   }); 
   // dropEe :: EventStream (EventStream 'a) 
-  var dropEe = extractEventE(document,'mouseup').mapE(function() { 
+  var dropEe = upE.mapE(function() { 
     return zeroE(); 
   }); 
   return switchE(mergeE(moveEe,dropEe)); 

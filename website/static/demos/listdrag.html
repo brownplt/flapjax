@@ -80,6 +80,8 @@ function dragE(mdE) {
   // unnecessarily painful.
   var target;
   
+  var upE = extractEventE(document, 'mouseup');
+  
   var dragEe = mdE.mapE(function(md) {
     target = md.element();
     
@@ -89,7 +91,8 @@ function dragE(mdE) {
     
     md.stop(); // don't bubble (i.e. don't select text, etc)
     
-    var dragE = extractEventE(document,'mousemove').mapE(function(mm) {
+    var docB = upE.constantE(false).startsWith(document);
+    var dragE = extractEventE(docB,'mousemove').mapE(function(mm) {
       return { dragging: target,
                mouseX: mm.clientX,
                mouseY: mm.clientY,
@@ -102,7 +105,7 @@ function dragE(mdE) {
     return mergeE(downE,dragE);
   });
   
-  var dropEe = extractEventE(document,'mouseup').mapE(function(mu) {
+  var dropEe = upE.mapE(function(mu) {
     return oneE({ drop: target,
                    mouseX: mu.clientX,
                    mouseY: mu.clientY });
