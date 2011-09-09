@@ -129,10 +129,14 @@ contact mjames@gmail.com
 
 
         // Buttons events
-        var nextE = $E("next","click").constantE("next");
-        var prevE = $E("prev","click").constantE("prev");
-        var stopE = $E("stop","click").constantE("stop");
-        var playE = $E("play","click").constantE("play");
+        var nextE = 
+          $E(document.getElementById("next"),"click").constantE("next");
+        var prevE =
+          $E(document.getElementById("prev"),"click").constantE("prev");
+        var stopE = 
+          $E(document.getElementById("stop"),"click").constantE("stop");
+        var playE = 
+          $E(document.getElementById("play"),"click").constantE("play");
         var buttonE = mergeE(playE, stopE, nextE, prevE);
 
         // Auto timer event
