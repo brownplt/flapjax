@@ -1195,68 +1195,39 @@ var getDomVal = function (domObj, indices) {
   return val;
 };
 
-//TODO: manual timer management stinks.
-// TODO: Name turn off or somethin
-var ___timerID = 0;
-var __getTimerId = function () { return ++___timerID; };    
-var timerDisablers = [];
-
-var disableTimerNode = function (node) { timerDisablers[node.__timerId](); };
-
-var disableTimer = function (v) {
-  if (v instanceof Behavior) { 
-    disableTimerNode(v.underlyingRaw); 
-  } else if (v instanceof EventStream) {
-    disableTimerNode(v);
-  }
-};
-
-var createTimerNodeStatic = function (interval) {
-  var primEventE = internalE();
-  primEventE.__timerId = __getTimerId();
-
-  var listener = function(evt) {
-    sendEvent(primEventE, (new Date()).getTime());
-    return true;
+var timerStaticE = function(interval) {
+  var eventStream = receiverE();
+  var callback = function() {
+    eventStream.sendEvent((new Date()).getTime());
   };
-
-  var timer = setInterval(listener, interval);
-  timerDisablers[primEventE.__timerId] = function () {clearInterval(timer); };
-  return primEventE;
+  setInterval(callback, interval);
+  return eventStream;
 };
 
-var timerE = function (interval) {
+var timerDynamicE = function(intervalB) {
+  var eventStream = receiverE();
+  var callback = function() {
+    eventStream.sendEvent((new Date()).getTime());
+  };
+  var timerID = false;
+  intervalB.liftB(function(interval) {
+    if (timerID) {
+      clearInterval(timerID);
+      timerID = false;
+    }
+    if (typeof interval === 'number' && interval > 0) {
+      timerID =  setInterval(callback, interval);
+    }
+  });
+  return eventStream;
+};
+
+var timerE = function(interval) {
   if (interval instanceof Behavior) {
-    var receiverE = internalE();
-    
-    //the return
-    var res = receiverE.switchE();
-    
-    //keep track of previous timer to disable it
-    var prevE = createTimerNodeStatic(valueNow(interval));
-    
-    //init
-    sendEvent(receiverE, prevE);
-    
-    //interval changes: collect old timer
-    createNode(
-      [changes(interval)],
-      function (p) {
-        disableTimerNode(prevE); 
-        prevE = createTimerNodeStatic(p.value);
-        sendEvent(receiverE, prevE);
-        return doNotPropagate;
-      });
-    
-    res.__timerId = __getTimerId();
-    timerDisablers[res.__timerId] = function () {
-      disableTimerNode[prevE]();
-      return;
-    };
-    
-    return res;
-  } else {
-    return createTimerNodeStatic(interval);
+    return timerDynamicE(interval);
+  }
+  else {
+    return timerStaticE(interval);
   }
 };
 
