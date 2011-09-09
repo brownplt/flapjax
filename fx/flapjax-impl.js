@@ -904,7 +904,7 @@ var andB = function (/* . behaves */) {
 return liftB.apply({},[function() {
     for(var i=0; i<arguments.length; i++) {if(!arguments[i]) return false;}
     return true;
-}].concat(mkArray(arguments));
+}].concat(mkArray(arguments)));
 };
 
 
@@ -1931,13 +1931,9 @@ var evalForeignScriptValE = function(urlArgE) {
 };
 
 
-var ajaxRequest = function(method,url,body,async,useFlash,callback) {
+var ajaxRequest = function(method,url,body,async,callback) {
   var xhr;
-  if (useFlash) {
-    xhr = new FlashXMLHttpRequest();
-    xhr.onload = function() { callback(xhr); };
-  }
-  else if (window.XMLHttpRequest && !(window.ActiveXObject)) {
+  if (window.XMLHttpRequest && !(window.ActiveXObject)) {
     xhr = new window.XMLHttpRequest();
     xhr.onload = function() { callback(xhr); };
   }
@@ -2069,7 +2065,7 @@ var toJSONString = (function() {
   };
 })();
  
-var serverRequestE = function(useFlash,requestE) {
+var getWebServiceObjectE = function(requestE) {
   var responseE = receiverE();
 
   requestE.mapE(function (obj) {
@@ -2103,19 +2099,19 @@ var serverRequestE = function(useFlash,requestE) {
       
       // Branch on the response type to determine how to parse it
       if (obj.response == 'json') {
-        xhr = ajaxRequest(method,url,body,async,useFlash,
+        xhr = ajaxRequest(method,url,body,async,
           function(xhr) {
             responseE.sendEvent(parseJSON(xhr.responseText)); 
           });
       }
       else if (obj.response == 'xml') {
-        ajaxRequest(method,url,body,async,useFlash,
+        ajaxRequest(method,url,body,async,
           function(xhr) {
             responseE.sendEvent(xhr.responseXML);
           });
       }
       else if (obj.response == 'plain' || !obj.response) {
-        ajaxRequest(method,url,body,async,useFlash,
+        ajaxRequest(method,url,body,async,
           function(xhr) {
             responseE.sendEvent(xhr.responseText);
         });
@@ -2128,16 +2124,6 @@ var serverRequestE = function(useFlash,requestE) {
   
   return responseE;
 };
-
-var getWebServiceObjectE = function(requestE) {
-  return serverRequestE(false,requestE);
-};
-
-
-var getForeignWebServiceObjectE = function(requestE) {
-  return serverRequestE(true,requestE);
-};
-
 
 var cumulativeOffset = function(element) {
   var valueT = 0, valueL = 0;

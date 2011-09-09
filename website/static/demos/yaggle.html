@@ -6,9 +6,6 @@
 <link rel="stylesheet" href="/demo.css"/>
 <script type="text/javascript" src="/fx/flapjax.js"></script>
 
-<!-- Contains getForeignWebServiceObjectE -->
-<script type="text/javascript" src="/fx/fxws.js"></script>
-
 <title>Flapjax Yahoo/Google Mashup</title>
 		<style>
 			#main {	float:left; width:50%; }
@@ -26,8 +23,6 @@
 <script type="text/javascript">
 
 function loader() {
-  initFlapjaxForeignWSO('/fx');
-
 	var formatItem = function (item) {
 		var itemTitleText = SPAN(item.Title ? item.Title : 'Generic Business');
 		return LI(
@@ -62,18 +57,18 @@ function loader() {
 		};
 	},extractValueB('location'),extractValueB('query'));
 	
-	var yahooLocalE = getForeignWebServiceObjectE(wsInfoB.changes().calmE(500));
+	var yahooLocalE = getWebServiceObjectE(wsInfoB.changes().calmE(500));
 	var yahooLocalB = yahooLocalE.startsWith({ResultSet:{Result:[{'Title':'Information from Yahoo! Local will appear here.'}]}});
 	
 	var yahooItemsB = yahooLocalB.liftB(function(r) {
 		return (r && r.ResultSet && r.ResultSet.Result) ?
-		map(formatItem,r.ResultSet.Result) : [];
+		r.ResultSet.Result.map(formatItem) : [];
 	});
 	
 	insertDomB(UL(yahooItemsB), 'yahooItems');
 	
 	var addrB = yahooItemsB.liftB(function(k) {
-		var arrayOfNodes = map(function(q){return extractEventE(q,'click');},k)
+		var arrayOfNodes = k.map(function(q){return extractEventE(q,'click')});
 		var merged = mergeE.apply(this,arrayOfNodes);
 		var addrE = mergeE.apply(this,[merged.mapE(function(v){
 			return v.currentTarget.addrForGeo;}),
