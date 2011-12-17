@@ -58,43 +58,42 @@ var PQ = function () {
   var ctx = this;
   ctx.val = [];
   this.insert = function (kv) {
-    ctx.val.push(kv);
-    var kvpos = ctx.val.length-1;
-    while(kvpos > 0 && kv.k < ctx.val[Math.floor((kvpos-1)/2)].k) {
-      var oldpos = kvpos;
-      kvpos = Math.floor((kvpos-1)/2);
-      ctx.val[oldpos] = ctx.val[kvpos];
-      ctx.val[kvpos] = kv;
+    var val = ctx.val
+    var kvpos = val.length;
+    var pp = (kvpos-1)>>1;
+    while(kvpos > 0 && kv.k < val[pp].k) {
+      val[kvpos] = val[pp];
+      kvpos = pp;
+      pp = (kvpos-1)>>1;
     }
+    val[kvpos] = kv;
   };
   this.isEmpty = function () { 
     return ctx.val.length === 0; 
   };
   this.pop = function () {
-    if(ctx.val.length == 1) {
-      return ctx.val.pop();
+    var val = ctx.val;
+    if(val.length == 1) {
+      return val.pop();
     }
-    var ret = ctx.val.shift();
-    ctx.val.unshift(ctx.val.pop());
+    var ret = val[0];
+    var kv = val.pop();
     var kvpos = 0;
-    var kv = ctx.val[0];
-    while(1) { 
-      var leftChild = (kvpos*2+1 < ctx.val.length ? ctx.val[kvpos*2+1].k : kv.k+1);
-      var rightChild = (kvpos*2+2 < ctx.val.length ? ctx.val[kvpos*2+2].k : kv.k+1);
-      if(leftChild > kv.k && rightChild > kv.k)
-          break;
-
+    while(1) {
+      var left = kvpos*2+1;
+      var right = kvpos*2+2;
+      var leftChild = (left < val.length ? val[left].k : kv.k+1);
+      var rightChild = (right < val.length ? val[right].k : kv.k+1);
       if(leftChild < rightChild) {
-        ctx.val[kvpos] = ctx.val[kvpos*2+1];
-        ctx.val[kvpos*2+1] = kv;
-        kvpos = kvpos*2+1;
+        val[kvpos] = val[left];
+        kvpos = left;
       }
       else {
-        ctx.val[kvpos] = ctx.val[kvpos*2+2];
-        ctx.val[kvpos*2+2] = kv;
-        kvpos = kvpos*2+2;
+        val[kvpos] = val[right];
+        kvpos = right;
       }
     }
+    val[kvpos] = kv;
     return ret;
   };
 };
