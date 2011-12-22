@@ -1792,57 +1792,6 @@ var clicksE = function(elem) {
 //////////////////////////////////////////////////////////////////////////////
 // Combinators for web services
 
-//========== dynamic scripts ==========
-var scriptCounter = 0;
-var deleteScript = function (scriptID) {
-  var scriptD = getObj(scriptID);
-  scriptD.parentNode.removeChild(scriptD); //TODO isolate child and set innerHTML to "" to avoid psuedo-leaks?
-};
-
-// optional fn/param that gets polled until parm is defined
-var runScript = function (url, fn, param) {
-  var script = document.createElement("script");
-  script.src = url;
-  var scriptID = 'scriptFnRPC' + scriptCounter++;
-  script.setAttribute('id', scriptID);
-  document.getElementsByTagName("head").item(0).appendChild(script);
-  var timer = {};
-  var check = 
-  function () {
-    eval("try { if (" + param + "!== undefined) {var stat = " + param + ";}} catch (e) {}");
-    if (stat !== undefined) {
-      eval(param + " = undefined;");
-      clearInterval(timer.timer);
-      clearInterval(timer.timeout);
-      if (fn instanceof Function) {
-        fn(stat); 
-      }
-      deleteScript(scriptID);
-    }
-  };
-  timer.timer = setInterval(check, 3500);
-  timer.timeout = 
-  setTimeout( 
-    function () { 
-      try { clearInterval(timer.timer); }
-      catch (e) {}
-    },
-    5000); //TODO make parameter?
-};
-
-// Node {url, globalArg} -> Node a
-//load script @ url and poll until param is set, then pass it along
-var evalForeignScriptValE = function(urlArgE) {
-  var result = receiverE();
-  urlArgE.mapE(function(urlArg) {
-      runScript(urlArg.url,
-        function(val) { result.sendEvent(val); }, 
-        urlArg.globalArg);
-  });
-  
-  return result;
-};
-
 var ajaxRequest = function(method,url,body,async,callback) {
   var xhr;
   var xhr = new window.XMLHttpRequest();
