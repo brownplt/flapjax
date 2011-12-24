@@ -52,48 +52,48 @@ var Pulse = function (stamp, value) {
   this.value = value;
 };
 
-
 //Probably can optimize as we expect increasing insert runs etc
 var PQ = function () {
   var ctx = this;
   ctx.val = [];
   this.insert = function (kv) {
-    var val = ctx.val
-    var kvpos = val.length;
-    var pp = (kvpos-1)>>1;
-    while(kvpos > 0 && kv.k < val[pp].k) {
-      val[kvpos] = val[pp];
-      kvpos = pp;
-      pp = (kvpos-1)>>1;
+    ctx.val.push(kv);
+    var kvpos = ctx.val.length-1;
+    while(kvpos > 0 && kv.k < ctx.val[Math.floor((kvpos-1)/2)].k) {
+      var oldpos = kvpos;
+      kvpos = Math.floor((kvpos-1)/2);
+      ctx.val[oldpos] = ctx.val[kvpos];
+      ctx.val[kvpos] = kv;
     }
-    val[kvpos] = kv;
   };
   this.isEmpty = function () { 
     return ctx.val.length === 0; 
   };
   this.pop = function () {
-    var val = ctx.val;
-    if(val.length == 1) {
-      return val.pop();
+    if(ctx.val.length == 1) {
+      return ctx.val.pop();
     }
-    var ret = val[0];
-    var kv = val.pop();
+    var ret = ctx.val.shift();
+    ctx.val.unshift(ctx.val.pop());
     var kvpos = 0;
-    while(1) {
-      var left = kvpos*2+1;
-      var right = kvpos*2+2;
-      var leftChild = (left < val.length ? val[left].k : kv.k+1);
-      var rightChild = (right < val.length ? val[right].k : kv.k+1);
+    var kv = ctx.val[0];
+    while(1) { 
+      var leftChild = (kvpos*2+1 < ctx.val.length ? ctx.val[kvpos*2+1].k : kv.k+1);
+      var rightChild = (kvpos*2+2 < ctx.val.length ? ctx.val[kvpos*2+2].k : kv.k+1);
+      if(leftChild > kv.k && rightChild > kv.k)
+          break;
+
       if(leftChild < rightChild) {
-        val[kvpos] = val[left];
-        kvpos = left;
+        ctx.val[kvpos] = ctx.val[kvpos*2+1];
+        ctx.val[kvpos*2+1] = kv;
+        kvpos = kvpos*2+1;
       }
       else {
-        val[kvpos] = val[right];
-        kvpos = right;
+        ctx.val[kvpos] = ctx.val[kvpos*2+2];
+        ctx.val[kvpos*2+2] = kv;
+        kvpos = kvpos*2+2;
       }
     }
-    val[kvpos] = kv;
     return ret;
   };
 };
@@ -1825,7 +1825,7 @@ var getWebServiceObjectE = function(requestE) {
       
       var reqType = obj.request ? obj.request : (obj.fields ? 'post' : 'get');
       if (obj.request == 'get') {
-        url += "?" + encodeREST(obj.fields);
+        if (obj.fields) { url += "?" + encodeREST(obj.fields); }
         body = '';
         method = 'GET';
       } else if (obj.request == 'post') {
