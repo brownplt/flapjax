@@ -43,7 +43,10 @@ var mkArray = function(arrayLike) {
 // Sentinel value returned by updaters to stop propagation.
 var doNotPropagate = { };
 
-//Pulse: Stamp * Path * Obj
+/**
+ * Stamp * Path * Obj
+ * @constructor Pulse
+ */
 var Pulse = function (stamp, value) {
   // Timestamps are used by liftB (and ifE).  Since liftB may receive multiple
   // update signals in the same run of the evaluator, it only propagates the 
@@ -52,7 +55,9 @@ var Pulse = function (stamp, value) {
   this.value = value;
 };
 
-//Probably can optimize as we expect increasing insert runs etc
+/**
+ * @constructor PQ
+ */
 var PQ = function () {
   var ctx = this;
   ctx.val = [];
@@ -116,7 +121,7 @@ var propagatePulse = function (pulse, node) {
     var nextPulse = qv.n.updater(new Pulse(qv.v.stamp, qv.v.value));
 
     if (nextPulse != doNotPropagate) {
-      for (i = 0; i < qv.n.sendsTo.length; i++) {
+      for (var i = 0; i < qv.n.sendsTo.length; i++) {
         len++;
 	queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
       }
@@ -124,7 +129,10 @@ var propagatePulse = function (pulse, node) {
   }
 };
 
-//Event: Array Node b * ( (Pulse a -> Void) * Pulse b -> Void)
+/**
+ * Event: Array Node b * ( (Pulse a -> Void) * Pulse b -> Void)
+ * @constructor
+ */
 var EventStream = function (nodes,updater) {
   this.updater = updater;
   
@@ -163,7 +171,6 @@ EventStream.prototype.attachListener = function(dependent) {
   }
 };
 
-
 //note: does not remove flow as counting for rank nor updates parent ranks
 EventStream.prototype.removeListener = function (dependent) {
   if (!(dependent instanceof EventStream)) {
@@ -180,7 +187,6 @@ EventStream.prototype.removeListener = function (dependent) {
   
   return foundSending;
 };
-
 
 // An internalE is a node that simply propagates all pulses it receives.  It's used internally by various 
 // combinators.
@@ -239,7 +245,10 @@ EventStream.prototype.constantE = function(constantValue) {
 var constantE = function(e,v) { return e.constantE(v); };
 
 
-//This is up here so we can add things to its prototype that are in flapjax.combinators
+/**
+ * @constructor
+ * @param {EventStream} event
+ */
 var Behavior = function (event, init, updater) {
   if (!(event instanceof EventStream)) { 
     throw 'Behavior: expected event as second arg'; 
