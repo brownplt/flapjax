@@ -73,7 +73,7 @@ var PQ = function () {
     return ctx.val.length === 0; 
   };
   this.pop = function () {
-    if(ctx.val.length == 1) {
+    if(ctx.val.length === 1) {
       return ctx.val.pop();
     }
     var ret = ctx.val.shift();
@@ -179,7 +179,7 @@ EventStream.prototype.removeListener = function (dependent) {
 
   var foundSending = false;
   for (var i = 0; i < this.sendsTo.length && !foundSending; i++) {
-    if (this.sendsTo[i] == dependent) {
+    if (this.sendsTo[i] === dependent) {
       this.sendsTo.splice(i, 1);
       foundSending = true;
     }
@@ -221,7 +221,7 @@ var oneE = function(val) {
 
 // a.k.a. mplus; mergeE(e1,e2) == mergeE(e2,e1)
 var mergeE = function() {
-  if (arguments.length == 0) {
+  if (arguments.length === 0) {
     return zeroE();
   }
   else {
@@ -823,7 +823,7 @@ var liftB = function (fn, var_args) {
     return getCur(fn).apply(ctx, args.map(getCur));
   };
 
-  if(constituentsE.length == 1) {
+  if(constituentsE.length === 1) {
     return new Behavior(constituentsE[0],getRes(),getRes);
   }
     
@@ -844,12 +844,11 @@ var liftB = function (fn, var_args) {
 
 
 /**
- * @param {...Behavior} var_args
+ * @param {Behavior|Function} fn
  * @return Behavior
  */
-Behavior.prototype.liftB = function(var_args) {
-  var args = mkArray(arguments).concat([this]);
-  return liftB.apply(this,args);
+Behavior.prototype.liftB = function(fn) {
+	return liftB(fn, this);
 };
 
 
@@ -925,7 +924,7 @@ var swapDom = function(replaceMe, withMe) {
     var withMeD = getObj(withMe);
     if (!(withMeD.nodeType > 0)) { throw 'swapDom: can only swap with a DOM object'; } //SAFETY
     try {
-      if (replaceMeD.parentNode == null) { return withMeD; }
+      if (replaceMeD.parentNode === null) { return withMeD; }
       if(withMeD != replaceMeD) replaceMeD.parentNode.replaceChild(withMeD, replaceMeD);
     } catch (e) {
       throw('swapDom error in replace call: withMeD: ' + withMeD + ', replaceMe Parent: ' + replaceMeD + ', ' + e + ', parent: ' + replaceMeD.parentNode);                    
@@ -945,8 +944,8 @@ var swapDom = function(replaceMe, withMe) {
 //also known as '$'
 //TODO Maybe alternative?
 var getObj = function (name) {
-  if (typeof(name) == 'object') { return name; }
-  else if ((typeof(name) == 'null') || (typeof(name) == 'undefined')) {
+  if (typeof(name) === 'object') { return name; }
+  else if ((typeof(name) === 'null') || (typeof(name) === 'undefined')) {
     throw 'getObj: expects a Dom obj or Dom id as first arg';
   } else {
     
@@ -1043,7 +1042,7 @@ var deepEach = function(arr, f) {
 
 var mapWithKeys = function(obj, f) {
   for (var ix in obj) {
-    if (!(Object.prototype && Object.prototype[ix] == obj[ix])) {
+    if (!(Object.prototype && Object.prototype[ix] === obj[ix])) {
       f(ix, obj[ix]);
     }
   }
@@ -1125,7 +1124,7 @@ var dynamicEnstyle = function(obj, prop, val) {
 var makeTagB = function(tagName) { return function() {
   var attribs, children;
 
-  if (typeof(arguments[0]) == "object" && 
+  if (typeof(arguments[0]) === "object" && 
       !(arguments[0].nodeType > 0 || arguments[0] instanceof Behavior || 
         arguments[0] instanceof Array)) {
     attribs = arguments[0];
@@ -1342,15 +1341,20 @@ var extractValueOnEventB = function (triggerE, domObj) {
   return extractValueStaticB(domObj, triggerE);
 };
 
-//extractValueStaticB: DOM [ * Event ] -> Behavior a
-//If no trigger for extraction is specified, guess one
+/**
+ * If no trigger for extraction is specified, guess one
+ *
+ * @param {Node} domObj
+ * @param {EventStream=} triggerE
+ * @return {Behavior}
+ */
 var extractValueStaticB = function (domObj, triggerE) {
   
   var objD;
   try {
     objD = getObj(domObj);
     //This is for IE
-    if(typeof(domObj) == 'string' && objD.id != domObj) {
+    if(typeof(domObj) === 'string' && objD.id != domObj) {
       throw 'Make a radio group';
     }
   } catch (e) {
@@ -1446,12 +1450,12 @@ var extractValueStaticB = function (domObj, triggerE) {
       mkArray(document.getElementsByTagName('input'))
       .filter(
       function (elt) { 
-        return (elt.type == 'radio') &&
-        (elt.getAttribute('name') == objD.name); 
+        return (elt.type === 'radio') &&
+        (elt.getAttribute('name') === objD.name); 
       });
     
     getter = 
-    objD.type == 'radio' ?
+    objD.type === 'radio' ?
     
     function () {
       return objD.checked;
@@ -1502,7 +1506,7 @@ var $B = extractValueB;
 //into[index] = deepValueNow(from) via descending from object and mutating each field
 var deepStaticUpdate = function (into, from, index) {
   var fV = (from instanceof Behavior)? valueNow(from) : from;
-  if (typeof(fV) == 'object') {
+  if (typeof(fV) === 'object') {
     for (var i in fV) {
       if (!(Object.prototype) || !(Object.prototype[i])) {
         deepStaticUpdate(index? into[index] : into, fV[i], i);
@@ -1519,7 +1523,7 @@ var deepStaticUpdate = function (into, from, index) {
 //only updates on changes
 var deepDynamicUpdate = function (into, from, index) {
   var fV = (from instanceof Behavior)? valueNow(from) : from;
-  if (typeof(fV) == 'object') {
+  if (typeof(fV) === 'object') {
     if (from instanceof Behavior) {
       throw 'deepDynamicUpdate: dynamic collections not supported';
     }
@@ -1590,7 +1594,7 @@ var insertDomE = function (triggerE, domObj) {
   var res = triggerE.mapE(
     function (newObj) {
       //TODO safer check
-      if (!((typeof(newObj) == 'object') && (newObj.nodeType == 1))) { 
+      if (!((typeof(newObj) === 'object') && (newObj.nodeType === 1))) { 
         newObj = SPAN({}, newObj);
       }
       swapDom(objD, newObj);
@@ -1657,7 +1661,7 @@ var insertDom = function (replaceWithD, hook, optPosition) {
   //TODO span of textnode instead of textnode?
   insertDomInternal(
     getObj(hook), 
-    ((typeof(replaceWithD) == 'object') && (replaceWithD.nodeType > 0)) ? replaceWithD :
+    ((typeof(replaceWithD) === 'object') && (replaceWithD.nodeType > 0)) ? replaceWithD :
     document.createTextNode(replaceWithD),      
     optPosition);           
 };
@@ -1685,7 +1689,7 @@ var insertDomB = function (initTriggerB, optID, optPosition, unsafe) {
         res.innerHTML = d;
         return res;
       }
-      else if ((typeof(d) == 'object') && (d.nodeType >  0)) {
+      else if ((typeof(d) === 'object') && (d.nodeType >  0)) {
         return d;
       } else {
         var res = document.createElement('span'); //TODO createText instead
@@ -1696,7 +1700,7 @@ var insertDomB = function (initTriggerB, optID, optPosition, unsafe) {
     initTriggerB);
   
   var initD = valueNow(triggerB);
-  if (!((typeof(initD) == 'object') && (initD.nodeType == 1))) { throw ('insertDomB: initial value conversion failed: ' + initD); } //SAFETY  
+  if (!((typeof(initD) === 'object') && (initD.nodeType === 1))) { throw ('insertDomB: initial value conversion failed: ' + initD); } //SAFETY  
   
   insertDomInternal(
     optID === null || optID === undefined ? getObj(initD.getAttribute('id')) : getObj(optID), 
@@ -1769,7 +1773,7 @@ var ajaxRequest = function(method,url,body,async,callback) {
   var xhr = new window.XMLHttpRequest();
   xhr.onload = function() { callback(xhr); };
   xhr.open(method,url,async);
-  if (method == 'POST') {
+  if (method === 'POST') {
     xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
   }
   xhr.send(body);
@@ -1800,18 +1804,18 @@ var getWebServiceObjectE = function(requestE) {
       var url = obj.url;
       
       var reqType = obj.request ? obj.request : (obj.fields ? 'post' : 'get');
-      if (obj.request == 'get') {
+      if (obj.request === 'get') {
         if (obj.fields) { url += "?" + encodeREST(obj.fields); }
         body = '';
         method = 'GET';
-      } else if (obj.request == 'post') {
+      } else if (obj.request === 'post') {
         body = JSON.stringify(obj.fields); 
         method = 'POST';
-      } else if (obj.request == 'rawPost') {
+      } else if (obj.request === 'rawPost') {
         body = obj.body;
         method = 'POST';
       }
-      else if (obj.request == 'rest') {
+      else if (obj.request === 'rest') {
         body = encodeREST(obj.fields);
         method = 'POST';
       }
@@ -1824,19 +1828,19 @@ var getWebServiceObjectE = function(requestE) {
       var xhr;
       
       // Branch on the response type to determine how to parse it
-      if (obj.response == 'json') {
+      if (obj.response === 'json') {
         xhr = ajaxRequest(method,url,body,async,
           function(xhr) {
             responseE.sendEvent(JSON.parse(xhr.responseText)); 
           });
       }
-      else if (obj.response == 'xml') {
+      else if (obj.response === 'xml') {
         ajaxRequest(method,url,body,async,
           function(xhr) {
             responseE.sendEvent(xhr.responseXML);
           });
       }
-      else if (obj.response == 'plain' || !obj.response) {
+      else if (obj.response === 'plain' || !obj.response) {
         ajaxRequest(method,url,body,async,
           function(xhr) {
             responseE.sendEvent(xhr.responseText);
