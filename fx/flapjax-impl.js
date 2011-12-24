@@ -523,21 +523,10 @@ var mapE = function (fn /*, [node0 | val0], ...*/) {
           context, 
           nofnodes.map(function (s) {return s(args);}));
       });                
-  } else if (fn instanceof Function) {
-    return createTimeSyncNode(nodes).mapE(
-      function (arr) {
-        return fn.apply(
-          this,
-          nofnodes.map(function (s) { return s(arr); }));
-      });
-  } else if (fn instanceof EventStream) {
-    return createTimeSyncNode(nodes).mapE(
-      function (arr) {
-        return arr[0].apply(
-          this, 
-          nofnodes.map(function (s) {return s(arr); }));
-      });
-      } else {throw 'unknown mapE case';}
+  }
+  else {
+	throw 'unknown mapE case';
+	}
 };
 
 
