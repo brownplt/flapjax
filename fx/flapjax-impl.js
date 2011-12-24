@@ -143,10 +143,16 @@ var createNode = function (nodes, updater) {
   return new EventStream(nodes,updater);
 };
 
-var genericAttachListener = function(node, dependent) {
-  node.sendsTo.push(dependent);
+//attachListener: Node * Node -> Void
+//flow from node to dependent
+//note: does not add flow as counting for rank nor updates parent ranks
+EventStream.prototype.attachListener = function(dependent) {
+  if (!(dependent instanceof EventStream)) {
+    throw 'attachListener: expected an EventStream';
+  }
+  this.sendsTo.push(dependent);
   
-  if(node.rank > dependent.rank) {
+  if(this.rank > dependent.rank) {
     var lowest = lastRank+1;
     var q = [dependent];
     while(q.length) {
@@ -157,36 +163,22 @@ var genericAttachListener = function(node, dependent) {
   }
 };
 
-var genericRemoveListener = function (node, dependent, isWeakReference) {
+
+//note: does not remove flow as counting for rank nor updates parent ranks
+EventStream.prototype.removeListener = function (dependent) {
+  if (!(dependent instanceof EventStream)) {
+    throw 'removeListener: expected an EventStream';
+  }
+
   var foundSending = false;
-  for (var i = 0; i < node.sendsTo.length && !foundSending; i++) {
-    if (node.sendsTo[i] == dependent) {
-      node.sendsTo.splice(i, 1);
+  for (var i = 0; i < this.sendsTo.length && !foundSending; i++) {
+    if (this.sendsTo[i] == dependent) {
+      this.sendsTo.splice(i, 1);
       foundSending = true;
     }
   }
   
   return foundSending;
-};
-
-//attachListener: Node * Node -> Void
-//flow from node to dependent
-//note: does not add flow as counting for rank nor updates parent ranks
-EventStream.prototype.attachListener = function(dependent) {
-  if (!(dependent instanceof EventStream)) {
-    throw 'attachListener: expected an EventStream';
-  }
-  genericAttachListener(this, dependent);
-};
-
-
-//note: does not remove flow as counting for rank nor updates parent ranks
-EventStream.prototype.removeListener = function (dependent, isWeak) {
-  if (!(dependent instanceof EventStream)) {
-    throw 'removeListener: expected an EventStream';
-  }
-
-  genericRemoveListener(this, dependent, isWeak);
 };
 
 
