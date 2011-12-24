@@ -534,7 +534,10 @@ var mapE = function (fn /*, [node0 | val0], ...*/) {
 	}
 };
 
-
+/** 
+ * @param {Behavior} valueB
+ * @return {EventStream}
+ */
 EventStream.prototype.snapshotE = function (valueB) {
   return createNode([this], function (pulse) {
     pulse.value = valueNow(valueB);
@@ -542,12 +545,18 @@ EventStream.prototype.snapshotE = function (valueB) {
   });
 };
 
-
-var snapshotE = function(triggerE,valueB) {
+/**
+ * @param {EventStream} triggerE
+ * @param {Behavior} valueB
+ * @return {EventStream}
+ */
+EventStream.snapshot = function(triggerE,valueB) {
   return triggerE.snapshotE(valueB);
 };
 
-
+/**
+ * @param {*=} optStart initial value (optional)
+ */
 EventStream.prototype.filterRepeatsE = function(optStart) {
   var hadFirst = optStart === undefined ? false : true;
   var prev = optStart;
@@ -839,7 +848,7 @@ var liftB = function (fn, var_args) {
  * @return Behavior
  */
 Behavior.prototype.liftB = function(var_args) {
-  var args= mkArray(arguments).concat([this]);
+  var args = mkArray(arguments).concat([this]);
   return liftB.apply(this,args);
 };
 
@@ -1267,7 +1276,11 @@ var extractEventStaticE = function(elt, eventName) {
   return eventStream;
 };
 
-// extractEventE : Behavior<DOMNode> + DOMNode * String -> EventStream DOMEvent
+/**
+ * @param {Behavior|Node} elt
+ * @param {string} eventName
+ * @return {EventStream}
+ */
 var extractEventE = function(elt, eventName) {
   if (elt instanceof Behavior) {
     return extractEventDynamicE(elt, eventName);
@@ -1280,12 +1293,12 @@ var extractEventE = function(elt, eventName) {
 var $E = extractEventE;
 
 
-//extractEventsE: 
-//      [Behavior] Dom  
-//      . Array String
-//      -> Event
-// ex: extractEventsE(m, 'body', 'mouseover', 'mouseout')
-var extractEventsE = function (domObj /* . eventNames */) {
+/**
+ * @param {Behavior} domObj
+ * @param {...string} var_args
+ * @return {EventStream}
+ */
+var extractEventsE = function (domObj, var_args) {
   var eventNames = Array.prototype.slice.call(arguments, 1);
   
   var events = (eventNames.length === 0 ? [] : eventNames)
@@ -1304,8 +1317,13 @@ var extractValueOnEventE = function (triggerE, domObj) {
   
 };
 
-//extractDomFieldOnEventE: Event * Dom U String . Array String -> Event a
-var extractDomFieldOnEventE = function (triggerE, domObj /* . indices */) {
+/**extractDomFieldOnEventE: Event * Dom U String . Array String -> Event a
+ *
+ * @param {EventStream} triggerE
+ * @param {Node} domObj
+ * @param {...*} var_args
+ */
+var extractDomFieldOnEventE = function (triggerE, domObj, var_args) {
   if (!(triggerE instanceof EventStream)) { throw 'extractDomFieldOnEventE: expected Event as first arg'; } //SAFETY
   var indices = Array.prototype.slice.call(arguments, 2);
   var res =
@@ -1354,11 +1372,10 @@ var extractValueStaticB = function (domObj, triggerE) {
             objD, 
             'click', 'keyup', 'change'),
           objD,
-          'checked'),objD.checked),
-      objD.checked);
+          'checked'),objD.checked), objD.checked);
     break; 
   case 'select-one':
-      getter = function (_) {                         
+      getter = function () {                         
         return objD.selectedIndex > -1 ? 
         (objD.options[objD.selectedIndex].value ?
           objD.options[objD.selectedIndex].value :
@@ -1366,16 +1383,14 @@ var extractValueStaticB = function (domObj, triggerE) {
         : undefined;
       };
       result = startsWith(
-        filterRepeatsE(
             (triggerE ? triggerE :
             extractEventsE(
               objD,
-              'click', 'keyup', 'change')).mapE(getter)),getter(),
-        getter());
+              'click', 'keyup', 'change')).mapE(getter).filterRepeatsE(),getter());
       break;
   case 'select-multiple':
     //TODO ryan's cfilter adapted for equality check
-    getter = function (_) {
+    getter = function () {
       var res = [];
       for (var i = 0; i < objD.options.length; i++) {
         if (objD.options[i].selected) {
@@ -1438,11 +1453,11 @@ var extractValueStaticB = function (domObj, triggerE) {
     getter = 
     objD.type == 'radio' ?
     
-    function (_) {
+    function () {
       return objD.checked;
     } :
     
-    function (_) {
+    function () {
       for (var i = 0; i < radiosAD.length; i++) {
         if (radiosAD[i].checked) {
           return radiosAD[i].value; 
@@ -1751,7 +1766,6 @@ var clicksE = function(elem) {
 // Combinators for web services
 
 var ajaxRequest = function(method,url,body,async,callback) {
-  var xhr;
   var xhr = new window.XMLHttpRequest();
   xhr.onload = function() { callback(xhr); };
   xhr.open(method,url,async);
