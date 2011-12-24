@@ -416,66 +416,7 @@ var recE = function(fn) {
 
 var switchE = function(e) { return e.switchE(); };
 
-
-EventStream.prototype.ifE = function(thenE,elseE) {
-  var testStamp = -1;
-  var testValue = false;
-  
-  createNode([this],function(pulse) { testStamp = pulse.stamp; testValue = pulse.value; return doNotPropagate; });
-  
-  return mergeE(createNode([thenE],function(pulse) { if (testValue && (testStamp == pulse.stamp)) { send(pulse); } }),
-    createNode([elseE],function(pulse) { if (!testValue && (testStamp == pulse.stamp)) { send(pulse); } }));
-};
-
-
-var ifE = function(test,thenE,elseE) {
-  if (test instanceof EventStream)
-    { return test.ifE(thenE,elseE); }
-  else
-    { return test ? thenE : elseE; }
-};
-
     
-var andE = function (/* . nodes */) {
-  var nodes = mkArray(arguments);
-  
-  var acc = (nodes.length > 0)? 
-  nodes[nodes.length - 1] : oneE(true);
-  
-  for (var i = nodes.length - 2; i > -1; i--) {
-    acc = ifE(
-      nodes[i], 
-      acc, 
-      nodes[i].constantE(false));
-  }
-  return acc;
-};
-
-
-EventStream.prototype.andE = function( /* others */ ) {
-  var deps = [this].concat(mkArray(arguments));
-  return andE.apply(this,deps);
-};
-
-
-var orE = function () {
-  var nodes = mkArray(arguments);
-  var acc = (nodes.length > 2)? 
-  nodes[nodes.length - 1] : oneE(false); 
-  for (var i = nodes.length - 2; i > -1; i--) {
-    acc = ifE(
-      nodes[i],
-      nodes[i],
-      acc);
-  }
-  return acc;
-};
-
-
-EventStream.prototype.orE = function(/*others*/) {
-  var deps = [this].concat(mkArray(arguments));
-  return orE.apply(this,deps);
-};
 
 
 var delayStaticE = function (event, time) {
