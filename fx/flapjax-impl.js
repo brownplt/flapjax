@@ -139,9 +139,9 @@ F.internal_.propagatePulse = function (pulse, node) {
 /**
  * Event: Array Node b * ( (Pulse a -> Void) * Pulse b -> Void)
  * @constructor
- * @param {Array.<EventStream>} nodes
+ * @param {Array.<F.EventStream>} nodes
  */
-var EventStream = function (nodes,updater) {
+F.EventStream = function (nodes,updater) {
   this.updater = updater;
   
   this.sendsTo = []; //forward link
@@ -155,11 +155,11 @@ var EventStream = function (nodes,updater) {
 
 /**
  * note: does not add flow as counting for rank nor updates parent ranks
- * @param {EventStream} dependent
+ * @param {F.EventStream} dependent
  */
-EventStream.prototype.attachListener = function(dependent) {
-  if (!(dependent instanceof EventStream)) {
-    throw 'attachListener: expected an EventStream';
+F.EventStream.prototype.attachListener = function(dependent) {
+  if (!(dependent instanceof F.EventStream)) {
+    throw 'attachListener: expected an F.EventStream';
   }
   this.sendsTo.push(dependent);
   
@@ -175,9 +175,9 @@ EventStream.prototype.attachListener = function(dependent) {
 };
 
 //note: does not remove flow as counting for rank nor updates parent ranks
-EventStream.prototype.removeListener = function (dependent) {
-  if (!(dependent instanceof EventStream)) {
-    throw 'removeListener: expected an EventStream';
+F.EventStream.prototype.removeListener = function (dependent) {
+  if (!(dependent instanceof F.EventStream)) {
+    throw 'removeListener: expected an F.EventStream';
   }
 
   var foundSending = false;
@@ -195,17 +195,17 @@ EventStream.prototype.removeListener = function (dependent) {
  *An internalE is a node that propagates all pulses it receives.  It's used
  * internally by various combinators.
  *
- * @param {Array.<EventStream>=} dependsOn
+ * @param {Array.<F.EventStream>=} dependsOn
  */
 F.internal_.internalE = function(dependsOn) {
-  return new EventStream(dependsOn || [ ],function(pulse) { return pulse; });
+  return new F.EventStream(dependsOn || [ ],function(pulse) { return pulse; });
 };
 
 /**
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.zeroE = function() {
-  return new EventStream([],function(pulse) {
+F.zeroE = function() {
+  return new F.EventStream([],function(pulse) {
       throw ('zeroE : received a value; zeroE should not receive a value; the value was ' + pulse.value);
   });
 };
@@ -213,11 +213,11 @@ EventStream.zeroE = function() {
 
 /**
  * @param {*} val
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.oneE = function(val) {
+F.oneE = function(val) {
   var sent = false;
-  var evt = new EventStream([],function(pulse) {
+  var evt = new F.EventStream([],function(pulse) {
     if (sent) {
       throw ('oneE : received an extra value');
     }
@@ -230,12 +230,12 @@ EventStream.oneE = function(val) {
 
 
 /**
- * @param {EventStream=} var_args
- * @return {EventStream}
+ * @param {F.EventStream=} var_args
+ * @return {F.EventStream}
  */
 F.mergeE = function(var_args) {
   if (arguments.length === 0) {
-    return EventStream.zeroE();
+    return F.zeroE();
   }
   else {
     var deps = F.mkArray(arguments);
@@ -243,17 +243,17 @@ F.mergeE = function(var_args) {
   }
 };
 
-EventStream.prototype.mergeE = function() {
+F.EventStream.prototype.mergeE = function() {
   var deps = F.mkArray(arguments);
   deps.push(this);
   return F.internal_.internalE(deps);
 };
 
 /**
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.prototype.constantE = function(constantValue) {
-  return new EventStream([this],function(pulse) {
+F.EventStream.prototype.constantE = function(constantValue) {
+  return new F.EventStream([this],function(pulse) {
     pulse.value = constantValue;
     return pulse;
   });
@@ -261,24 +261,24 @@ EventStream.prototype.constantE = function(constantValue) {
 
 /**
  * @constructor
- * @param {EventStream} event
+ * @param {F.EventStream} event
  * @param {*} init
  * @param {Function=} updater
  */
-var Behavior = function (event, init, updater) {
-  if (!(event instanceof EventStream)) { 
-    throw 'Behavior: expected event as second arg'; 
+F.Behavior = function (event, init, updater) {
+  if (!(event instanceof F.EventStream)) { 
+    throw 'F.Behavior: expected event as second arg'; 
   }
   
   var behave = this;
   this.last = init;
   
   //sendEvent to this might impact other nodes that depend on this event
-  //sendBehavior defaults to this one
+  //sendF.Behavior defaults to this one
   this.underlyingRaw = event;
   
   //unexposed, sendEvent to this will only impact dependents of this behaviour
-  this.underlying = new EventStream([event], updater 
+  this.underlying = new F.EventStream([event], updater 
     ? function (p) {
         behave.last = updater(p.value); 
         p.value = behave.last; return p;
@@ -299,13 +299,13 @@ F.receiverE = function() {
 
 //note that this creates a new timestamp and new event queue
 F.sendEvent = function (node, value) {
-  if (!(node instanceof EventStream)) { throw 'sendEvent: expected Event as first arg'; } //SAFETY
+  if (!(node instanceof F.EventStream)) { throw 'sendEvent: expected Event as first arg'; } //SAFETY
   
   F.internal_.propagatePulse(new F.internal_.Pulse(F.internal_.nextStamp(), value),node);
 };
 
-// bindE :: EventStream a * (a -> EventStream b) -> EventStream b
-EventStream.prototype.bindE = function(k) {
+// bindE :: F.EventStream a * (a -> F.EventStream b) -> F.EventStream b
+F.EventStream.prototype.bindE = function(k) {
   /* m.sendsTo resultE
    * resultE.sendsTo prevE
    * prevE.sendsTo returnE
@@ -313,20 +313,20 @@ EventStream.prototype.bindE = function(k) {
   var m = this;
   var prevE = false;
   
-  var outE = new EventStream([],function(pulse) { return pulse; });
+  var outE = new F.EventStream([],function(pulse) { return pulse; });
   outE.name = "bind outE";
   
-  var inE = new EventStream([m], function (pulse) {
+  var inE = new F.EventStream([m], function (pulse) {
     if (prevE) {
       prevE.removeListener(outE, true);
       
     }
     prevE = k(pulse.value);
-    if (prevE instanceof EventStream) {
+    if (prevE instanceof F.EventStream) {
       prevE.attachListener(outE);
     }
     else {
-      throw "bindE : expected EventStream";
+      throw "bindE : expected F.EventStream";
     }
 
     return F.doNotPropagate;
@@ -338,23 +338,23 @@ EventStream.prototype.bindE = function(k) {
 
 /**
  * @param {function(*):*} f
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.prototype.mapE = function(f) {
+F.EventStream.prototype.mapE = function(f) {
   if (!(f instanceof Function)) {
     throw ('mapE : expected a function as the first argument; received ' + f);
   };
   
-  return new EventStream([this],function(pulse) {
+  return new F.EventStream([this],function(pulse) {
     pulse.value = f(pulse.value);
     return pulse;
   });
 };
 
 /**
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.prototype.notE = function() { 
+F.EventStream.prototype.notE = function() { 
 	return this.mapE(function(v) { 
 		return !v; 
 	}); 
@@ -362,36 +362,36 @@ EventStream.prototype.notE = function() {
 
 /**
  * @param {function(*):boolean} pred
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.prototype.filterE = function(pred) {
+F.EventStream.prototype.filterE = function(pred) {
   if (!(pred instanceof Function)) {
     throw ('filterE : expected predicate; received ' + pred);
   };
   
   // Can be a bindE
-  return new EventStream([this], function(pulse) {
+  return new F.EventStream([this], function(pulse) {
     return pred(pulse.value) ? pulse : F.doNotPropagate;
   });
 };
 
 /**
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.prototype.onceE = function() {
+F.EventStream.prototype.onceE = function() {
   var done = false;
-  return new EventStream([this],function(pulse) {
+  return new F.EventStream([this],function(pulse) {
     if (!done) { done = true; return pulse; }
     else { return F.doNotPropagate; }
   });
 };
 
 /**
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.prototype.skipFirstE = function() {
+F.EventStream.prototype.skipFirstE = function() {
   var skipped = false;
-  return new EventStream([this],function(pulse) {
+  return new F.EventStream([this],function(pulse) {
     if (skipped)
       { return pulse; }
     else
@@ -402,9 +402,9 @@ EventStream.prototype.skipFirstE = function() {
 /**
  * @param {*} init
  * @param {Function} fold
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.prototype.collectE = function(init,fold) {
+F.EventStream.prototype.collectE = function(init,fold) {
   var acc = init;
   return this.mapE(
     function (n) {
@@ -415,9 +415,9 @@ EventStream.prototype.collectE = function(init,fold) {
 };
 
 /**
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.prototype.switchE = function() {
+F.EventStream.prototype.switchE = function() {
   return this.bindE(function(v) { return v; });
 };
 
@@ -433,7 +433,7 @@ F.internal_.delayStaticE = function (event, time) {
   
   var resE = F.internal_.internalE();
   
-  new EventStream([event], function (p) { 
+  new F.EventStream([event], function (p) { 
     setTimeout(function () { F.sendEvent(resE, p.value);},  time ); 
     return F.doNotPropagate;
   });
@@ -442,13 +442,13 @@ F.internal_.delayStaticE = function (event, time) {
 };
 
 /**
- * @param {Behavior|number} time
- * @return {EventStream}
+ * @param {F.Behavior|number} time
+ * @return {F.EventStream}
  */
-EventStream.prototype.delayE = function (time) {
+F.EventStream.prototype.delayE = function (time) {
   var event = this;
   
-  if (time instanceof Behavior) {
+  if (time instanceof F.Behavior) {
     
     var receiverEE = F.internal_.internalE();
     var link = 
@@ -459,7 +459,7 @@ EventStream.prototype.delayE = function (time) {
     
     //TODO: Change semantics such that we are always guaranteed to get an event going out?
     var switcherE = 
-    new EventStream(
+    new F.EventStream(
       [time.changes()],
       function (p) {
         link.from.removeListener(link.towards); 
@@ -490,7 +490,7 @@ F.mapE = function (fn /*, [node0 | val0], ...*/) {
   var selectI = 0;
   var nodes = [];
   for (var i = 0; i < valsOrNodes.length; i++) {
-    if (valsOrNodes[i] instanceof EventStream) {
+    if (valsOrNodes[i] instanceof F.EventStream) {
       nodes.push(valsOrNodes[i]);
       selectors.push( 
         (function(ii) {
@@ -513,7 +513,7 @@ F.mapE = function (fn /*, [node0 | val0], ...*/) {
   var nofnodes = selectors.slice(1);
   
   if (nodes.length === 0) {
-    return EventStream.oneE(fn.apply(context, valsOrNodes));
+    return F.oneE(fn.apply(context, valsOrNodes));
   } else if ((nodes.length === 1) && (fn instanceof Function)) {
     return nodes[0].mapE(
       function () {
@@ -537,11 +537,11 @@ F.mapE = function (fn /*, [node0 | val0], ...*/) {
 };
 
 /** 
- * @param {Behavior} valueB
- * @return {EventStream}
+ * @param {F.Behavior} valueB
+ * @return {F.EventStream}
  */
-EventStream.prototype.snapshotE = function (valueB) {
-  return new EventStream([this], function (pulse) {
+F.EventStream.prototype.snapshotE = function (valueB) {
+  return new F.EventStream([this], function (pulse) {
     pulse.value = valueB.valueNow();
     return pulse;
   });
@@ -549,9 +549,9 @@ EventStream.prototype.snapshotE = function (valueB) {
 
 /**
  * @param {*=} optStart initial value (optional)
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-EventStream.prototype.filterRepeatsE = function(optStart) {
+F.EventStream.prototype.filterRepeatsE = function(optStart) {
   var hadFirst = optStart === undefined ? false : true;
   var prev = optStart;
 
@@ -568,16 +568,16 @@ EventStream.prototype.filterRepeatsE = function(optStart) {
 };
 
 /**
- * @param {(number|Behavior)} time
- * @return {EventStream}
+ * @param {(number|F.Behavior)} time
+ * @return {F.EventStream}
  */
-EventStream.prototype.calmE = function(time) {
-  if (!(time instanceof Behavior)) {
-		time = Behavior.constantB(time);
+F.EventStream.prototype.calmE = function(time) {
+  if (!(time instanceof F.Behavior)) {
+		time = F.constantB(time);
 	}
 
   var out = F.internal_.internalE();
-  new EventStream(
+  new F.EventStream(
     [this],
     function() {
       var towards = null;
@@ -592,12 +592,12 @@ EventStream.prototype.calmE = function(time) {
   return out;
 };
 
-EventStream.prototype.blindE = function (time) {
-  return new EventStream(
+F.EventStream.prototype.blindE = function (time) {
+  return new F.EventStream(
     [this],
     function () {
       var intervalFn = 
-      time instanceof Behavior?
+      time instanceof F.Behavior?
       function () { return time.valueNow(); }
       : function () { return time; };
       var lastSent = (new Date()).getTime() - intervalFn() - 1;
@@ -614,30 +614,30 @@ EventStream.prototype.blindE = function (time) {
 
 /**
  * @param {*} init
- * @return {Behavior}
+ * @return {F.Behavior}
  */
-EventStream.prototype.startsWith = function(init) {
-  return new Behavior(this,init);
+F.EventStream.prototype.startsWith = function(init) {
+  return new F.Behavior(this,init);
 };
 
 /**
  * Returns the presently stored value.
  */
-Behavior.prototype.valueNow = function() {
+F.Behavior.prototype.valueNow = function() {
   return this.last;
 };
 
 /**
- * @return {EventStream}
+ * @return {F.EventStream}
  */
-Behavior.prototype.changes = function() {
+F.Behavior.prototype.changes = function() {
   return this.underlying;
 };
 
 /**
- * @return {Behavior}
+ * @return {F.Behavior}
  */
-Behavior.prototype.switchB = function() {
+F.Behavior.prototype.switchB = function() {
   var behaviourCreatorsB = this;
   var init = behaviourCreatorsB.valueNow();
   
@@ -647,10 +647,10 @@ Behavior.prototype.switchB = function() {
   
   //XXX could result in out-of-order propagation! Fix!
   var makerE = 
-  new EventStream(
+  new F.EventStream(
     [behaviourCreatorsB.changes()],
     function (p) {
-      if (!(p.value instanceof Behavior)) { throw 'switchB: expected Behavior as value of Behavior of first argument'; } //SAFETY
+      if (!(p.value instanceof F.Behavior)) { throw 'switchB: expected F.Behavior as value of F.Behavior of first argument'; } //SAFETY
       if (prevSourceE != null) {
         prevSourceE.removeListener(receiverE);
       }
@@ -662,26 +662,26 @@ Behavior.prototype.switchB = function() {
       return F.doNotPropagate;
     });
   
-  if (init instanceof Behavior) {
+  if (init instanceof F.Behavior) {
     F.sendEvent(makerE, init);
   }
   
-  return receiverE.startsWith(init instanceof Behavior? init.valueNow() : init);
+  return receiverE.startsWith(init instanceof F.Behavior? init.valueNow() : init);
 };
 
 /**
- * @param {Behavior|number} interval
- * @return {Behavior}
+ * @param {F.Behavior|number} interval
+ * @return {F.Behavior}
  */
 F.timerB = function(interval) {
   return F.timerE(interval).startsWith((new Date()).getTime());
 };
 
 //TODO test, signature
-Behavior.prototype.delayB = function (time, init) {
+F.Behavior.prototype.delayB = function (time, init) {
   var triggerB = this;
-  if (!(time instanceof Behavior)) {
-		time = Behavior.constantB(time);
+  if (!(time instanceof F.Behavior)) {
+		time = F.constantB(time);
 	}
   return triggerB.changes()
 		       .delayE(time)
@@ -690,24 +690,24 @@ Behavior.prototype.delayB = function (time, init) {
 
 //artificially send a pulse to underlying event node of a behaviour
 //note: in use, might want to use a receiver node as a proxy or an identity map
-Behavior.prototype.sendBehavior = function(val) {
+F.Behavior.prototype.sendBehavior = function(val) {
   F.sendEvent(this.underlyingRaw,val);
 };
 
-Behavior.prototype.ifB = function(trueB,falseB) {
+F.Behavior.prototype.ifB = function(trueB,falseB) {
   var testB = this;
   //TODO auto conversion for behaviour funcs
-  if (!(trueB instanceof Behavior)) { trueB = Behavior.constantB(trueB); }
-  if (!(falseB instanceof Behavior)) { falseB = Behavior.constantB(falseB); }
+  if (!(trueB instanceof F.Behavior)) { trueB = F.constantB(trueB); }
+  if (!(falseB instanceof F.Behavior)) { falseB = F.constantB(falseB); }
   return F.liftB(function(te,t,f) { return te ? t : f; },testB,trueB,falseB);
 };
 
 
 /** 
- * condB: . [Behavior boolean, Behavior a] -> Behavior a
+ * condB: . [F.Behavior boolean, F.Behavior a] -> F.Behavior a
  *
- * @param {Array.<Array.<Behavior>>} var_args
- * @return {Behavior}
+ * @param {Array.<Array.<F.Behavior>>} var_args
+ * @return {F.Behavior}
  */
 F.condB = function (var_args ) {
   var pairs = F.mkArray(arguments);
@@ -722,16 +722,16 @@ return F.liftB.apply({},[function() {
 
 /**
  * @param {*} val
- * @return {Behavior}
+ * @return {F.Behavior}
  */
-Behavior.constantB = function (val) {
-  return new Behavior(F.internal_.internalE(), val);
+F.constantB = function (val) {
+  return new F.Behavior(F.internal_.internalE(), val);
 };
 
 /**
- * @param {Function|Behavior} fn
- * @param {...Behavior} var_args
- * @return Behavior
+ * @param {Function|F.Behavior} fn
+ * @param {...F.Behavior} var_args
+ * @return F.Behavior
  */
 F.liftB = function (fn, var_args) {
 
@@ -740,12 +740,12 @@ F.liftB = function (fn, var_args) {
   //dependencies
   var constituentsE =
     F.mkArray(arguments)
-    .filter(function (v) { return v instanceof Behavior; })
+    .filter(function (v) { return v instanceof F.Behavior; })
     .map(function (b) { return b.changes(); });
   
   //calculate new vals
   var getCur = function (v) {
-    return v instanceof Behavior ? v.last : v;
+    return v instanceof F.Behavior ? v.last : v;
   };
   
   var ctx = this;
@@ -754,12 +754,12 @@ F.liftB = function (fn, var_args) {
   };
 
   if(constituentsE.length === 1) {
-    return new Behavior(constituentsE[0],getRes(),getRes);
+    return new F.Behavior(constituentsE[0],getRes(),getRes);
   }
     
   //gen/send vals @ appropriate time
   var prevStamp = -1;
-  var mid = new EventStream(constituentsE, function (p) {
+  var mid = new F.EventStream(constituentsE, function (p) {
     if (p.stamp != prevStamp) {
       prevStamp = p.stamp;
       return p; 
@@ -769,29 +769,29 @@ F.liftB = function (fn, var_args) {
     }
   });
   
-  return new Behavior(mid,getRes(),getRes);
+  return new F.Behavior(mid,getRes(),getRes);
 };
 
 /**
- * @param {...Behavior} var_args
+ * @param {...F.Behavior} var_args
  */
-Behavior.prototype.ap = function(var_args) {
+F.Behavior.prototype.ap = function(var_args) {
 	var args = [this].concat(var_args);
 	return F.liftB.apply(null, var_args);
 }
 
 /**
- * @param {Behavior|Function} fn
- * @return Behavior
+ * @param {F.Behavior|Function} fn
+ * @return F.Behavior
  */
-Behavior.prototype.liftB = function(fn) {
+F.Behavior.prototype.liftB = function(fn) {
 	return F.liftB(fn, this);
 };
 
 /**
- * @param {...Behavior} var_args
+ * @param {...F.Behavior} var_args
  */
-Behavior.andB = function (var_args) {
+F.Behavior.andB = function (var_args) {
 return F.liftB.apply({},[function() {
     for(var i=0; i<arguments.length; i++) {if(!arguments[i]) return false;}
     return true;
@@ -799,9 +799,9 @@ return F.liftB.apply({},[function() {
 };
 
 /**
- * @param {...Behavior} var_args
+ * @param {...F.Behavior} var_args
  */
-Behavior.orB = function (var_args) {
+F.Behavior.orB = function (var_args) {
   return F.liftB.apply({},[function() {
       for(var i=0; i<arguments.length; i++) {if(arguments[i]) return true;}
       return false;
@@ -809,17 +809,17 @@ Behavior.orB = function (var_args) {
 };
 
 /**
- * @return {Behavior}
+ * @return {F.Behavior}
  */
-Behavior.prototype.notB = function() {
+F.Behavior.prototype.notB = function() {
   return this.liftB(function(v) { return !v; });
 };
 
-Behavior.prototype.blindB = function (intervalB) {
+F.Behavior.prototype.blindB = function (intervalB) {
   return this.changes().blindE(intervalB).startsWith(this.valueNow());
 };
 
-Behavior.prototype.calmB = function (intervalB) {
+F.Behavior.prototype.calmB = function (intervalB) {
   return this.changes().calmE(intervalB).startsWith(this.valueNow());
 };
 
@@ -913,12 +913,12 @@ F.dom_.getDomVal = function (domObj, indices) {
 };
 
 /**
- * @param {Behavior|number} intervalB
- * @return {EventStream}
+ * @param {F.Behavior|number} intervalB
+ * @return {F.EventStream}
  */
 F.timerE = function(intervalB) {
-  if (!(intervalB instanceof Behavior)) {
-		intervalB = Behavior.constantB(intervalB);
+  if (!(intervalB instanceof F.Behavior)) {
+		intervalB = F.constantB(intervalB);
   }
   var eventStream = F.receiverE();
   var callback = function() {
@@ -1036,10 +1036,10 @@ F.dom_.staticEnstyle = function(obj, prop, val) {
 /**
  * @param {Object} obj
  * @param {string} prop
- * @param {Behavior|*} val
+ * @param {F.Behavior|*} val
  */
 F.dom_.dynamicEnstyle = function(obj, prop, val) {
-  if (val instanceof Behavior) {
+  if (val instanceof F.Behavior) {
     // TODO: redundant? liftB will call anyway ...
     F.dom_.staticEnstyle(obj, prop, val.valueNow()); 
     val.liftB(function(v) {
@@ -1065,7 +1065,7 @@ F.dom_.makeTagB = function(tagName) { return function() {
   var attribs, children;
 
   if (typeof(arguments[0]) === "object" && 
-      !(arguments[0].nodeType > 0 || arguments[0] instanceof Behavior || 
+      !(arguments[0].nodeType > 0 || arguments[0] instanceof F.Behavior || 
         arguments[0] instanceof Array)) {
     attribs = arguments[0];
     children = Array.prototype.slice.call(arguments, 1);
@@ -1078,7 +1078,7 @@ F.dom_.makeTagB = function(tagName) { return function() {
   var elt = document.createElement(tagName);
 
   F.dom_.mapWithKeys(attribs, function(name, val) {
-    if (val instanceof Behavior) {
+    if (val instanceof F.Behavior) {
       elt[name] = val.valueNow();
       val.liftB(function(v) { 
         F.dom_.staticEnstyle(elt, name, v); });
@@ -1089,7 +1089,7 @@ F.dom_.makeTagB = function(tagName) { return function() {
   });
 
   F.dom_.deepEach(children, function(child) {
-    if (child instanceof Behavior) {
+    if (child instanceof F.Behavior) {
       var lastVal = child.valueNow();
       if (lastVal instanceof Array) {
         lastVal = lastVal.map(F.dom_.elementize);
@@ -1140,10 +1140,10 @@ var OPTION = F.dom_.makeTagB('OPTION');
 var INPUT = F.dom_.makeTagB('INPUT');
 var SELECT = F.dom_.makeTagB('SELECT');
 
-//TEXTB: Behavior a -> Behavior Dom TextNode    
+//TEXTB: F.Behavior a -> F.Behavior Dom TextNode    
 var TEXTB = function (strB) {
-  //      if (!(strB instanceof Behavior || typeof(strB) == 'string')) { throw 'TEXTB: expected Behavior as second arg'; } //SAFETY
-  if (!(strB instanceof Behavior)) { strB = Behavior.constantB(strB); }
+  //      if (!(strB instanceof F.Behavior || typeof(strB) == 'string')) { throw 'TEXTB: expected F.Behavior as second arg'; } //SAFETY
+  if (!(strB instanceof F.Behavior)) { strB = F.constantB(strB); }
   
   return strB.changes().mapE(
       function (txt) { return document.createTextNode(txt); })
@@ -1158,9 +1158,9 @@ var TEXT = function (str) {
 // Reactive DOM
 
 //tagRec: Array (EventName a) * 
-//      ( .Array (Event a) * Array (Event a) -> Behavior Dom) -> Behavior Dom
+//      ( .Array (Event a) * Array (Event a) -> F.Behavior Dom) -> F.Behavior Dom
 
-// tagRec :: [EventName] * (EventStream DOMEvent, ... -> Element) -> Element
+// tagRec :: [EventName] * (F.EventStream DOMEvent, ... -> Element) -> Element
 F.tagRec = function (eventNames, maker) {
   if (!(eventNames instanceof Array)) { throw 'tagRec: expected array of event names as first arg'; } //SAFETY
   if (!(maker instanceof Function)) { throw 'tagRec: expected function as second arg'; } //SAFETY
@@ -1210,12 +1210,12 @@ F.dom_.extractEventStaticE = function(elt, eventName) {
 };
 
 /**
- * @param {Behavior|Node} elt
+ * @param {F.Behavior|Node} elt
  * @param {string} eventName
- * @return {EventStream}
+ * @return {F.EventStream}
  */
 F.extractEventE = function(elt, eventName) {
-  if (elt instanceof Behavior) {
+  if (elt instanceof F.Behavior) {
     return F.dom_.extractEventDynamicE(elt, eventName);
   }
   else {
@@ -1226,9 +1226,9 @@ F.extractEventE = function(elt, eventName) {
 F.$E = F.extractEventE;
 
 /**
- * @param {Behavior} domObj
+ * @param {F.Behavior} domObj
  * @param {...string} var_args
- * @return {EventStream}
+ * @return {F.EventStream}
  */
 F.extractEventsE = function (domObj, var_args) {
   var eventNames = Array.prototype.slice.call(arguments, 1);
@@ -1243,7 +1243,7 @@ F.extractEventsE = function (domObj, var_args) {
 
 //value of dom form object during trigger
 F.extractValueOnEventE = function (triggerE, domObj) {
-  if (!(triggerE instanceof EventStream)) { throw 'extractValueOnEventE: expected Event as first arg'; } //SAFETY
+  if (!(triggerE instanceof F.EventStream)) { throw 'extractValueOnEventE: expected Event as first arg'; } //SAFETY
   
   return F.extractValueOnEventB.apply(this, arguments).changes();
   
@@ -1251,12 +1251,12 @@ F.extractValueOnEventE = function (triggerE, domObj) {
 
 /**extractDomFieldOnEventE: Event * Dom U String . Array String -> Event a
  *
- * @param {EventStream} triggerE
+ * @param {F.EventStream} triggerE
  * @param {Node} domObj
  * @param {...*} var_args
  */
 F.extractDomFieldOnEventE = function (triggerE, domObj, var_args) {
-  if (!(triggerE instanceof EventStream)) { throw 'extractDomFieldOnEventE: expected Event as first arg'; } //SAFETY
+  if (!(triggerE instanceof F.EventStream)) { throw 'extractDomFieldOnEventE: expected Event as first arg'; } //SAFETY
   var indices = Array.prototype.slice.call(arguments, 2);
   var res =
   triggerE.mapE(
@@ -1268,7 +1268,7 @@ F.extractValueE = function (domObj) {
   return F.extractValueB.apply(this, arguments).changes();
 };
 
-//extractValueOnEventB: Event * DOM -> Behavior
+//extractValueOnEventB: Event * DOM -> F.Behavior
 // value of a dom form object, polled during trigger
 F.extractValueOnEventB = function (triggerE, domObj) {
   return F.dom_.extractValueStaticB(domObj, triggerE);
@@ -1278,8 +1278,8 @@ F.extractValueOnEventB = function (triggerE, domObj) {
  * If no trigger for extraction is specified, guess one
  *
  * @param {Node} domObj
- * @param {EventStream=} triggerE
- * @return {Behavior}
+ * @param {F.EventStream=} triggerE
+ * @return {F.Behavior}
  */
 F.dom_.extractValueStaticB = function (domObj, triggerE) {
   
@@ -1414,7 +1414,7 @@ F.dom_.extractValueStaticB = function (domObj, triggerE) {
 };
 
 F.extractValueB = function (domObj) {
-  if (domObj instanceof Behavior) {
+  if (domObj instanceof F.Behavior) {
     return domObj.liftB(function (dom) { return F.dom_.extractValueStaticB(dom); })
                  .switchB();
   } else {
@@ -1427,7 +1427,7 @@ F.$B = F.extractValueB;
 
 //into[index] = deepValueNow(from) via descending from object and mutating each field
 F.dom_.deepStaticUpdate = function (into, from, index) {
-  var fV = (from instanceof Behavior)? from.valueNow() : from;
+  var fV = (from instanceof F.Behavior)? from.valueNow() : from;
   if (typeof(fV) === 'object') {
     for (var i in fV) {
       if (!(Object.prototype) || !(Object.prototype[i])) {
@@ -1444,9 +1444,9 @@ F.dom_.deepStaticUpdate = function (into, from, index) {
 //into[index] = from
 //only updates on changes
 F.dom_.deepDynamicUpdate = function (into, from, index) {
-  var fV = (from instanceof Behavior)? from.valueNow() : from;
+  var fV = (from instanceof F.Behavior)? from.valueNow() : from;
   if (typeof(fV) === 'object') {
-    if (from instanceof Behavior) {
+    if (from instanceof F.Behavior) {
       throw 'deepDynamicUpdate: dynamic collections not supported';
     }
     for (var i in fV) {
@@ -1455,8 +1455,8 @@ F.dom_.deepDynamicUpdate = function (into, from, index) {
       }
     }
   } else {
-    if (from instanceof Behavior) {
-      new EventStream(
+    if (from instanceof F.Behavior) {
+      new F.EventStream(
         [from.changes()],
         function (p) {
           if (index) { 
@@ -1480,7 +1480,7 @@ F.insertValue = function (val, domObj /* . indices */) {
 
 //TODO convenience method (default to firstChild nodeValue) 
 F.insertValueE = function (triggerE, domObj /* . indices */) {
-  if (!(triggerE instanceof EventStream)) { throw 'insertValueE: expected Event as first arg'; } //SAFETY
+  if (!(triggerE instanceof F.EventStream)) { throw 'insertValueE: expected Event as first arg'; } //SAFETY
   
   var indices = Array.prototype.slice.call(arguments, 2);
   var parent = F.dom_.getMostDom(domObj, indices);
@@ -1490,7 +1490,7 @@ F.insertValueE = function (triggerE, domObj /* . indices */) {
     });
 };
 
-//insertValueB: Behavior * domeNode . Array (id) -> void
+//insertValueB: F.Behavior * domeNode . Array (id) -> void
 //TODO notify adapter of initial state change?
 F.insertValueB = function (triggerB, domObj /* . indices */) { 
   
@@ -1510,7 +1510,7 @@ F.insertValueB = function (triggerB, domObj /* . indices */) {
 //  complication though: registration of call backs should be scoped
 F.insertDomE = function (triggerE, domObj) {
   
-  if (!(triggerE instanceof EventStream)) { throw 'insertDomE: expected Event as first arg'; } //SAFETY
+  if (!(triggerE instanceof F.EventStream)) { throw 'insertDomE: expected Event as first arg'; } //SAFETY
   
   var objD = F.dom_.getObj(domObj);
   
@@ -1593,14 +1593,14 @@ F.insertDom = function (replaceWithD, hook, optPosition) {
  * if optID not specified, id must be set in init val of trigger
  * if position is not specified, default to 'over'
  *
- * @param {Behavior|Node} initTriggerB
+ * @param {F.Behavior|Node} initTriggerB
  * @param {string=} optID
  * @param {string=} optPosition
  */
 F.insertDomB = function (initTriggerB, optID, optPosition) {
   
-  if (!(initTriggerB instanceof Behavior)) { 
-    initTriggerB = Behavior.constantB(initTriggerB);
+  if (!(initTriggerB instanceof F.Behavior)) { 
+    initTriggerB = F.constantB(initTriggerB);
   }
   
   var triggerB = initTriggerB.liftB(function (d) { 
@@ -1628,7 +1628,7 @@ F.insertDomB = function (initTriggerB, optID, optPosition) {
 
 /**
  * @param {Node} elem
- * @return {EventStream}
+ * @return {F.EventStream}
  */
 F.mouseE = function(elem) {
   return F.extractEventE(elem,'mousemove')
@@ -1648,7 +1648,7 @@ F.mouseE = function(elem) {
 
 /**
  * @param {Node} elem
- * @return {Behavior}
+ * @return {F.Behavior}
  */
 F.mouseB = function(elem) {
   return F.mouseE(elem).startsWith({ left: 0, top: 0 });
@@ -1656,7 +1656,7 @@ F.mouseB = function(elem) {
 
 /**
  * @param {Node} elem
- * @return {Behavior}
+ * @return {F.Behavior}
  */
 F.mouseLeftB = function(elem) {
   return F.mouseB(elem).liftB(function(v) { return v.left; });
@@ -1665,7 +1665,7 @@ F.mouseLeftB = function(elem) {
 
 /** 
  * @param {Node} elem
- * @return {Behavior}
+ * @return {F.Behavior}
  */
 F.mouseTopB = function(elem) {
   return F.mouseB(elem).liftB(function(v) { return v.top; });
@@ -1673,7 +1673,7 @@ F.mouseTopB = function(elem) {
 
 /**
  * @param {Node} elem
- * @return {EventStream}
+ * @return {F.EventStream}
  */
 F.clicksE = function(elem) {
   return F.extractEventE(elem,'click');
@@ -1706,8 +1706,8 @@ F.xhr_.encodeREST = function(obj) {
 };
 
 /**
- * @param {EventStream} requestE
- * @return EventStream
+ * @param {F.EventStream} requestE
+ * @return F.EventStream
  */
 F.getWebServiceObjectE = function(requestE) {
   var responseE = F.receiverE();
