@@ -196,7 +196,7 @@ EventStream.prototype.removeListener = function (dependent) {
  *
  * @param {Array.<EventStream>=} dependsOn
  */
-var internalE = function(dependsOn) {
+F.internal_.internalE = function(dependsOn) {
   return new EventStream(dependsOn || [ ],function(pulse) { return pulse; });
 };
 
@@ -223,29 +223,30 @@ EventStream.oneE = function(val) {
     sent = true;
     return pulse;
   });
-  window.setTimeout(function() { sendEvent(evt,val); },0);
+  window.setTimeout(function() { F.sendEvent(evt,val); },0);
   return evt;
 };
 
 
-// a.k.a. mplus; mergeE(e1,e2) == mergeE(e2,e1)
-var mergeE = function() {
+/**
+ * @param {EventStream=} var_args
+ * @return {EventStream}
+ */
+F.mergeE = function(var_args) {
   if (arguments.length === 0) {
     return EventStream.zeroE();
   }
   else {
     var deps = F.mkArray(arguments);
-    return internalE(deps);
+    return F.internal_.internalE(deps);
   }
 };
-
 
 EventStream.prototype.mergeE = function() {
   var deps = F.mkArray(arguments);
   deps.push(this);
-  return internalE(deps);
+  return F.internal_.internalE(deps);
 };
-
 
 /**
  * @return {EventStream}
@@ -287,17 +288,16 @@ var Behavior = function (event, init, updater) {
       });
 };
 
-var receiverE = function() {
-  var evt = internalE();
+F.receiverE = function() {
+  var evt = F.internal_.internalE();
   evt.sendEvent = function(value) {
     F.internal_.propagatePulse(new F.internal_.Pulse(F.internal_.nextStamp(), value),evt);
   };
   return evt;
 };
 
-
 //note that this creates a new timestamp and new event queue
-var sendEvent = function (node, value) {
+F.sendEvent = function (node, value) {
   if (!(node instanceof EventStream)) { throw 'sendEvent: expected Event as first arg'; } //SAFETY
   
   F.internal_.propagatePulse(new F.internal_.Pulse(F.internal_.nextStamp(), value),node);
@@ -400,7 +400,7 @@ EventStream.prototype.skipFirstE = function() {
 
 /**
  * @param {*} init
- * @param {function(*,*):*} fold
+ * @param {Function} fold
  * @return {EventStream}
  */
 EventStream.prototype.collectE = function(init,fold) {
@@ -413,7 +413,6 @@ EventStream.prototype.collectE = function(init,fold) {
     });
 };
 
-
 /**
  * @return {EventStream}
  */
@@ -421,42 +420,40 @@ EventStream.prototype.switchE = function() {
   return this.bindE(function(v) { return v; });
 };
 
-var recE = function(fn) {
-  var inE = receiverE(); 
+F.recE = function(fn) {
+  var inE = F.receiverE(); 
   var outE = fn(inE); 
   outE.mapE(function(x) { 
     inE.sendEvent(x); }); 
   return outE; 
 };
 
-
-
-    
-
-
-var delayStaticE = function (event, time) {
+F.internal_.delayStaticE = function (event, time) {
   
-  var resE = internalE();
+  var resE = F.internal_.internalE();
   
   new EventStream([event], function (p) { 
-    setTimeout(function () { sendEvent(resE, p.value);},  time ); 
+    setTimeout(function () { F.sendEvent(resE, p.value);},  time ); 
     return F.doNotPropagate;
   });
   
   return resE;
 };
 
-//delayE: Event a * [Behavior] Number ->  Event a
+/**
+ * @param {Behavior|number} time
+ * @return {EventStream}
+ */
 EventStream.prototype.delayE = function (time) {
   var event = this;
   
   if (time instanceof Behavior) {
     
-    var receiverEE = internalE();
+    var receiverEE = F.internal_.internalE();
     var link = 
     {
       from: event, 
-      towards: delayStaticE(event, time.valueNow())
+      towards: F.internal_.delayStaticE(event, time.valueNow())
     };
     
     //TODO: Change semantics such that we are always guaranteed to get an event going out?
@@ -468,28 +465,22 @@ EventStream.prototype.delayE = function (time) {
         link =
         {
           from: event, 
-          towards: delayStaticE(event, p.value)
+          towards: F.internal_.delayStaticE(event, p.value)
         };
-        sendEvent(receiverEE, link.towards);
+        F.sendEvent(receiverEE, link.towards);
         return F.doNotPropagate;
       });
     
     var resE = receiverEE.switchE();
     
-    sendEvent(switcherE, time.valueNow());
+    F.sendEvent(switcherE, time.valueNow());
     return resE;
     
-      } else { return delayStaticE(event, time); }
+      } else { return F.internal_.delayStaticE(event, time); }
 };
-
-
-var delayE = function(sourceE,interval) {
-  return sourceE.delayE(interval);
-};
-
 
 //mapE: ([Event] (. Array a -> b)) . Array [Event] a -> [Event] b
-var mapE = function (fn /*, [node0 | val0], ...*/) {
+F.mapE = function (fn /*, [node0 | val0], ...*/) {
   //      if (!(fn instanceof Function)) { throw 'mapE: expected fn as second arg'; } //SAFETY
   
   var valsOrNodes = F.mkArray(arguments);
@@ -584,7 +575,7 @@ EventStream.prototype.calmE = function(time) {
 		time = Behavior.constantB(time);
 	}
 
-  var out = internalE();
+  var out = F.internal_.internalE();
   new EventStream(
     [this],
     function() {
@@ -593,7 +584,7 @@ EventStream.prototype.calmE = function(time) {
         if (towards !== null) { clearTimeout(towards); }
         towards = setTimeout( function () { 
             towards = null;
-            sendEvent(out,p.value); }, time.valueNow());
+            F.sendEvent(out,p.value); }, time.valueNow());
         return F.doNotPropagate;
       };
     }());
@@ -620,11 +611,17 @@ EventStream.prototype.blindE = function (time) {
     }());
 };
 
-
+/**
+ * @param {*} init
+ * @return {Behavior}
+ */
 EventStream.prototype.startsWith = function(init) {
   return new Behavior(this,init);
 };
 
+/**
+ * Returns the presently stored value.
+ */
 Behavior.prototype.valueNow = function() {
   return this.last;
 };
@@ -645,7 +642,7 @@ Behavior.prototype.switchB = function() {
   
   var prevSourceE = null;
   
-  var receiverE = internalE();
+  var receiverE = F.internal_.internalE();
   
   //XXX could result in out-of-order propagation! Fix!
   var makerE = 
@@ -660,20 +657,23 @@ Behavior.prototype.switchB = function() {
       prevSourceE = p.value.changes();
       prevSourceE.attachListener(receiverE);
       
-      sendEvent(receiverE, p.value.valueNow());
+      F.sendEvent(receiverE, p.value.valueNow());
       return F.doNotPropagate;
     });
   
   if (init instanceof Behavior) {
-    sendEvent(makerE, init);
+    F.sendEvent(makerE, init);
   }
   
   return receiverE.startsWith(init instanceof Behavior? init.valueNow() : init);
 };
 
-//TODO test, signature
-var timerB = function(interval) {
-  return timerE(interval).startsWith((new Date()).getTime());
+/**
+ * @param {Behavior|number} interval
+ * @return {Behavior}
+ */
+F.timerB = function(interval) {
+  return F.timerE(interval).startsWith((new Date()).getTime());
 };
 
 //TODO test, signature
@@ -682,14 +682,15 @@ Behavior.prototype.delayB = function (time, init) {
   if (!(time instanceof Behavior)) {
 		time = Behavior.constantB(time);
 	}
-  return delayE(triggerB.changes(), time)
+  return triggerB.changes()
+		       .delayE(time)
 		       .startsWith(arguments.length > 3 ? init : triggerB.valueNow());
 };
 
 //artificially send a pulse to underlying event node of a behaviour
 //note: in use, might want to use a receiver node as a proxy or an identity map
 Behavior.prototype.sendBehavior = function(val) {
-  sendEvent(this.underlyingRaw,val);
+  F.sendEvent(this.underlyingRaw,val);
 };
 
 Behavior.prototype.ifB = function(trueB,falseB) {
@@ -697,22 +698,19 @@ Behavior.prototype.ifB = function(trueB,falseB) {
   //TODO auto conversion for behaviour funcs
   if (!(trueB instanceof Behavior)) { trueB = Behavior.constantB(trueB); }
   if (!(falseB instanceof Behavior)) { falseB = Behavior.constantB(falseB); }
-  return liftB(function(te,t,f) { return te ? t : f; },testB,trueB,falseB);
+  return F.liftB(function(te,t,f) { return te ? t : f; },testB,trueB,falseB);
 };
 
 
-var ifB = function(test,cons,altr) {
-  if (!(test instanceof Behavior)) { test = Behavior.constantB(test); };
-  
-  return test.ifB(cons,altr);
-};
-
-
-
-//condB: . [Behavior boolean, Behavior a] -> Behavior a
-var condB = function (/* . pairs */ ) {
+/** 
+ * condB: . [Behavior boolean, Behavior a] -> Behavior a
+ *
+ * @param {Array.<Array.<Behavior>>} var_args
+ * @return {Behavior}
+ */
+F.condB = function (var_args ) {
   var pairs = F.mkArray(arguments);
-return liftB.apply({},[function() {
+return F.liftB.apply({},[function() {
     for(var i=0;i<pairs.length;i++) {
       if(arguments[i]) return arguments[pairs.length+i];
     }
@@ -721,20 +719,20 @@ return liftB.apply({},[function() {
             .concat(pairs.map(function(pair) {return pair[1];}))));
 };
 
-
-//TODO optionally append to objects
-//createConstantB: a -> Behavior a
+/**
+ * @param {*} val
+ * @return {Behavior}
+ */
 Behavior.constantB = function (val) {
-  return new Behavior(internalE(), val);
+  return new Behavior(F.internal_.internalE(), val);
 };
-
 
 /**
  * @param {Function|Behavior} fn
  * @param {...Behavior} var_args
  * @return Behavior
  */
-var liftB = function (fn, var_args) {
+F.liftB = function (fn, var_args) {
 
   var args = Array.prototype.slice.call(arguments, 1);
   
@@ -773,13 +771,20 @@ var liftB = function (fn, var_args) {
   return new Behavior(mid,getRes(),getRes);
 };
 
+/**
+ * @param {...Behavior} var_args
+ */
+Behavior.prototype.ap = function(var_args) {
+	var args = [this].concat(var_args);
+	return F.liftB.apply(null, var_args);
+}
 
 /**
  * @param {Behavior|Function} fn
  * @return Behavior
  */
 Behavior.prototype.liftB = function(fn) {
-	return liftB(fn, this);
+	return F.liftB(fn, this);
 };
 
 
@@ -787,19 +792,22 @@ Behavior.prototype.liftB = function(fn) {
  * @param {...Behavior} var_args
  */
 Behavior.andB = function (var_args) {
-return liftB.apply({},[function() {
+return F.liftB.apply({},[function() {
     for(var i=0; i<arguments.length; i++) {if(!arguments[i]) return false;}
     return true;
 }].concat(F.mkArray(arguments)));
 };
 
 Behavior.orB = function (/* . behaves */ ) {
-  return liftB.apply({},[function() {
+  return F.liftB.apply({},[function() {
       for(var i=0; i<arguments.length; i++) {if(arguments[i]) return true;}
       return false;
   }].concat(F.mkArray(arguments)));
 };
 
+/**
+ * @return {Behavior}
+ */
 Behavior.prototype.notB = function() {
   return this.liftB(function(v) { return !v; });
 };
@@ -812,9 +820,7 @@ Behavior.prototype.calmB = function (intervalB) {
   return this.changes().calmE(intervalB).startsWith(this.valueNow());
 };
 
-
-  
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
 // DOM Utilities
 
 /**
@@ -827,11 +833,11 @@ Behavior.prototype.calmB = function (intervalB) {
 F.dom_.swapDom = function(replaceMe, withMe) {
   if ((replaceMe === null) || (replaceMe === undefined)) { throw ('swapDom: expected dom node or id, received: ' + replaceMe); } //SAFETY
   
-  var replaceMeD = getObj(replaceMe);
+  var replaceMeD = F.dom_.getObj(replaceMe);
   if (!(replaceMeD.nodeType > 0)) { throw ('swapDom expected a Dom node as first arg, received ' + replaceMeD); } //SAFETY
   
   if (withMe) {
-    var withMeD = getObj(withMe);
+    var withMeD = F.dom_.getObj(withMe);
     if (!(withMeD.nodeType > 0)) { throw 'swapDom: can only swap with a DOM object'; } //SAFETY
     try {
       if (replaceMeD.parentNode === null) { return withMeD; }
@@ -845,7 +851,6 @@ F.dom_.swapDom = function(replaceMe, withMe) {
   return replaceMeD;
 };
 
-
 //getObj: String U Dom -> Dom
 //throws 
 //  'getObj: expects a Dom obj or Dom id as first arg'
@@ -853,7 +858,7 @@ F.dom_.swapDom = function(replaceMe, withMe) {
 //  'getObj: no obj to get
 //also known as '$'
 //TODO Maybe alternative?
-var getObj = function (name) {
+F.dom_.getObj = function (name) {
   if (typeof(name) === 'object') { return name; }
   else if ((typeof(name) === 'null') || (typeof(name) === 'undefined')) {
     throw 'getObj: expects a Dom obj or Dom id as first arg';
@@ -871,7 +876,7 @@ var getObj = function (name) {
   }
 };
 
-var $ = getObj;
+var $ = F.dom_.getObj;
 
 /**
  * helper to reduce obj look ups
@@ -885,7 +890,7 @@ var $ = getObj;
  * @return {Object}
  */
 F.dom_.getMostDom = function (domObj, indices) {
-  var acc = getObj(domObj);
+  var acc = F.dom_.getObj(domObj);
   if ( (indices === null) || (indices === undefined) || (indices.length < 1)) {
     return acc;
   } else {
@@ -896,7 +901,7 @@ F.dom_.getMostDom = function (domObj, indices) {
   }       
 };
 
-var getDomVal = function (domObj, indices) {
+F.dom_.getDomVal = function (domObj, indices) {
   var val = F.dom_.getMostDom(domObj, indices);
   if (indices && indices.length > 0) {
     val = val[indices[indices.length - 1]];
@@ -904,11 +909,15 @@ var getDomVal = function (domObj, indices) {
   return val;
 };
 
-var timerE = function(intervalB) {
+/**
+ * @param {Behavior|number} intervalB
+ * @return {EventStream}
+ */
+F.timerE = function(intervalB) {
   if (!(intervalB instanceof Behavior)) {
 		intervalB = Behavior.constantB(intervalB);
   }
-  var eventStream = receiverE();
+  var eventStream = F.receiverE();
   var callback = function() {
     eventStream.sendEvent((new Date()).getTime());
   };
@@ -927,10 +936,10 @@ var timerE = function(intervalB) {
 
 
 // Applies f to each element of a nested array.
-var deepEach = function(arr, f) {
+F.dom_.deepEach = function(arr, f) {
   for (var i = 0; i < arr.length; i++) {
     if (arr[i] instanceof Array) {
-      deepEach(arr[i], f);
+      F.dom_.deepEach(arr[i], f);
     }
     else {
       f(arr[i]);
@@ -939,7 +948,7 @@ var deepEach = function(arr, f) {
 };
 
 
-var mapWithKeys = function(obj, f) {
+F.dom_.mapWithKeys = function(obj, f) {
   for (var ix in obj) {
     if (!(Object.prototype && Object.prototype[ix] === obj[ix])) {
       f(ix, obj[ix]);
@@ -1035,7 +1044,7 @@ F.dom_.dynamicEnstyle = function(obj, prop, val) {
     });
   }
   else if (val instanceof Object) {
-    mapWithKeys(val, function(k, v) {
+    F.dom_.mapWithKeys(val, function(k, v) {
       F.dom_.dynamicEnstyle(obj[prop], k, v);
     });
   }
@@ -1065,7 +1074,7 @@ var makeTagB = function(tagName) { return function() {
  
   var elt = document.createElement(tagName);
 
-  mapWithKeys(attribs, function(name, val) {
+  F.dom_.mapWithKeys(attribs, function(name, val) {
     if (val instanceof Behavior) {
       elt[name] = val.valueNow();
       val.liftB(function(v) { 
@@ -1076,7 +1085,7 @@ var makeTagB = function(tagName) { return function() {
     }
   });
 
-  deepEach(children, function(child) {
+  F.dom_.deepEach(children, function(child) {
     if (child instanceof Behavior) {
       var lastVal = child.valueNow();
       if (lastVal instanceof Array) {
@@ -1162,7 +1171,7 @@ var tagRec = function (eventNames, maker) {
   var receivers = [ ];
   var i;
   for (i = 0; i < numEvents; i++) {
-    receivers.push(internalE());
+    receivers.push(F.internal_.internalE());
   }
 
   var elt = maker.apply(this, receivers);
@@ -1175,7 +1184,7 @@ var tagRec = function (eventNames, maker) {
 };
 
 var extractEventDynamicE = function(eltB, eventName) {
-  var eventStream = receiverE();
+  var eventStream = F.receiverE();
   var callback = function(evt) {
     eventStream.sendEvent(evt); 
   };
@@ -1193,7 +1202,7 @@ var extractEventDynamicE = function(eltB, eventName) {
 };
 
 var extractEventStaticE = function(elt, eventName) {
-  var eventStream = receiverE();
+  var eventStream = F.receiverE();
   var callback = function(evt) {
     eventStream.sendEvent(evt); 
   };
@@ -1231,7 +1240,7 @@ var extractEventsE = function (domObj, var_args) {
            return extractEventE(domObj, eventName); 
          });
   
-  return mergeE.apply(this, events);
+  return F.mergeE.apply(null, events);
 };
 
 //value of dom form object during trigger
@@ -1253,7 +1262,7 @@ var extractDomFieldOnEventE = function (triggerE, domObj, var_args) {
   var indices = Array.prototype.slice.call(arguments, 2);
   var res =
   triggerE.mapE(
-    function () { return getDomVal(domObj, indices); });
+    function () { return F.dom_.getDomVal(domObj, indices); });
   return res;
 };
 
@@ -1278,7 +1287,7 @@ var extractValueStaticB = function (domObj, triggerE) {
   
   var objD;
   try {
-    objD = getObj(domObj);
+    objD = F.dom_.getObj(domObj);
     //This is for IE
     if(typeof(domObj) === 'string' && objD.id != domObj) {
       throw 'Make a radio group';
@@ -1388,7 +1397,7 @@ var extractValueStaticB = function (domObj, triggerE) {
     };
     
     var actualTriggerE = triggerE ? triggerE :
-    mergeE.apply(
+    F.mergeE.apply(
       this,
       radiosAD.map(
         function (radio) { 
@@ -1408,9 +1417,8 @@ var extractValueStaticB = function (domObj, triggerE) {
 
 var extractValueB = function (domObj) {
   if (domObj instanceof Behavior) {
-    return liftB(function (dom) { return extractValueStaticB(dom); },
-                  domObj)
-           .switchB();
+    return domObj.liftB(function (dom) { return extractValueStaticB(dom); })
+                 .switchB();
   } else {
     return extractValueStaticB(domObj);
   }
@@ -1500,11 +1508,11 @@ var insertValueB = function (triggerB, domObj /* . indices */) {
 
 //TODO copy dom event call backs of original to new? i don't thinks so
 //  complication though: registration of call backs should be scoped
-var insertDomE = function (triggerE, domObj) {
+F.insertDomE = function (triggerE, domObj) {
   
   if (!(triggerE instanceof EventStream)) { throw 'insertDomE: expected Event as first arg'; } //SAFETY
   
-  var objD = getObj(domObj);
+  var objD = F.dom_.getObj(domObj);
   
   var res = triggerE.mapE(
     function (newObj) {
@@ -1575,7 +1583,7 @@ var insertDomInternal = function (hookD, replaceWithD, optPosition) {
 var insertDom = function (replaceWithD, hook, optPosition) {
   //TODO span of textnode instead of textnode?
   insertDomInternal(
-    getObj(hook), 
+    F.dom_.getObj(hook), 
     ((typeof(replaceWithD) === 'object') && (replaceWithD.nodeType > 0)) ? replaceWithD :
     document.createTextNode(replaceWithD),      
     optPosition);           
@@ -1589,15 +1597,13 @@ var insertDom = function (replaceWithD, hook, optPosition) {
  * @param {string=} optID
  * @param {string=} optPosition
  */
-var insertDomB = function (initTriggerB, optID, optPosition) {
+F.insertDomB = function (initTriggerB, optID, optPosition) {
   
   if (!(initTriggerB instanceof Behavior)) { 
     initTriggerB = Behavior.constantB(initTriggerB);
   }
   
-  var triggerB = 
-  liftB(
-    function (d) { 
+  var triggerB = initTriggerB.liftB(function (d) { 
       if ((typeof(d) === 'object') && (d.nodeType >  0)) {
         return d;
       } else {
@@ -1605,23 +1611,26 @@ var insertDomB = function (initTriggerB, optID, optPosition) {
         res.appendChild(document.createTextNode(d));
         return res;
       }
-    },
-    initTriggerB);
+    });
   
   var initD = triggerB.valueNow();
   if (!((typeof(initD) === 'object') && (initD.nodeType === 1))) { throw ('insertDomB: initial value conversion failed: ' + initD); } //SAFETY  
   
   insertDomInternal(
-    optID === null || optID === undefined ? getObj(initD.getAttribute('id')) : getObj(optID), 
+    optID === null || optID === undefined ? F.dom_.getObj(initD.getAttribute('id')) : F.dom_.getObj(optID), 
     initD, 
     optPosition);
   
-  var resB = insertDomE(triggerB.changes(), initD).startsWith(initD);
+  var resB = F.insertDomE(triggerB.changes(), initD).startsWith(initD);
   
   return resB;
 };
 
-var mouseE = function(elem) {
+/**
+ * @param {Node} elem
+ * @return {EventStream}
+ */
+F.mouseE = function(elem) {
   return extractEventE(elem,'mousemove')
   .mapE(function(evt) {
       if (evt.pageX | evt.pageY) {
@@ -1637,23 +1646,36 @@ var mouseE = function(elem) {
   });
 };
 
-var mouseB = function(elem) {
-  return mouseE(elem).startsWith({ left: 0, top: 0 });
+/**
+ * @param {Node} elem
+ * @return {Behavior}
+ */
+F.mouseB = function(elem) {
+  return F.mouseE(elem).startsWith({ left: 0, top: 0 });
+};
+
+/**
+ * @param {Node} elem
+ * @return {Behavior}
+ */
+F.mouseLeftB = function(elem) {
+  return F.mouseB(elem).liftB(function(v) { return v.left; });
 };
 
 
-var mouseLeftB = function(elem) {
-  return liftB(function(v) { return v.left; },mouseB(elem));
+/** 
+ * @param {Node} elem
+ * @return {Behavior}
+ */
+F.mouseTopB = function(elem) {
+  return F.mouseB(elem).liftB(function(v) { return v.top; });
 };
 
-
-var mouseTopB = function(elem) {
-  return mouseB(elem).liftB(function(v) { return v.top; });
-};
-
-
-
-var clicksE = function(elem) {
+/**
+ * @param {Node} elem
+ * @return {EventStream}
+ */
+F.clicksE = function(elem) {
   return extractEventE(elem,'click');
 };
 
@@ -1688,7 +1710,7 @@ var encodeREST = function(obj) {
  * @return EventStream
  */
 var getWebServiceObjectE = function(requestE) {
-  var responseE = receiverE();
+  var responseE = F.receiverE();
 
   requestE.mapE(function (obj) {
       var body = '';
