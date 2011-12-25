@@ -817,9 +817,14 @@ Behavior.prototype.calmB = function (intervalB) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DOM Utilities
 
-//assumes IDs already preserved
-//swapDom: (Dom a U String) [* (Dom b U String)] -> Dom a
-var swapDom = function(replaceMe, withMe) {
+/**
+ * assumes IDs already preserved
+ *
+ * @param {Node|string} replaceMe
+ * @param {Node|string} withMe
+ * @return {Node}
+ */
+F.dom_.swapDom = function(replaceMe, withMe) {
   if ((replaceMe === null) || (replaceMe === undefined)) { throw ('swapDom: expected dom node or id, received: ' + replaceMe); } //SAFETY
   
   var replaceMeD = getObj(replaceMe);
@@ -868,14 +873,18 @@ var getObj = function (name) {
 
 var $ = getObj;
 
-
-
-//helper to reduce obj look ups
-//getDynObj: domNode . Array (id) -> domObj
-//obj * [] ->  obj
-//obj * ['position'] ->  obj
-//obj * ['style', 'color'] ->  obj.style
-var getMostDom = function (domObj, indices) {
+/**
+ * helper to reduce obj look ups
+ * getDynObj: domNode . Array (id) -> domObj
+ * obj * [] ->  obj
+ * obj * ['position'] ->  obj
+ * obj * ['style', 'color'] ->  obj.style
+ *
+ * @param {Node|string} domObj
+ * @param {Array.<string>} indices
+ * @return {Object}
+ */
+F.dom_.getMostDom = function (domObj, indices) {
   var acc = getObj(domObj);
   if ( (indices === null) || (indices === undefined) || (indices.length < 1)) {
     return acc;
@@ -888,7 +897,7 @@ var getMostDom = function (domObj, indices) {
 };
 
 var getDomVal = function (domObj, indices) {
-  var val = getMostDom(domObj, indices);
+  var val = F.dom_.getMostDom(domObj, indices);
   if (indices && indices.length > 0) {
     val = val[indices[indices.length - 1]];
   }
@@ -939,7 +948,12 @@ var mapWithKeys = function(obj, f) {
 };
 
 
-var insertAfter = function(parent, newChild, refChild) {
+/**
+ * @param {Node} parent
+ * @param {Node} newChild
+ * @param {Node} refChild
+ */
+F.dom_.insertAfter = function(parent, newChild, refChild) {
   if (typeof refChild != "undefined" && refChild.nextSibling) {
     parent.insertBefore(newChild, refChild.nextSibling);
   }
@@ -949,8 +963,12 @@ var insertAfter = function(parent, newChild, refChild) {
   }
 };
 
-
-var swapChildren = function(parent, existingChildren, newChildren) {
+/**
+ * @param {Node} parent
+ * @param {Array.<Node>} existingChildren
+ * @param {Array.<Node>} newChildren
+ */
+F.dom_.swapChildren = function(parent, existingChildren, newChildren) {
   var end = Math.min(existingChildren.length, newChildren.length);
   var i;
 
@@ -967,23 +985,34 @@ var swapChildren = function(parent, existingChildren, newChildren) {
   }
   else if (end < newChildren.length) {
     for (i = end; i < newChildren.length; i++) {
-      insertAfter(parent, newChildren[i], newChildren[i - 1]);
+      F.dom_.insertAfter(parent, newChildren[i], newChildren[i - 1]);
     }
   }
 };
 
-
-// elementize :: any -> node
-var elementize /* not a word */ = function(maybeElement) {
+/**
+ * not a word
+ *
+ * @param {*} maybeElement
+ * @return {Node}
+ *
+ * @suppress {checkTypes} the nodeType check does not get by the typechecker
+ */
+F.dom_.elementize = function(maybeElement) {
   return (maybeElement.nodeType > 0) 
            ? maybeElement
-           : document.createTextNode(maybeElement.toString());
+           : document.createTextNode(maybeElement.toString()); // TODO: toString!!
 };
 
 
-var staticEnstyle = function(obj, prop, val) {
+/**
+ * @param {Object} obj
+ * @param {string} prop
+ * @param {*} val
+ */
+F.dom_.staticEnstyle = function(obj, prop, val) {
   if (val instanceof Object) {
-    // TODO: enstyle is missing?
+    // TODO: enstyle is missing? I think this should be staticEnstyle.
     // mapWithKeys(val, function(k, v) { enstyle(obj[prop], k, v); });
   }
   else {
@@ -992,16 +1021,22 @@ var staticEnstyle = function(obj, prop, val) {
 };
 
 
-var dynamicEnstyle = function(obj, prop, val) {
+/**
+ * @param {Object} obj
+ * @param {string} prop
+ * @param {Behavior|*} val
+ */
+F.dom_.dynamicEnstyle = function(obj, prop, val) {
   if (val instanceof Behavior) {
-    staticEnstyle(obj, prop, val.valueNow());
+    // TODO: redundant? liftB will call anyway ...
+    F.dom_.staticEnstyle(obj, prop, val.valueNow()); 
     val.liftB(function(v) {
-      staticEnstyle(obj, prop, v);
+      F.dom_.staticEnstyle(obj, prop, v);
     });
   }
   else if (val instanceof Object) {
     mapWithKeys(val, function(k, v) {
-      dynamicEnstyle(obj[prop], k, v);
+      F.dom_.dynamicEnstyle(obj[prop], k, v);
     });
   }
   else {
@@ -1034,10 +1069,10 @@ var makeTagB = function(tagName) { return function() {
     if (val instanceof Behavior) {
       elt[name] = val.valueNow();
       val.liftB(function(v) { 
-        staticEnstyle(elt, name, v); });
+        F.dom_.staticEnstyle(elt, name, v); });
     }
     else {
-      dynamicEnstyle(elt, name, val);
+      F.dom_.dynamicEnstyle(elt, name, val);
     }
   });
 
@@ -1045,20 +1080,20 @@ var makeTagB = function(tagName) { return function() {
     if (child instanceof Behavior) {
       var lastVal = child.valueNow();
       if (lastVal instanceof Array) {
-        lastVal = lastVal.map(elementize);
+        lastVal = lastVal.map(F.dom_.elementize);
         lastVal.forEach(function(dynChild) { elt.appendChild(dynChild); });
         child.liftB(function(currentVal) {
-          currentVal = currentVal.map(elementize);
-          swapChildren(elt, lastVal, currentVal);
+          currentVal = currentVal.map(F.dom_.elementize);
+          F.dom_.swapChildren(elt, lastVal, currentVal);
           lastVal = currentVal;
         });
       }
       else {
-        lastVal = elementize(lastVal);
+        lastVal = F.dom_.elementize(lastVal);
         elt.appendChild(lastVal);
         var lastValIx = elt.childNodes.length - 1; 
         child.liftB(function(currentVal) {
-          currentVal = elementize(currentVal);
+          currentVal = F.dom_.elementize(currentVal);
           if (lastVal.parentNode != elt) {
             elt.appendChild(currentVal); }
           else {
@@ -1068,7 +1103,7 @@ var makeTagB = function(tagName) { return function() {
       }
     }
     else {
-      elt.appendChild(elementize(child));
+      elt.appendChild(F.dom_.elementize(child));
     }
   });
 
@@ -1431,7 +1466,7 @@ var deepDynamicUpdate = function (into, from, index) {
 
 var insertValue = function (val, domObj /* . indices */) {
   var indices = Array.prototype.slice.call(arguments, 2);
-  var parent = getMostDom(domObj, indices);
+  var parent = F.dom_.getMostDom(domObj, indices);
   deepStaticUpdate(parent, val, indices ? indices[indices.length - 1] : undefined);      
 };
 
@@ -1440,7 +1475,7 @@ var insertValueE = function (triggerE, domObj /* . indices */) {
   if (!(triggerE instanceof EventStream)) { throw 'insertValueE: expected Event as first arg'; } //SAFETY
   
   var indices = Array.prototype.slice.call(arguments, 2);
-  var parent = getMostDom(domObj, indices);
+  var parent = F.dom_.getMostDom(domObj, indices);
   
     triggerE.mapE(function (v) {
       deepStaticUpdate(parent, v, indices? indices[indices.length - 1] : undefined);
@@ -1452,7 +1487,7 @@ var insertValueE = function (triggerE, domObj /* . indices */) {
 var insertValueB = function (triggerB, domObj /* . indices */) { 
   
   var indices = Array.prototype.slice.call(arguments, 2);
-  var parent = getMostDom(domObj, indices);
+  var parent = F.dom_.getMostDom(domObj, indices);
   
   
   //NOW
@@ -1477,7 +1512,7 @@ var insertDomE = function (triggerE, domObj) {
       if (!((typeof(newObj) === 'object') && (newObj.nodeType === 1))) { 
         newObj = SPAN({}, newObj);
       }
-      swapDom(objD, newObj);
+      F.dom_.swapDom(objD, newObj);
       objD = newObj;
       return newObj; // newObj;
     });
@@ -1496,7 +1531,7 @@ var insertDomInternal = function (hookD, replaceWithD, optPosition) {
   case undefined:
   case null:
   case 'over':
-    swapDom(hookD,replaceWithD);
+    F.dom_.swapDom(hookD,replaceWithD);
     break;
   case 'before':  
     hookD.parentNode.insertBefore(replaceWithD, hookD);
