@@ -1425,12 +1425,12 @@ F.$B = F.extractValueB;
 
 
 //into[index] = deepValueNow(from) via descending from object and mutating each field
-var deepStaticUpdate = function (into, from, index) {
+F.dom_.deepStaticUpdate = function (into, from, index) {
   var fV = (from instanceof Behavior)? from.valueNow() : from;
   if (typeof(fV) === 'object') {
     for (var i in fV) {
       if (!(Object.prototype) || !(Object.prototype[i])) {
-        deepStaticUpdate(index? into[index] : into, fV[i], i);
+        F.dom_.deepStaticUpdate(index? into[index] : into, fV[i], i);
       }
     }
   } else {
@@ -1442,7 +1442,7 @@ var deepStaticUpdate = function (into, from, index) {
 //note: no object may be time varying, just the fields
 //into[index] = from
 //only updates on changes
-var deepDynamicUpdate = function (into, from, index) {
+F.dom_.deepDynamicUpdate = function (into, from, index) {
   var fV = (from instanceof Behavior)? from.valueNow() : from;
   if (typeof(fV) === 'object') {
     if (from instanceof Behavior) {
@@ -1450,7 +1450,7 @@ var deepDynamicUpdate = function (into, from, index) {
     }
     for (var i in fV) {
       if (!(Object.prototype) || !(Object.prototype[i])) {
-        deepDynamicUpdate(index? into[index] : into, fV[i], i);
+        F.dom_.deepDynamicUpdate(index? into[index] : into, fV[i], i);
       }
     }
   } else {
@@ -1473,7 +1473,8 @@ var deepDynamicUpdate = function (into, from, index) {
 F.insertValue = function (val, domObj /* . indices */) {
   var indices = Array.prototype.slice.call(arguments, 2);
   var parent = F.dom_.getMostDom(domObj, indices);
-  deepStaticUpdate(parent, val, indices ? indices[indices.length - 1] : undefined);      
+  F.dom_.deepStaticUpdate(parent, val, 
+			indices ? indices[indices.length - 1] : undefined);      
 };
 
 //TODO convenience method (default to firstChild nodeValue) 
@@ -1484,7 +1485,7 @@ F.insertValueE = function (triggerE, domObj /* . indices */) {
   var parent = F.dom_.getMostDom(domObj, indices);
   
     triggerE.mapE(function (v) {
-      deepStaticUpdate(parent, v, indices? indices[indices.length - 1] : undefined);
+      F.dom_.deepStaticUpdate(parent, v, indices? indices[indices.length - 1] : undefined);
     });
 };
 
@@ -1497,10 +1498,10 @@ F.insertValueB = function (triggerB, domObj /* . indices */) {
   
   
   //NOW
-  deepStaticUpdate(parent, triggerB, indices ? indices[indices.length - 1] : undefined);
+  F.dom_.deepStaticUpdate(parent, triggerB, indices ? indices[indices.length - 1] : undefined);
   
   //LATER
-  deepDynamicUpdate(parent, triggerB, indices? indices[indices.length -1] : undefined);
+  F.dom_.deepDynamicUpdate(parent, triggerB, indices? indices[indices.length -1] : undefined);
   
 };
 
