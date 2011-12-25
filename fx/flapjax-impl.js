@@ -35,6 +35,7 @@ var F = F || { };
 
 F.internal_ = { };
 F.dom_ = { };
+F.xhr_ = { };
 
 // Sentinel value returned by updaters to stop propagation.
 F.doNotPropagate = { };
@@ -1682,7 +1683,7 @@ F.clicksE = function(elem) {
 //////////////////////////////////////////////////////////////////////////////
 // Combinators for web services
 
-var ajaxRequest = function(method,url,body,async,callback) {
+F.xhr_.ajaxRequest = function(method,url,body,async,callback) {
   var xhr = new window.XMLHttpRequest();
   xhr.onload = function() { callback(xhr); };
   xhr.open(method,url,async);
@@ -1693,7 +1694,7 @@ var ajaxRequest = function(method,url,body,async,callback) {
   return xhr;
 };
 
-var encodeREST = function(obj) {
+F.xhr_.encodeREST = function(obj) {
   var str = "";
   for (var field in obj) {
     if (typeof(obj[field]) !== 'function') { // skips functions in the object
@@ -1708,7 +1709,7 @@ var encodeREST = function(obj) {
  * @param {EventStream} requestE
  * @return EventStream
  */
-var getWebServiceObjectE = function(requestE) {
+F.getWebServiceObjectE = function(requestE) {
   var responseE = F.receiverE();
 
   requestE.mapE(function (obj) {
@@ -1718,7 +1719,7 @@ var getWebServiceObjectE = function(requestE) {
       
       var reqType = obj.request ? obj.request : (obj.fields ? 'post' : 'get');
       if (obj.request === 'get') {
-        if (obj.fields) { url += "?" + encodeREST(obj.fields); }
+        if (obj.fields) { url += "?" + F.xhr_.encodeREST(obj.fields); }
         body = '';
         method = 'GET';
       } else if (obj.request === 'post') {
@@ -1729,7 +1730,7 @@ var getWebServiceObjectE = function(requestE) {
         method = 'POST';
       }
       else if (obj.request === 'rest') {
-        body = encodeREST(obj.fields);
+        body = F.xhr_.encodeREST(obj.fields);
         method = 'POST';
       }
       else {
@@ -1742,19 +1743,19 @@ var getWebServiceObjectE = function(requestE) {
       
       // Branch on the response type to determine how to parse it
       if (obj.response === 'json') {
-        xhr = ajaxRequest(method,url,body,async,
+        xhr = F.xhr_.ajaxRequest(method,url,body,async,
           function(xhr) {
             responseE.sendEvent(JSON.parse(xhr.responseText)); 
           });
       }
       else if (obj.response === 'xml') {
-        ajaxRequest(method,url,body,async,
+        F.xhr_.ajaxRequest(method,url,body,async,
           function(xhr) {
             responseE.sendEvent(xhr.responseXML);
           });
       }
       else if (obj.response === 'plain' || !obj.response) {
-        ajaxRequest(method,url,body,async,
+        F.xhr_.ajaxRequest(method,url,body,async,
           function(xhr) {
             responseE.sendEvent(xhr.responseText);
         });
