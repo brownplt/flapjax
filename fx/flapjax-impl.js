@@ -120,16 +120,13 @@ F.internal_.propagatePulse = function (pulse, node) {
   var queue = new F.internal_.PQ(); //topological queue for current timestep
 
   queue.insert({k:node.rank,n:node,v:pulse});
-  var len = 1;
 
-  while (len) {
+  while (!queue.isEmpty()) {
     var qv = queue.pop();
-    len--;
     var nextPulse = qv.n.updater(new F.internal_.Pulse(qv.v.stamp, qv.v.value));
 
     if (nextPulse != F.doNotPropagate) {
       for (var i = 0; i < qv.n.sendsTo.length; i++) {
-        len++;
 	queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
       }
     }
@@ -146,11 +143,12 @@ F.EventStream = function (nodes,updater) {
   
   this.sendsTo = []; //forward link
   
+  this.rank = ++F.internal_.lastRank;
+
   for (var i = 0; i < nodes.length; i++) {
     nodes[i].attachListener(this);
   }
   
-  this.rank = ++F.internal_.lastRank;
 };
 
 /**
@@ -164,7 +162,6 @@ F.EventStream.prototype.attachListener = function(dependent) {
   this.sendsTo.push(dependent);
   
   if(this.rank > dependent.rank) {
-    var lowest = F.internal_.lastRank+1;
     var q = [dependent];
     while(q.length) {
       var cur = q.splice(0,1)[0];
@@ -509,17 +506,16 @@ F.mapE = function (fn /*, [node0 | val0], ...*/) {
     } 
   }
   
-  var context = this;
   var nofnodes = selectors.slice(1);
   
   if (nodes.length === 0) {
-    return F.oneE(fn.apply(context, valsOrNodes));
+    return F.oneE(fn.apply(null, valsOrNodes));
   } else if ((nodes.length === 1) && (fn instanceof Function)) {
     return nodes[0].mapE(
       function () {
         var args = arguments;
         return fn.apply(
-          context, 
+          null, 
           nofnodes.map(function (s) {return s(args);}));
       });
   } else if (nodes.length === 1) {
@@ -527,7 +523,7 @@ F.mapE = function (fn /*, [node0 | val0], ...*/) {
       function (v) {
         var args = arguments;
         return v.apply(
-          context, 
+          null, 
           nofnodes.map(function (s) {return s(args);}));
       });                
   }
@@ -748,9 +744,8 @@ F.liftB = function (fn, var_args) {
     return v instanceof F.Behavior ? v.last : v;
   };
   
-  var ctx = this;
   var getRes = function () {
-    return getCur(fn).apply(ctx, args.map(getCur));
+    return getCur(fn).apply(null, args.map(getCur));
   };
 
   if(constituentsE.length === 1) {
@@ -1173,7 +1168,7 @@ F.tagRec = function (eventNames, maker) {
     receivers.push(F.internal_.internalE());
   }
 
-  var elt = maker.apply(this, receivers);
+  var elt = maker.apply(null, receivers);
 
   for (i = 0; i < numEvents; i++) {
     F.extractEventE(elt, eventNames[i]).attachListener(receivers[i]);
@@ -1245,7 +1240,7 @@ F.extractEventsE = function (domObj, var_args) {
 F.extractValueOnEventE = function (triggerE, domObj) {
   if (!(triggerE instanceof F.EventStream)) { throw 'extractValueOnEventE: expected Event as first arg'; } //SAFETY
   
-  return F.extractValueOnEventB.apply(this, arguments).changes();
+  return F.extractValueOnEventB.apply(null, arguments).changes();
   
 };
 
@@ -1265,7 +1260,7 @@ F.extractDomFieldOnEventE = function (triggerE, domObj, var_args) {
 };
 
 F.extractValueE = function (domObj) {
-  return F.extractValueB.apply(this, arguments).changes();
+  return F.extractValueB.apply(null, arguments).changes();
 };
 
 //extractValueOnEventB: Event * DOM -> F.Behavior
@@ -1396,7 +1391,7 @@ F.dom_.extractValueStaticB = function (domObj, triggerE) {
     
     var actualTriggerE = triggerE ? triggerE :
     F.mergeE.apply(
-      this,
+      null,
       radiosAD.map(
         function (radio) { 
           return F.extractEventsE(
