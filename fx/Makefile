@@ -1,8 +1,17 @@
 JSCC = jscc
 COMPILERDATA = ../compiler/data
 WEBSITEFX = ../website/build/fx
+JSONEXTERN=../tools/json.js 
+CLOSURE=java -jar ../tools/compiler.jar
 
-all: flapjax.debug.js flapjax.js flapjax.jsi
+all: flapjax.min.js
+
+flapjax.min.js: flapjax-impl.js
+	$(CLOSURE) --externs $(JSONEXTERN)\
+		--language_in ECMASCRIPT5\
+		--warning_level VERBOSE\
+		--js	flapjax-impl.js\
+		--js_output_file flapjax.min.js
 
 clean:
 	rm -f flapjax.debug.js
