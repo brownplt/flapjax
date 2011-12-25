@@ -787,7 +787,6 @@ Behavior.prototype.liftB = function(fn) {
 	return F.liftB(fn, this);
 };
 
-
 /**
  * @param {...Behavior} var_args
  */
@@ -798,7 +797,10 @@ return F.liftB.apply({},[function() {
 }].concat(F.mkArray(arguments)));
 };
 
-Behavior.orB = function (/* . behaves */ ) {
+/**
+ * @param {...Behavior} var_args
+ */
+Behavior.orB = function (var_args) {
   return F.liftB.apply({},[function() {
       for(var i=0; i<arguments.length; i++) {if(arguments[i]) return true;}
       return false;
@@ -857,7 +859,6 @@ F.dom_.swapDom = function(replaceMe, withMe) {
 //  'getObj: flapjax: cannot access object'
 //  'getObj: no obj to get
 //also known as '$'
-//TODO Maybe alternative?
 F.dom_.getObj = function (name) {
   if (typeof(name) === 'object') { return name; }
   else if ((typeof(name) === 'null') || (typeof(name) === 'undefined')) {
@@ -876,7 +877,8 @@ F.dom_.getObj = function (name) {
   }
 };
 
-var $ = F.dom_.getObj;
+// TODO: should be richer
+F.$ = F.dom_.getObj;
 
 /**
  * helper to reduce obj look ups
@@ -1058,7 +1060,7 @@ F.dom_.dynamicEnstyle = function(obj, prop, val) {
  * @param {string} tagName
  * @return {function((string|Object|Node)=, ...[(string|Node|Array.<Node>)]):Node}
  */
-var makeTagB = function(tagName) { return function() {
+F.dom_.makeTagB = function(tagName) { return function() {
   var attribs, children;
 
   if (typeof(arguments[0]) === "object" && 
@@ -1120,26 +1122,22 @@ var makeTagB = function(tagName) { return function() {
 }; };
 
 
-
-
-var generatedTags = 
 [ "a", "b", "blockquote", "br", "button", "canvas", "div", "fieldset", 
 "form", "font", "h1", "h2", "h3", "h4", "hr", "img", "iframe", "input", 
 "label", "legend", "li", "ol", "optgroup", "option", 
 "p", "pre", "select", "span", "strong", "table", "tbody", 
-"td", "textarea", "tfoot", "th", "thead", "tr", "tt", "ul" ];
-
-generatedTags.forEach(function(tagName) {
-  this[tagName.toUpperCase()] = makeTagB(tagName);
+"td", "textarea", "tfoot", "th", "thead", "tr", "tt", "ul" ].forEach(function (name) {
+  window[name.toUpperCase()] = F.dom_.makeTagB(name);
 });
 
-var DIV = makeTagB('div');
-var SPAN = makeTagB('span');
-var A = makeTagB('a');
-var TEXTAREA = makeTagB('TEXTAREA');
-var OPTION = makeTagB('OPTION');
-var INPUT = makeTagB('INPUT');
-var SELECT = makeTagB('SELECT');
+
+var DIV = F.dom_.makeTagB('div');
+var SPAN = F.dom_.makeTagB('span');
+var A = F.dom_.makeTagB('a');
+var TEXTAREA = F.dom_.makeTagB('TEXTAREA');
+var OPTION = F.dom_.makeTagB('OPTION');
+var INPUT = F.dom_.makeTagB('INPUT');
+var SELECT = F.dom_.makeTagB('SELECT');
 
 //TEXTB: Behavior a -> Behavior Dom TextNode    
 var TEXTB = function (strB) {
@@ -1162,7 +1160,7 @@ var TEXT = function (str) {
 //      ( .Array (Event a) * Array (Event a) -> Behavior Dom) -> Behavior Dom
 
 // tagRec :: [EventName] * (EventStream DOMEvent, ... -> Element) -> Element
-var tagRec = function (eventNames, maker) {
+F.tagRec = function (eventNames, maker) {
   if (!(eventNames instanceof Array)) { throw 'tagRec: expected array of event names as first arg'; } //SAFETY
   if (!(maker instanceof Function)) { throw 'tagRec: expected function as second arg'; } //SAFETY
   
@@ -1177,13 +1175,13 @@ var tagRec = function (eventNames, maker) {
   var elt = maker.apply(this, receivers);
 
   for (i = 0; i < numEvents; i++) {
-    extractEventE(elt, eventNames[i]).attachListener(receivers[i]);
+    F.extractEventE(elt, eventNames[i]).attachListener(receivers[i]);
   }
 
   return elt;
 };
 
-var extractEventDynamicE = function(eltB, eventName) {
+F.dom_.extractEventDynamicE = function(eltB, eventName) {
   var eventStream = F.receiverE();
   var callback = function(evt) {
     eventStream.sendEvent(evt); 
@@ -1201,7 +1199,7 @@ var extractEventDynamicE = function(eltB, eventName) {
   return eventStream;
 };
 
-var extractEventStaticE = function(elt, eventName) {
+F.dom_.extractEventStaticE = function(elt, eventName) {
   var eventStream = F.receiverE();
   var callback = function(evt) {
     eventStream.sendEvent(evt); 
@@ -1215,39 +1213,38 @@ var extractEventStaticE = function(elt, eventName) {
  * @param {string} eventName
  * @return {EventStream}
  */
-var extractEventE = function(elt, eventName) {
+F.extractEventE = function(elt, eventName) {
   if (elt instanceof Behavior) {
-    return extractEventDynamicE(elt, eventName);
+    return F.dom_.extractEventDynamicE(elt, eventName);
   }
   else {
-    return extractEventStaticE(elt, eventName);
+    return F.dom_.extractEventStaticE(elt, eventName);
   }
 };
 
-var $E = extractEventE;
-
+F.$E = F.extractEventE;
 
 /**
  * @param {Behavior} domObj
  * @param {...string} var_args
  * @return {EventStream}
  */
-var extractEventsE = function (domObj, var_args) {
+F.extractEventsE = function (domObj, var_args) {
   var eventNames = Array.prototype.slice.call(arguments, 1);
   
   var events = (eventNames.length === 0 ? [] : eventNames)
     .map(function (eventName) {
-           return extractEventE(domObj, eventName); 
+           return F.extractEventE(domObj, eventName); 
          });
   
   return F.mergeE.apply(null, events);
 };
 
 //value of dom form object during trigger
-var extractValueOnEventE = function (triggerE, domObj) {
+F.extractValueOnEventE = function (triggerE, domObj) {
   if (!(triggerE instanceof EventStream)) { throw 'extractValueOnEventE: expected Event as first arg'; } //SAFETY
   
-  return extractValueOnEventB.apply(this, arguments).changes();
+  return F.extractValueOnEventB.apply(this, arguments).changes();
   
 };
 
@@ -1257,7 +1254,7 @@ var extractValueOnEventE = function (triggerE, domObj) {
  * @param {Node} domObj
  * @param {...*} var_args
  */
-var extractDomFieldOnEventE = function (triggerE, domObj, var_args) {
+F.extractDomFieldOnEventE = function (triggerE, domObj, var_args) {
   if (!(triggerE instanceof EventStream)) { throw 'extractDomFieldOnEventE: expected Event as first arg'; } //SAFETY
   var indices = Array.prototype.slice.call(arguments, 2);
   var res =
@@ -1266,14 +1263,14 @@ var extractDomFieldOnEventE = function (triggerE, domObj, var_args) {
   return res;
 };
 
-var extractValueE = function (domObj) {
-  return extractValueB.apply(this, arguments).changes();
+F.extractValueE = function (domObj) {
+  return F.extractValueB.apply(this, arguments).changes();
 };
 
 //extractValueOnEventB: Event * DOM -> Behavior
 // value of a dom form object, polled during trigger
-var extractValueOnEventB = function (triggerE, domObj) {
-  return extractValueStaticB(domObj, triggerE);
+F.extractValueOnEventB = function (triggerE, domObj) {
+  return F.dom_.extractValueStaticB(domObj, triggerE);
 };
 
 /**
@@ -1283,7 +1280,7 @@ var extractValueOnEventB = function (triggerE, domObj) {
  * @param {EventStream=} triggerE
  * @return {Behavior}
  */
-var extractValueStaticB = function (domObj, triggerE) {
+F.dom_.extractValueStaticB = function (domObj, triggerE) {
   
   var objD;
   try {
@@ -1303,9 +1300,9 @@ var extractValueStaticB = function (domObj, triggerE) {
   switch (objD.type)  {
     //TODO: checkbox.value instead of status?
   case 'checkbox': 
-    result = extractDomFieldOnEventE(
+    result = F.extractDomFieldOnEventE(
           triggerE ? triggerE : 
-          extractEventsE(
+          F.extractEventsE(
             objD, 
             'click', 'keyup', 'change'),
           objD,
@@ -1320,7 +1317,7 @@ var extractValueStaticB = function (domObj, triggerE) {
         : undefined;
       };
       result = (triggerE ? triggerE :
-            extractEventsE(
+            F.extractEventsE(
               objD,
               'click', 'keyup', 'change')).mapE(getter).filterRepeatsE().startsWith(getter());
       break;
@@ -1337,7 +1334,7 @@ var extractValueStaticB = function (domObj, triggerE) {
     };
     result = 
         (triggerE ? triggerE : 
-        extractEventsE(
+        F.extractEventsE(
           objD,
           'click', 'keyup', 'change')).mapE(getter).startsWith(getter());
     break;
@@ -1346,9 +1343,9 @@ var extractValueStaticB = function (domObj, triggerE) {
   case 'textarea':
   case 'hidden':
   case 'password':
-    result = extractDomFieldOnEventE(
+    result = F.extractDomFieldOnEventE(
           triggerE ? triggerE :
-          extractEventsE(
+          F.extractEventsE(
             objD, 
             'click', 'keyup', 'change'),
           objD,
@@ -1356,9 +1353,9 @@ var extractValueStaticB = function (domObj, triggerE) {
     break;
     
   case 'button': //same as above, but don't filter repeats
-    result = extractDomFieldOnEventE(
+    result = F.extractDomFieldOnEventE(
         triggerE ? triggerE :
-        extractEventsE(
+        F.extractEventsE(
           objD, 
           'click', 'keyup', 'change'),
         objD,
@@ -1401,7 +1398,7 @@ var extractValueStaticB = function (domObj, triggerE) {
       this,
       radiosAD.map(
         function (radio) { 
-          return extractEventsE(
+          return F.extractEventsE(
             radio, 
         'click', 'keyup', 'change'); }));
     
@@ -1415,15 +1412,16 @@ var extractValueStaticB = function (domObj, triggerE) {
   return result;
 };
 
-var extractValueB = function (domObj) {
+F.extractValueB = function (domObj) {
   if (domObj instanceof Behavior) {
-    return domObj.liftB(function (dom) { return extractValueStaticB(dom); })
+    return domObj.liftB(function (dom) { return F.dom_.extractValueStaticB(dom); })
                  .switchB();
   } else {
-    return extractValueStaticB(domObj);
+    return F.dom_.extractValueStaticB(domObj);
   }
 };
-var $B = extractValueB;
+
+F.$B = F.extractValueB;
 
 
 //into[index] = deepValueNow(from) via descending from object and mutating each field
@@ -1472,14 +1470,14 @@ var deepDynamicUpdate = function (into, from, index) {
 };
 
 
-var insertValue = function (val, domObj /* . indices */) {
+F.insertValue = function (val, domObj /* . indices */) {
   var indices = Array.prototype.slice.call(arguments, 2);
   var parent = F.dom_.getMostDom(domObj, indices);
   deepStaticUpdate(parent, val, indices ? indices[indices.length - 1] : undefined);      
 };
 
 //TODO convenience method (default to firstChild nodeValue) 
-var insertValueE = function (triggerE, domObj /* . indices */) {
+F.insertValueE = function (triggerE, domObj /* . indices */) {
   if (!(triggerE instanceof EventStream)) { throw 'insertValueE: expected Event as first arg'; } //SAFETY
   
   var indices = Array.prototype.slice.call(arguments, 2);
@@ -1492,7 +1490,7 @@ var insertValueE = function (triggerE, domObj /* . indices */) {
 
 //insertValueB: Behavior * domeNode . Array (id) -> void
 //TODO notify adapter of initial state change?
-var insertValueB = function (triggerB, domObj /* . indices */) { 
+F.insertValueB = function (triggerB, domObj /* . indices */) { 
   
   var indices = Array.prototype.slice.call(arguments, 2);
   var parent = F.dom_.getMostDom(domObj, indices);
@@ -1533,7 +1531,7 @@ F.insertDomE = function (triggerE, domObj) {
 //          [* (null | undefined | 'over' | 'before' | 'after' | 'leftMost' | 'rightMost' | 'beginning' | 'end']
 //          -> void
 // TODO: for consistency, switch replaceWithD, hookD argument order
-var insertDomInternal = function (hookD, replaceWithD, optPosition) {
+F.dom_.insertDomInternal = function (hookD, replaceWithD, optPosition) {
   switch (optPosition)
   {
   case undefined:
@@ -1580,9 +1578,9 @@ var insertDomInternal = function (hookD, replaceWithD, optPosition) {
 //          * dom U String domID 
 //          [* (null | undefined | 'over' | 'before' | 'after' | 'leftMost' | 'rightMost' | 'beginning' | 'end']
 //          -> void
-var insertDom = function (replaceWithD, hook, optPosition) {
+F.insertDom = function (replaceWithD, hook, optPosition) {
   //TODO span of textnode instead of textnode?
-  insertDomInternal(
+  F.dom_.insertDomInternal(
     F.dom_.getObj(hook), 
     ((typeof(replaceWithD) === 'object') && (replaceWithD.nodeType > 0)) ? replaceWithD :
     document.createTextNode(replaceWithD),      
@@ -1616,7 +1614,7 @@ F.insertDomB = function (initTriggerB, optID, optPosition) {
   var initD = triggerB.valueNow();
   if (!((typeof(initD) === 'object') && (initD.nodeType === 1))) { throw ('insertDomB: initial value conversion failed: ' + initD); } //SAFETY  
   
-  insertDomInternal(
+  F.dom_.insertDomInternal(
     optID === null || optID === undefined ? F.dom_.getObj(initD.getAttribute('id')) : F.dom_.getObj(optID), 
     initD, 
     optPosition);
@@ -1631,7 +1629,7 @@ F.insertDomB = function (initTriggerB, optID, optPosition) {
  * @return {EventStream}
  */
 F.mouseE = function(elem) {
-  return extractEventE(elem,'mousemove')
+  return F.extractEventE(elem,'mousemove')
   .mapE(function(evt) {
       if (evt.pageX | evt.pageY) {
         return { left: evt.pageX, top: evt.pageY };
@@ -1676,7 +1674,7 @@ F.mouseTopB = function(elem) {
  * @return {EventStream}
  */
 F.clicksE = function(elem) {
-  return extractEventE(elem,'click');
+  return F.extractEventE(elem,'click');
 };
 
 
