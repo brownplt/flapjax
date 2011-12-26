@@ -769,10 +769,11 @@ F.liftB = function (fn, var_args) {
 
 /**
  * @param {...F.Behavior} var_args
+ * @return {F.Behavior}
  */
 F.Behavior.prototype.ap = function(var_args) {
-	var args = [this].concat(var_args);
-	return F.liftB.apply(null, var_args);
+	var args = [this].concat(F.mkArray(arguments));
+	return F.liftB.apply(null, args);
 }
 
 /**
@@ -1119,7 +1120,7 @@ F.dom_.makeTagB = function(tagName) { return function() {
 
 
 [ "a", "b", "blockquote", "br", "button", "canvas", "div", "fieldset", 
-"form", "font", "h1", "h2", "h3", "h4", "hr", "img", "iframe", "input", 
+"form", "font", "h1", "h2", "h3", "h4", "hr", "iframe", "input", 
 "label", "legend", "li", "ol", "optgroup", "option", 
 "p", "pre", "select", "span", "strong", "table", "tbody", 
 "td", "textarea", "tfoot", "th", "thead", "tr", "tt", "ul" ].forEach(function (name) {
@@ -1134,6 +1135,7 @@ var TEXTAREA = F.dom_.makeTagB('TEXTAREA');
 var OPTION = F.dom_.makeTagB('OPTION');
 var INPUT = F.dom_.makeTagB('INPUT');
 var SELECT = F.dom_.makeTagB('SELECT');
+var IMG = F.dom_.makeTagB('IMG');
 
 //TEXTB: F.Behavior a -> F.Behavior Dom TextNode    
 var TEXTB = function (strB) {
