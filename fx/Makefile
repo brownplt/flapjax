@@ -1,33 +1,33 @@
-JSCC = jscc
-COMPILERDATA = ../compiler/data
-WEBSITEFX = ../website/build/fx
+CLOSURELIB=../tools/closure-library
+CLOSUREBUILDER=$(CLOSURELIB)/closure/bin/build/closurebuilder.py
 JSONEXTERN=../tools/json.js 
-CLOSURE=java -jar ../tools/compiler.jar
+CLOSURE=../tools/compiler.jar
 
 all: flapjax.min.js
 
+ 
 flapjax.min.js: flapjax-impl.js
-	$(CLOSURE) --externs $(JSONEXTERN)\
-		--language_in ECMASCRIPT5\
-		--warning_level VERBOSE\
-		--js	flapjax-impl.js\
+	java -jar $(CLOSURE) \
+		--externs $(JSONEXTERN) \
+		--language_in ECMASCRIPT5 \
+		--warning_level VERBOSE \
+		--js    flapjax-impl.js \
 		--js_output_file flapjax.min.js
+
+flapjaxlib.min.js: flapjax-impl.js
+	$(CLOSUREBUILDER) \
+		--root=$(CLOSURELIB)/closure \
+		--root=$(CLOSURELIB)/third_party \
+		--root=. \
+		--namespace="F" \
+		--compiler_jar=$(CLOSURE) \
+		--output_mode="compiled" \
+		--compiler_flags="--js_output_file=\"flapjaxlib.min.js\"" \
+		--compiler_flags="--warning_level=VERBOSE" \
+		--compiler_flag="--compilation_level=WHITESPACE_ONLY" \
+		--compiler_flag="--formatting=PRETTY_PRINT"
 
 clean:
 	rm -f flapjax.debug.js
 	rm -f flapjax.js
 
-flapjax.debug.js: flapjax-impl.js flapjax.jsi
-	cp flapjax-impl.js flapjax.debug.js
-	cp flapjax.debug.js $(COMPILERDATA)/flapjax.debug.js
-	mkdir $(WEBSITEFX) || true
-	cp flapjax.debug.js $(WEBSITEFX)/flapjax.debug.js
-
-flapjax.js: flapjax-impl.js flapjax.jsi
-	cp flapjax-impl.js flapjax.js
-	cp flapjax.js $(COMPILERDATA)/flapjax.js
-	mkdir $(WEBSITEFX) || true
-	cp flapjax.js $(WEBSITEFX)/flapjax.js
-	cp flapjax.jsi $(COMPILERDATA)/flapjax.jsi
-	cp flapjax.jsi $(WEBSITEFX)/flapjax.jsi
-	cp flapjax-impl.js $(WEBSITEFX)/flapjax-impl.js

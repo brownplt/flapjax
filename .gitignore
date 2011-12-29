@@ -3,7 +3,5 @@ build
 /website/build-static
 *.pyc
 /website/persistence/sqlite3.db
-/fx/flapjax.debug.js
-/fx/flapjax.js
 .DS_Store
 *~

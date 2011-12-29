@@ -31,7 +31,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Miscellaneous functions
 
-var F = F || { };
+// Hacks to build standalone or as a module.
+/** @suppress JSC_UNDEFINED_VARIABLE */
+goog.provide('F');
+
+F = F || { };
 
 F.internal_ = { };
 F.dom_ = { };
@@ -227,7 +231,7 @@ F.oneE = function(val) {
 
 
 /**
- * @param {F.EventStream=} var_args
+ * @param {...F.EventStream} var_args
  * @return {F.EventStream}
  */
 F.mergeE = function(var_args) {
@@ -254,6 +258,10 @@ F.EventStream.prototype.constantE = function(constantValue) {
     pulse.value = constantValue;
     return pulse;
   });
+};
+
+F.EventStream.prototype.index = function(fieldName) {
+  return this.mapE(function(obj) { return obj[fieldName]; });
 };
 
 /**
@@ -284,6 +292,10 @@ F.Behavior = function (event, init, updater) {
         behave.last = p.value;
         return p;
       });
+};
+
+F.Behavior.prototype.index = function(fieldName) {
+	return this.liftB(function(obj) { return obj[fieldName]; });
 };
 
 F.receiverE = function() {
@@ -1207,7 +1219,7 @@ F.dom_.extractEventStaticE = function(elt, eventName) {
 };
 
 /**
- * @param {F.Behavior|Node} elt
+ * @param {F.Behavior|Node|Window} elt
  * @param {string} eventName
  * @return {F.EventStream}
  */
@@ -1221,6 +1233,23 @@ F.extractEventE = function(elt, eventName) {
 };
 
 F.$E = F.extractEventE;
+
+/**
+ *
+ * Extracts just one event from elt.
+ *
+ * oneEvent detaches the underlying DOM callback after receiving the event.
+ *
+ * @param {Node} elt
+ * @param {string} eventName
+ * @return {F.EventStream}
+ */
+F.oneEvent = function(elt, eventName) {
+  return F.recE(function(evts) {
+    return F.extractEventE(evts.constantE(false).startsWith(elt),
+      eventName);
+  });
+};
 
 /**
  * @param {F.Behavior} domObj
@@ -1237,6 +1266,7 @@ F.extractEventsE = function (domObj, var_args) {
   
   return F.mergeE.apply(null, events);
 };
+
 
 //value of dom form object during trigger
 F.extractValueOnEventE = function (triggerE, domObj) {
