@@ -34,7 +34,6 @@
 // Hacks to build standalone or as a module.
 /** @suppress JSC_UNDEFINED_VARIABLE */
 goog.provide('F');
-
 F = F || { };
 
 F.internal_ = { };
@@ -131,7 +130,7 @@ F.internal_.propagatePulse = function (pulse, node) {
 
     if (nextPulse != F.doNotPropagate) {
       for (var i = 0; i < qv.n.sendsTo.length; i++) {
-	queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
+  queue.insert({k:qv.n.sendsTo[i].rank,n:qv.n.sendsTo[i],v:nextPulse});
       }
     }
   }
@@ -295,7 +294,7 @@ F.Behavior = function (event, init, updater) {
 };
 
 F.Behavior.prototype.index = function(fieldName) {
-	return this.liftB(function(obj) { return obj[fieldName]; });
+  return this.liftB(function(obj) { return obj[fieldName]; });
 };
 
 F.receiverE = function() {
@@ -347,7 +346,7 @@ F.EventStream.prototype.bindE = function(k) {
 
 /**
  * @param {function(*):*} f
- * @return {F.EventStream}
+ * @return {!F.EventStream}
  */
 F.EventStream.prototype.mapE = function(f) {
   if (!(f instanceof Function)) {
@@ -364,9 +363,9 @@ F.EventStream.prototype.mapE = function(f) {
  * @return {F.EventStream}
  */
 F.EventStream.prototype.notE = function() { 
-	return this.mapE(function(v) { 
-		return !v; 
-	}); 
+  return this.mapE(function(v) { 
+    return !v; 
+  }); 
 };
 
 /**
@@ -540,8 +539,8 @@ F.mapE = function (fn /*, [node0 | val0], ...*/) {
       });                
   }
   else {
-	throw 'unknown mapE case';
-	}
+  throw 'unknown mapE case';
+  }
 };
 
 /** 
@@ -581,8 +580,8 @@ F.EventStream.prototype.filterRepeatsE = function(optStart) {
  */
 F.EventStream.prototype.calmE = function(time) {
   if (!(time instanceof F.Behavior)) {
-		time = F.constantB(time);
-	}
+    time = F.constantB(time);
+  }
 
   var out = F.internal_.internalE();
   new F.EventStream(
@@ -622,7 +621,7 @@ F.EventStream.prototype.blindE = function (time) {
 
 /**
  * @param {*} init
- * @return {F.Behavior}
+ * @return {!F.Behavior}
  */
 F.EventStream.prototype.startsWith = function(init) {
   return new F.Behavior(this,init);
@@ -643,7 +642,7 @@ F.Behavior.prototype.changes = function() {
 };
 
 /**
- * @return {F.Behavior}
+ * @return {!F.Behavior}
  */
 F.Behavior.prototype.switchB = function() {
   var behaviourCreatorsB = this;
@@ -689,11 +688,11 @@ F.timerB = function(interval) {
 F.Behavior.prototype.delayB = function (time, init) {
   var triggerB = this;
   if (!(time instanceof F.Behavior)) {
-		time = F.constantB(time);
-	}
+    time = F.constantB(time);
+  }
   return triggerB.changes()
-		       .delayE(time)
-		       .startsWith(arguments.length > 3 ? init : triggerB.valueNow());
+           .delayE(time)
+           .startsWith(arguments.length > 3 ? init : triggerB.valueNow());
 };
 
 //artificially send a pulse to underlying event node of a behaviour
@@ -730,7 +729,7 @@ return F.liftB.apply({},[function() {
 
 /**
  * @param {*} val
- * @return {F.Behavior}
+ * @return {!F.Behavior.<*>}
  */
 F.constantB = function (val) {
   return new F.Behavior(F.internal_.internalE(), val);
@@ -739,7 +738,7 @@ F.constantB = function (val) {
 /**
  * @param {Function|F.Behavior} fn
  * @param {...F.Behavior} var_args
- * @return F.Behavior
+ * @return !F.Behavior
  */
 F.liftB = function (fn, var_args) {
 
@@ -784,16 +783,16 @@ F.liftB = function (fn, var_args) {
  * @return {F.Behavior}
  */
 F.Behavior.prototype.ap = function(var_args) {
-	var args = [this].concat(F.mkArray(arguments));
-	return F.liftB.apply(null, args);
-}
+  var args = [this].concat(F.mkArray(arguments));
+  return F.liftB.apply(null, args);
+};
 
 /**
  * @param {F.Behavior|Function} fn
- * @return F.Behavior
+ * @return {!F.Behavior}
  */
 F.Behavior.prototype.liftB = function(fn) {
-	return F.liftB(fn, this);
+  return F.liftB(fn, this);
 };
 
 /**
@@ -926,7 +925,7 @@ F.dom_.getDomVal = function (domObj, indices) {
  */
 F.timerE = function(intervalB) {
   if (!(intervalB instanceof F.Behavior)) {
-		intervalB = F.constantB(intervalB);
+    intervalB = F.constantB(intervalB);
   }
   var eventStream = F.receiverE();
   var callback = function() {
@@ -1067,7 +1066,7 @@ F.dom_.dynamicEnstyle = function(obj, prop, val) {
 
 /**
  * @param {string} tagName
- * @return {function((string|Object|Node)=, ...[(string|Node|Array.<Node>)]):Node}
+ * @return {function((string|Object|Node)=, ...[(string|Node|Array.<Node>)]):!Node}
  */
 F.dom_.makeTagB = function(tagName) { return function() {
   var attribs, children;
@@ -1134,20 +1133,34 @@ F.dom_.makeTagB = function(tagName) { return function() {
 [ "a", "b", "blockquote", "br", "button", "canvas", "div", "fieldset", 
 "form", "font", "h1", "h2", "h3", "h4", "hr", "iframe", "input", 
 "label", "legend", "li", "ol", "optgroup", "option", 
-"p", "pre", "select", "span", "strong", "table", "tbody", 
+"p", "select", "span", "strong", "table", "tbody", 
 "td", "textarea", "tfoot", "th", "thead", "tr", "tt", "ul" ].forEach(function (name) {
   window[name.toUpperCase()] = F.dom_.makeTagB(name);
 });
 
+/**
+ * @typedef {function((!string|Object|Node)=, ...[(!string|Node|Array.<Node>)]):!Node}
+ */
+F.tagMaker;
 
+/** @type {F.tagMaker} */
 var DIV = F.dom_.makeTagB('div');
+/** @type {F.tagMaker} */
 var SPAN = F.dom_.makeTagB('span');
+/** @type {F.tagMaker} */
 var A = F.dom_.makeTagB('a');
+/** @type {F.tagMaker} */
 var TEXTAREA = F.dom_.makeTagB('TEXTAREA');
+/** @type {F.tagMaker} */
 var OPTION = F.dom_.makeTagB('OPTION');
+/** @type {F.tagMaker} */
 var INPUT = F.dom_.makeTagB('INPUT');
+/** @type {F.tagMaker} */
 var SELECT = F.dom_.makeTagB('SELECT');
+/** @type {F.tagMaker} */
 var IMG = F.dom_.makeTagB('IMG');
+/** @type {F.tagMaker} */
+var PRE = F.dom_.makeTagB('pre');
 
 //TEXTB: F.Behavior a -> F.Behavior Dom TextNode    
 var TEXTB = function (strB) {
@@ -1156,7 +1169,7 @@ var TEXTB = function (strB) {
   
   return strB.changes().mapE(
       function (txt) { return document.createTextNode(txt); })
-	  .startsWith(document.createTextNode(strB.valueNow()));
+    .startsWith(document.createTextNode(strB.valueNow()));
 };
 
 var TEXT = function (str) {
@@ -1191,7 +1204,10 @@ F.tagRec = function (eventNames, maker) {
   return elt;
 };
 
-F.dom_.extractEventDynamicE = function(eltB, eventName) {
+F.dom_.extractEventDynamicE = function(eltB, eventName, useCapture) {
+  if (typeof useCapture === 'undefined') {
+    useCapture = false;
+  }
   var eventStream = F.receiverE();
   var callback = function(evt) {
     eventStream.sendEvent(evt); 
@@ -1199,36 +1215,40 @@ F.dom_.extractEventDynamicE = function(eltB, eventName) {
   var currentElt = false;
   eltB.liftB(function(elt) {
     if (currentElt) {
-      currentElt.removeEventListener(eventName, callback); 
+      currentElt.removeEventListener(eventName, callback, useCapture); 
     }
     currentElt = elt;
     if (elt && elt.addEventListener && elt.removeEventListener) {
-      elt.addEventListener(eventName, callback);
+      elt.addEventListener(eventName, callback, useCapture);
     }
   });
   return eventStream;
 };
 
-F.dom_.extractEventStaticE = function(elt, eventName) {
+F.dom_.extractEventStaticE = function(elt, eventName, useCapture) {
+  if (typeof useCapture === 'undefined') {
+    useCapture = false;
+  }
   var eventStream = F.receiverE();
   var callback = function(evt) {
     eventStream.sendEvent(evt); 
   };
-  elt.addEventListener(eventName, callback);
+  elt.addEventListener(eventName, callback, useCapture);
   return eventStream;
 };
 
 /**
  * @param {F.Behavior|Node|Window} elt
  * @param {string} eventName
+ * @param {boolean=} useCapture
  * @return {F.EventStream}
  */
-F.extractEventE = function(elt, eventName) {
+F.extractEventE = function(elt, eventName, useCapture) {
   if (elt instanceof F.Behavior) {
-    return F.dom_.extractEventDynamicE(elt, eventName);
+    return F.dom_.extractEventDynamicE(elt, eventName, useCapture);
   }
   else {
-    return F.dom_.extractEventStaticE(elt, eventName);
+    return F.dom_.extractEventStaticE(elt, eventName, useCapture);
   }
 };
 
@@ -1306,7 +1326,7 @@ F.extractValueOnEventB = function (triggerE, domObj) {
  *
  * @param {Node} domObj
  * @param {F.EventStream=} triggerE
- * @return {F.Behavior}
+ * @return {!F.Behavior}
  */
 F.dom_.extractValueStaticB = function (domObj, triggerE) {
   
@@ -1431,7 +1451,7 @@ F.dom_.extractValueStaticB = function (domObj, triggerE) {
         'click', 'keyup', 'change'); }));
     
     result =
-			actualTriggerE.mapE(getter).filterRepeatsE(getter()).startsWith(getter());
+      actualTriggerE.mapE(getter).filterRepeatsE(getter()).startsWith(getter());
     break;
   default:
     throw ('extractValueStaticB: unknown value type "' + objD.type + '"');
@@ -1440,6 +1460,10 @@ F.dom_.extractValueStaticB = function (domObj, triggerE) {
   return result;
 };
 
+/**
+ * @param {!F.Behavior|!Node} domObj
+ * @return {!F.Behavior}
+ */
 F.extractValueB = function (domObj) {
   if (domObj instanceof F.Behavior) {
     return domObj.liftB(function (dom) { return F.dom_.extractValueStaticB(dom); })
@@ -1449,6 +1473,10 @@ F.extractValueB = function (domObj) {
   }
 };
 
+/**
+ * @param {!F.Behavior|!Node} domObj
+ * @return {!F.Behavior}
+ */
 F.$B = F.extractValueB;
 
 
@@ -1502,7 +1530,7 @@ F.insertValue = function (val, domObj /* . indices */) {
   var indices = Array.prototype.slice.call(arguments, 2);
   var parent = F.dom_.getMostDom(domObj, indices);
   F.dom_.deepStaticUpdate(parent, val, 
-			indices ? indices[indices.length - 1] : undefined);      
+      indices ? indices[indices.length - 1] : undefined);      
 };
 
 //TODO convenience method (default to firstChild nodeValue) 
@@ -1519,7 +1547,12 @@ F.insertValueE = function (triggerE, domObj /* . indices */) {
 
 //insertValueB: F.Behavior * domeNode . Array (id) -> void
 //TODO notify adapter of initial state change?
-F.insertValueB = function (triggerB, domObj /* . indices */) { 
+/**
+ * @param {F.Behavior} triggerB
+ * @param {Node} domObj
+ * @param {...string} var_args
+ */
+F.insertValueB = function (triggerB, domObj, var_args) { 
   
   var indices = Array.prototype.slice.call(arguments, 2);
   var parent = F.dom_.getMostDom(domObj, indices);
@@ -1764,7 +1797,7 @@ F.getWebServiceObjectE = function(requestE) {
         throw("Invalid request type: " + obj.request);
       }
       
-      var async = obj.async;
+      var async = obj.async !== false;
       
       var xhr;
       
