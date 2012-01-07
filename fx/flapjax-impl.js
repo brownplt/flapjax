@@ -34,10 +34,23 @@
 // Hacks to build standalone or as a module.
 /** @suppress JSC_UNDEFINED_VARIABLE */
 goog.provide('F');
+
+/**
+ * @namespace Flapjax
+ */
 F = F || { };
 
+/**
+ * @namespace
+ */
 F.internal_ = { };
+/**
+ * @namespace
+ */
 F.dom_ = { };
+/**
+ * @namespace
+ */
 F.xhr_ = { };
 
 // Sentinel value returned by updaters to stop propagation.

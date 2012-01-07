@@ -31,3 +31,7 @@ clean:
 	rm -f flapjax.debug.js
 	rm -f flapjax.js
 
+doc:
+	cd ../tools/jsdoc-toolkit && \
+	java -jar jsrun.jar app/run.js -a -t=templates/jsdoc \
+	--directory=../../docs ../../fx/flapjax-impl.js -p
