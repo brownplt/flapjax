@@ -160,43 +160,6 @@ original.collectE(0,function(_,count) { return count + 1; });
 
 </article>
 
-<article title="andE">
-
-<programlisting>
-andE(sourceE, ...) -> EventStream True
-
-sourceE :: EventStream Bool
-</programlisting>
-
-<p>Fires an event when all its arguments fire <code>True</code>.</p>
-
-</article>
-
-<article title="orE">
-
-<programlisting>
-orE(sourceE, ...) -> EventStream True
-
-sourceE :: EventStream Bool
-</programlisting>
-
-<p>Fires an event when any of its arguments fire <code>True</code>.</p>
-
-</article>
-
-<article title="notE">
-
-<programlisting>
-notE(sourceE) -> EventStream Bool
-
-sourceE :: EventStream Bool
-</programlisting>
-
-<p>Negates each event in the event stream.</p>
-
-<synonyms>sourceE.notE</synonyms>
-
-</article>
 
 <article title="filterRepeatsE">
 

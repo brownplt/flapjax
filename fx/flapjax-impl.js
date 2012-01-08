@@ -1267,6 +1267,11 @@ F.dom_.extractEventStaticE = function(elt, eventName, useCapture) {
 };
 
 /**
+ * Constructs an event stream of DOM events.
+ * 
+ * The argument <code>elt</code> may be a behavior of DOM nodes or 
+ * <code>false</code>.
+ * 
  * @param {F.Behavior|Node|Window} elt
  * @param {string} eventName
  * @param {boolean=} useCapture
@@ -1280,8 +1285,6 @@ F.extractEventE = function(elt, eventName, useCapture) {
     return F.dom_.extractEventStaticE(elt, eventName, useCapture);
   }
 };
-
-F.$E = F.extractEventE;
 
 /**
  *
