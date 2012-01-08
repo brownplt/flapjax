@@ -6,3 +6,9 @@ build
 /website/persistence/sqlite3.db
 .DS_Store
 *~
+/tools/closure-compiler.zip
+/tools/closure-compiler
+/tools/closure-library
+/tools/closure-library
+/tools/jsdoc-toolkit.zip
+/tools/jsdoc-toolkit
