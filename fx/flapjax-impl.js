@@ -57,7 +57,7 @@ F.xhr_ = { };
 F.doNotPropagate = { };
 
 /**
- * @return {Array}
+ * @returns {Array}
  */
 F.mkArray = function(arrayLike) {
   return Array.prototype.slice.call(arrayLike);
@@ -215,7 +215,9 @@ F.internal_.internalE = function(dependsOn) {
 };
 
 /**
- * @return {F.EventStream}
+ * Create an event stream that never fires any events.
+ * 
+ * @returns {F.EventStream}
  */
 F.zeroE = function() {
   return new F.EventStream([],function(pulse) {
@@ -224,27 +226,36 @@ F.zeroE = function() {
 };
 
 
-/**
- * @param {*} val
- * @return {F.EventStream}
+/** 
+ * Create an event stream that fires just one event with the value val.
+ *
+ * <p>Note that oneE does not immediately fire val. The event is queued and
+ * fired after the current event has finished propagating.</p>
+ *
+ * <p>The following code prints "first", "second" and "third" in order:</p>
+ *
+ * @example
+ * console.log('first');
+ * F.oneE('third').mapE(function(val) { console.log(val); });
+ * console.log('second');
+ *
+ * @param {*} val 
+ * @returns {F.EventStream}
  */
-F.oneE = function(val) {
-  var sent = false;
+F.oneE = function(val) { 
+  var sent = false; 
   var evt = new F.EventStream([],function(pulse) {
-    if (sent) {
-      throw ('oneE : received an extra value');
-    }
-    sent = true;
-    return pulse;
-  });
-  window.setTimeout(function() { F.sendEvent(evt,val); },0);
+    if (sent) { throw ('oneE : received an extra value'); } sent = true; 
+                return pulse; }); 
+  window.setTimeout(function() {
+    F.sendEvent(evt,val); },0); 
   return evt;
 };
 
 
 /**
  * @param {...F.EventStream} var_args
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.mergeE = function(var_args) {
   if (arguments.length === 0) {
@@ -263,7 +274,7 @@ F.EventStream.prototype.mergeE = function() {
 };
 
 /**
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.constantE = function(constantValue) {
   return new F.EventStream([this],function(pulse) {
@@ -359,7 +370,7 @@ F.EventStream.prototype.bindE = function(k) {
 
 /**
  * @param {function(*):*} f
- * @return {!F.EventStream}
+ * @returns {!F.EventStream}
  */
 F.EventStream.prototype.mapE = function(f) {
   if (!(f instanceof Function)) {
@@ -373,7 +384,7 @@ F.EventStream.prototype.mapE = function(f) {
 };
 
 /**
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.notE = function() { 
   return this.mapE(function(v) { 
@@ -383,7 +394,7 @@ F.EventStream.prototype.notE = function() {
 
 /**
  * @param {function(*):boolean} pred
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.filterE = function(pred) {
   if (!(pred instanceof Function)) {
@@ -397,7 +408,7 @@ F.EventStream.prototype.filterE = function(pred) {
 };
 
 /**
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.onceE = function() {
   var done = false;
@@ -408,7 +419,7 @@ F.EventStream.prototype.onceE = function() {
 };
 
 /**
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.skipFirstE = function() {
   var skipped = false;
@@ -423,7 +434,7 @@ F.EventStream.prototype.skipFirstE = function() {
 /**
  * @param {*} init
  * @param {Function} fold
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.collectE = function(init,fold) {
   var acc = init;
@@ -436,7 +447,7 @@ F.EventStream.prototype.collectE = function(init,fold) {
 };
 
 /**
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.switchE = function() {
   return this.bindE(function(v) { return v; });
@@ -464,7 +475,7 @@ F.internal_.delayStaticE = function (event, time) {
 
 /**
  * @param {F.Behavior|number} time
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.delayE = function (time) {
   var event = this;
@@ -558,7 +569,7 @@ F.mapE = function (fn /*, [node0 | val0], ...*/) {
 
 /** 
  * @param {F.Behavior} valueB
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.snapshotE = function (valueB) {
   return new F.EventStream([this], function (pulse) {
@@ -569,7 +580,7 @@ F.EventStream.prototype.snapshotE = function (valueB) {
 
 /**
  * @param {*=} optStart initial value (optional)
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.filterRepeatsE = function(optStart) {
   var hadFirst = optStart === undefined ? false : true;
@@ -589,7 +600,7 @@ F.EventStream.prototype.filterRepeatsE = function(optStart) {
 
 /**
  * @param {(number|F.Behavior)} time
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.calmE = function(time) {
   if (!(time instanceof F.Behavior)) {
@@ -634,7 +645,7 @@ F.EventStream.prototype.blindE = function (time) {
 
 /**
  * @param {*} init
- * @return {!F.Behavior}
+ * @returns {!F.Behavior}
  */
 F.EventStream.prototype.startsWith = function(init) {
   return new F.Behavior(this,init);
@@ -648,14 +659,14 @@ F.Behavior.prototype.valueNow = function() {
 };
 
 /**
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.Behavior.prototype.changes = function() {
   return this.underlying;
 };
 
 /**
- * @return {!F.Behavior}
+ * @returns {!F.Behavior}
  */
 F.Behavior.prototype.switchB = function() {
   var behaviourCreatorsB = this;
@@ -691,7 +702,7 @@ F.Behavior.prototype.switchB = function() {
 
 /**
  * @param {F.Behavior|number} interval
- * @return {F.Behavior}
+ * @returns {F.Behavior}
  */
 F.timerB = function(interval) {
   return F.timerE(interval).startsWith((new Date()).getTime());
@@ -727,7 +738,7 @@ F.Behavior.prototype.ifB = function(trueB,falseB) {
  * condB: . [F.Behavior boolean, F.Behavior a] -> F.Behavior a
  *
  * @param {Array.<Array.<F.Behavior>>} var_args
- * @return {F.Behavior}
+ * @returns {F.Behavior}
  */
 F.condB = function (var_args ) {
   var pairs = F.mkArray(arguments);
@@ -742,7 +753,7 @@ return F.liftB.apply({},[function() {
 
 /**
  * @param {*} val
- * @return {!F.Behavior.<*>}
+ * @returns {!F.Behavior.<*>}
  */
 F.constantB = function (val) {
   return new F.Behavior(F.internal_.internalE(), val);
@@ -751,7 +762,7 @@ F.constantB = function (val) {
 /**
  * @param {Function|F.Behavior} fn
  * @param {...F.Behavior} var_args
- * @return !F.Behavior
+ * @returns !F.Behavior
  */
 F.liftB = function (fn, var_args) {
 
@@ -793,7 +804,7 @@ F.liftB = function (fn, var_args) {
 
 /**
  * @param {...F.Behavior} var_args
- * @return {F.Behavior}
+ * @returns {F.Behavior}
  */
 F.Behavior.prototype.ap = function(var_args) {
   var args = [this].concat(F.mkArray(arguments));
@@ -802,7 +813,7 @@ F.Behavior.prototype.ap = function(var_args) {
 
 /**
  * @param {F.Behavior|Function} fn
- * @return {!F.Behavior}
+ * @returns {!F.Behavior}
  */
 F.Behavior.prototype.liftB = function(fn) {
   return F.liftB(fn, this);
@@ -829,7 +840,7 @@ F.Behavior.orB = function (var_args) {
 };
 
 /**
- * @return {F.Behavior}
+ * @returns {F.Behavior}
  */
 F.Behavior.prototype.notB = function() {
   return this.liftB(function(v) { return !v; });
@@ -851,7 +862,7 @@ F.Behavior.prototype.calmB = function (intervalB) {
  *
  * @param {Node|string} replaceMe
  * @param {Node|string} withMe
- * @return {Node}
+ * @returns {Node}
  */
 F.dom_.swapDom = function(replaceMe, withMe) {
   if ((replaceMe === null) || (replaceMe === undefined)) { throw ('swapDom: expected dom node or id, received: ' + replaceMe); } //SAFETY
@@ -910,7 +921,7 @@ F.$ = F.dom_.getObj;
  *
  * @param {Node|string} domObj
  * @param {Array.<string>} indices
- * @return {Object}
+ * @returns {Object}
  */
 F.dom_.getMostDom = function (domObj, indices) {
   var acc = F.dom_.getObj(domObj);
@@ -934,7 +945,7 @@ F.dom_.getDomVal = function (domObj, indices) {
 
 /**
  * @param {F.Behavior|number} intervalB
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.timerE = function(intervalB) {
   if (!(intervalB instanceof F.Behavior)) {
@@ -1026,7 +1037,7 @@ F.dom_.swapChildren = function(parent, existingChildren, newChildren) {
  * not a word
  *
  * @param {*} maybeElement
- * @return {Node}
+ * @returns {Node}
  *
  * @suppress {checkTypes} the nodeType check does not get by the typechecker
  */
@@ -1079,7 +1090,7 @@ F.dom_.dynamicEnstyle = function(obj, prop, val) {
 
 /**
  * @param {string} tagName
- * @return {function((string|Object|Node)=, ...[(string|Node|Array.<Node>)]):!Node}
+ * @returns {function((string|Object|Node)=, ...[(string|Node|Array.<Node>)]):!Node}
  */
 F.dom_.makeTagB = function(tagName) { return function() {
   var attribs, children;
@@ -1254,7 +1265,7 @@ F.dom_.extractEventStaticE = function(elt, eventName, useCapture) {
  * @param {F.Behavior|Node|Window} elt
  * @param {string} eventName
  * @param {boolean=} useCapture
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.extractEventE = function(elt, eventName, useCapture) {
   if (elt instanceof F.Behavior) {
@@ -1275,7 +1286,7 @@ F.$E = F.extractEventE;
  *
  * @param {Node} elt
  * @param {string} eventName
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.oneEvent = function(elt, eventName) {
   return F.recE(function(evts) {
@@ -1287,7 +1298,7 @@ F.oneEvent = function(elt, eventName) {
 /**
  * @param {F.Behavior} domObj
  * @param {...string} var_args
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.extractEventsE = function (domObj, var_args) {
   var eventNames = Array.prototype.slice.call(arguments, 1);
@@ -1339,7 +1350,7 @@ F.extractValueOnEventB = function (triggerE, domObj) {
  *
  * @param {Node} domObj
  * @param {F.EventStream=} triggerE
- * @return {!F.Behavior}
+ * @returns {!F.Behavior}
  */
 F.dom_.extractValueStaticB = function (domObj, triggerE) {
   
@@ -1475,7 +1486,7 @@ F.dom_.extractValueStaticB = function (domObj, triggerE) {
 
 /**
  * @param {!F.Behavior|!Node} domObj
- * @return {!F.Behavior}
+ * @returns {!F.Behavior}
  */
 F.extractValueB = function (domObj) {
   if (domObj instanceof F.Behavior) {
@@ -1488,7 +1499,7 @@ F.extractValueB = function (domObj) {
 
 /**
  * @param {!F.Behavior|!Node} domObj
- * @return {!F.Behavior}
+ * @returns {!F.Behavior}
  */
 F.$B = F.extractValueB;
 
@@ -1701,7 +1712,7 @@ F.insertDomB = function (initTriggerB, optID, optPosition) {
 
 /**
  * @param {Node} elem
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.mouseE = function(elem) {
   return F.extractEventE(elem,'mousemove')
@@ -1721,7 +1732,7 @@ F.mouseE = function(elem) {
 
 /**
  * @param {Node} elem
- * @return {F.Behavior}
+ * @returns {F.Behavior}
  */
 F.mouseB = function(elem) {
   return F.mouseE(elem).startsWith({ left: 0, top: 0 });
@@ -1729,7 +1740,7 @@ F.mouseB = function(elem) {
 
 /**
  * @param {Node} elem
- * @return {F.Behavior}
+ * @returns {F.Behavior}
  */
 F.mouseLeftB = function(elem) {
   return F.mouseB(elem).liftB(function(v) { return v.left; });
@@ -1738,7 +1749,7 @@ F.mouseLeftB = function(elem) {
 
 /** 
  * @param {Node} elem
- * @return {F.Behavior}
+ * @returns {F.Behavior}
  */
 F.mouseTopB = function(elem) {
   return F.mouseB(elem).liftB(function(v) { return v.top; });
@@ -1746,7 +1757,7 @@ F.mouseTopB = function(elem) {
 
 /**
  * @param {Node} elem
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.clicksE = function(elem) {
   return F.extractEventE(elem,'click');
@@ -1782,7 +1793,7 @@ F.xhr_.encodeREST = function(obj) {
  * Must be an event stream of bodies
  * @param {!string} method PUT or POST
  * @param {!string} url URL to POST to
- * @return {F.EventStream}
+ * @returns {F.EventStream}
  */
 F.EventStream.prototype.xhrWithBody_ = function(method, url) {
   var respE = F.receiverE();
@@ -1829,7 +1840,7 @@ F.EventStream.prototype.JSONStringify = function() {
 
 /**
  * @param {F.EventStream} requestE
- * @return F.EventStream
+ * @returns {F.EventStream}
  */
 F.getWebServiceObjectE = function(requestE) {
   var responseE = F.receiverE();
