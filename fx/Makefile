@@ -1,7 +1,7 @@
 CLOSURELIB=../tools/closure-library
 CLOSUREBUILDER=$(CLOSURELIB)/closure/bin/build/closurebuilder.py
 JSONEXTERN=../tools/json.js 
-CLOSURE=../tools/compiler.jar
+CLOSURE=../tools/closure-compiler/compiler.jar
 
 all: flapjax.min.js
 
