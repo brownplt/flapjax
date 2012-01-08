@@ -1779,6 +1779,55 @@ F.xhr_.encodeREST = function(obj) {
 };
 
 /**
+ * Must be an event stream of bodies
+ * @param {!string} method PUT or POST
+ * @param {!string} url URL to POST to
+ * @return {F.EventStream}
+ */
+F.EventStream.prototype.xhrWithBody_ = function(method, url) {
+  var respE = F.receiverE();
+  this.mapE(function(body) {
+    var xhr = new window.XMLHttpRequest();
+    function callback() {
+      if (xhr.readyState !== 4) {
+        return;
+      }
+      respE.sendEvent({ request: body, response: xhr.responseText, xhr: xhr });
+    }
+    xhr.onload = callback;
+    // We only do async. Build your own for synchronous.
+    xhr.open(method, url, true);
+    xhr.send(body);
+  });
+  return respE; 
+};
+
+F.EventStream.prototype.POST = function(url) {
+  return this.xhrWithBody_('POST', url);
+};
+
+F.EventStream.prototype.index = function(name) {
+  return this.mapE(function(obj) {
+    if (typeof obj !== 'object' && obj !== null) {
+      throw 'expected object';
+    }
+    return obj[name];
+  });
+};
+
+F.EventStream.prototype.JSONParse = function() {
+  return this.mapE(function(val) {
+    return JSON.parse(val);
+  });
+};
+
+F.EventStream.prototype.JSONStringify = function() {
+  return this.mapE(function(val) {
+    return JSON.stringify(val);
+  });
+};
+
+/**
  * @param {F.EventStream} requestE
  * @return F.EventStream
  */

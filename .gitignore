@@ -1,4 +1,5 @@
 build
+/docs
 /website/.static
 /website/build-static
 *.pyc
