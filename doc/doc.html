@@ -2,42 +2,6 @@
 
 <chapter title="Event Streams">
 
-<article title="oneE">
-
-<programlisting>
-oneE(val) -> EventStream val
-</programlisting>
-
-<p>Create an event stream that fires just one event with the value
-<code>val</code>.</p>
-
-<p>Note that <code>oneE</code> does not immediately fire <code>val</code>.  The event is queued and fired after the current event has finished propagating.</p>
-
-<example>
-
-<p>The following code prints <code>&quot;first&quot;</code>, <code>&quot;second&quot;</code> and <code>&quot;third&quot;</code> in order:
-
-<programlisting>
-console.log('first');
-mapE(function(val) { console.log(val); },oneE('third'));
-console.log('second');
-</programlisting>
-
-</p>
-
-</example>
-
-</article>
-
-<article title="zeroE">
-
-<programlisting>
-zeroE() -> EventStream a
-</programlisting>
-
-<p>Create an event stream that never fires any events.</p>
-
-</article>
 
 <article title="mapE">
 
@@ -101,52 +65,6 @@ save.mapE(doSave); // doSave does the real work
 
 </example>
 
-</article>
-
-<article title="switchE">
-
-<programlisting>
-switchE(anyEE) -> EventStream a
-
-anyEE :: EventStream (EventStream a)
-</programlisting>
-
-<p>Given an event stream of event streams, fire events from the most recent
-event stream.</p>
-
-<example>
-
-<programlisting>
-var domStreamE = receiverE(); // every event is a DOM object
-domStreamE.
-	switchE().
-	extractEventE('mouseover').
-	mapE(function(_) { alert('hit!'); });
-</programlisting>
-
-</example>
-
-<synonyms>anyEE.switchE</synonyms>
-
-</article>
-
-<article title="condE">
-
-<programlisting>
-condE([boolE,resultE], ...) -> EventStream a
-
-boolE :: EventStream Bool
-resultE :: EventStream a
-</programlisting>
-
-<p>Conditional with multiple branches. The input is a set of pairs. Using
-argument order to determine priority within one time step (only one event
-should be sent per timestep), the first tuple with both a pair with a first
-event occuring of true and second event of type a will have the value of the
-second event will propagate. No value needs to propagate every time step.</p>
-
-</article>
-
 <article title="filterE">
 
 <programlisting>
@@ -173,26 +91,6 @@ numbers.filterE(function (v) { return v > 0; })
 
 </article>
 
-<article title="ifE">
-
-<programlisting>
-ifE(testE,trueE,falseE) -> EventStream a
-
-testE :: EventStream Bool
-trueE :: EventStream a
-falseE :: EventStream a
-</programlisting>
-
-<p>When an event occurs in the test position, if it is true, and in the same
-timestep an event occurs in the true branch, propagate the event in the true
-branch. If the test position receives a false event, then if in the same
-timestep an event occurs and the false branch, propagate that event. If either
-no event occurs in the test position or no event occurs in the enabled branch,
-do not send an event.  </p>
-
-<synonyms>testE.ifE</synonyms>
-
-</article>
 
 <article title="constantE">
 
@@ -882,15 +780,6 @@ extractValueB('interval-text-box').timerE().mapE(formatDate)
 
 </article>
 
-<article title="disableTimer">
-
-<programlisting>
-disableTimer(timer);
-</programlisting>
-
-<p>Given an event timer, make it stop updating.</p>
-
-</article>
 
 <article title="extractValueOnEventE">
 
@@ -902,21 +791,6 @@ formElement = Element or Element-id
 </programlisting>
 
 <p>Extracts the value of <i>formElement</i> whenever an event occurs on <i>anyE</i>.</p>
-
-</article>
-
-<article title="extractIdB">
-
-<programlisting>
-extractIdB(id [, changes]) -> Behavior Element
-
-id = String
-changes = Behavior DOM
-</programlisting>
-
-<p>The element associated with a specified <i>id</i> may change over time.  Whenever the value <i>changes</i> changes,
-the element with the id <i>id</i> is reextracted.  If <i>changes</i> is not specified, the element <i>id</i> is
-reextracted whenever an inserted DOM element changes.</p>
 
 </article>
 
@@ -1065,130 +939,9 @@ response is XML.</p>
 
 </article>
 
-<article title="getForeignWebServiceObjectE">
-
-<programlisting>
-getForeignWebServiceObjectE(requestE) -> responseE
-</programlisting>
-
-<p><i>Note:</i> You must call
-<code><link>initFlapjaxForeignWSO</link></code> before using this
-function.</p>
-
-<p>This function has the same interface as
-<code><link>getWebServiceObjectE</link></code>.  Requests are made
-through a Flash object, so the <code>url</code> is subject to the Flash
-Player's <a
-href="http://www.adobe.com/devnet/flashplayer/articles/cross_domain_policy.html">cross-domain
-policy</a>.</p>
-
-</article>
-
-<article title="evalForeignScriptValE">
-
-<programlisting>
-evalForeignScriptValE(urlArgE) -> EventStream result
-
-urlArgE = EventStream { url: string, globalArg: string }
-</programlisting>
-
-<p>Evaluates the JavaScript code at <code>url</code>; <code>url</code>
-may be on a remote server.  The code is expected to set the global
-variable named <code>globalArg</code>.  Flapjax will poll this variable
-and send its value to the result stream when it is set.</p>
-
-<example>
-
-<p>See the <a href="/demos/index.shtml#delicious">Delicious</a>
-demos.</p>
-
-</example>
-
-</article>
-
-<article title="initFlapjaxForeignWSO">
-
-<programlisting>
-initFlapjaxForeignWSO(baseUrl);
-
-baseUrl : url
-</programlisting>
-
-<p>This function must be called before
-<code><link>getForeignWebServiceObjectE</link></code> is called.
-<code>baseUrl</code> must be base URL of the Flapjax library.</p>
-
-<example>
-
-<programlisting>
-initFlapjaxForeignWSO('http://www.flapjax-lang.org/fx');
-</programlisting>
-
-</example>
-
-</article>
-
 </chapter> <!-- Web Services -->
 
 <chapter title="DOM Utilities">
-
-<article title="getElementsByClass">
-
-<programlisting>
-getElementsByClass(className) -> Array Element
-getElementsByClass(className,rootElement) -> Array Element
-getElementsByClass(className,rootElement,elementTag) -> Array Element
-
-className = String
-rootElement = Element or undefined
-elementTag = String
-</programlisting>
-
-<p>Returns an array of elements with the specified <i>className</i>. If <i>rootElement</i> is specified, the returned
-elements are children of <i>rootElement</i>. If <i>elementTag</i> is specified, it constraints the elements to have the
-specified tag. </p>
-
-<example>
-
-<programlisting>
-getElementsByClass('article',document,'div')
-</programlisting>
-
-<p>Returns all <code>div</code> elements of the class <code>article</code>.</p>
-
-</example>
-
-<synonyms>$$</synonyms>
-
-</article>
-
-<article title="getObjsA">
-
-<programlisting>
-getObjsA(elementId, ...) -> Array Element
-
-elementId = String
-</programlisting>
-
-<p>Returns an array of elements, selected by their <i>id</i>s.</p>
-
-<synonyms>$A</synonyms>
-
-</article>
-
-<article title="getObjs">
-
-<programlisting>
-getObjs(elementId, ...) -> { elementId: Element, ... }
-
-elementId = String
-</programlisting>
-
-<p>Returns a dictionary of elements, keyed by their <i>id</i>s.</p>
-
-<synonyms>$O</synonyms>
-
-</article>
 
 <article title="getObj">
 
@@ -1205,17 +958,6 @@ elementId = String
 
 </article>
 
-<article title="readCookie">
-
-<programlisting>
-readCookie(fieldName) -> String or undefined
-
-fieldName = String
-</programlisting>
-
-<p>Returns the value associated with <i>fieldName</i> from the cookie.</p>
-
-</article>
 
 <article title="swapDom">
 
@@ -1231,137 +973,6 @@ returned.</p>
 
 </article>
 
-<article title="getURLParam">
 
-<programlisting>
-getURLParam(paramName) -> String or undefined
-
-paramName = String
-</programlisting>
-
-<p>Returns the value of an GET argument supplied to the URL.  The initial URL is stored when the Flapjax framework
-is initialized, so subsequent modifications do not affect this function.</p>
-
-<synonyms>$URL</synonyms>
-
-</article>
-
-<article title="cumulativeOffset">
-
-<programlisting>
-cumulativeOffset(element) -> { left: integer, top: integer }
-</programlisting>
-
-<p>Returns the absolute position of an element relative to the top-left
-corner of the window.</p>
-
-</article>
-
-</chapter> <!-- DOM Utilities -->
-
-<chapter title="Miscellaneous Functions">
-
-<article title="slice">
-
-<programlisting>
-slice(array, startIndex) -> Array
-slice(array, startIndex, endIndex) -> Array
-</programlisting>
-
-<p>Returns a subsequence of <i>array</i>, starting from the element at <i>startIndex</i> and upto and excluding the
-element at <i>endIndex</i>.  If <i>endIndex</i> is not specified, it is assumed to be <code>array.length - 1</code>.</p>
-
-</article>
-
-<article title="member">
-
-<programlisting>
-member(elt,array) -> Bool
-
-elt : a
-array : Array a
-</programlisting>
-
-<p>Determines whether <i>elt</i> is an element of <i>array</i>. Comparision is performed with the <code>===</code>
-operator.</p>
-
-</article>
-
-<article title="map">
-
-<programlisting>
-map(f,array_1, ..., array_n) -> Array r
-
-array_1 : Array a_1
-...
-array_n : Array a_n
-f : (a_1 ... a_n -> r)
-</programlisting>
-
-<p>Applies <i>f</i> pointwise across the supplied arrays and returns an array of results.</p>
-
-</article>
-
-<article title="filter">
-
-<programlisting>
-filter(predicate,array) -> Array a
-
-predicate : a -> bool
-array : Array a
-</programlisting>
-
-<p>Filters out the elements that fail to satisfy <i>predicate</i>.</p>
-
-</article>
-
-<article title="forEach">
-
-<programlisting>
-forEach(f,array_1, ..., array_n);
-
-array_1 : Array a_1
-...
-array_n : Array a_n
-f : (a_1 ... a_n -> r)
-</programlisting>
-
-<p>Similar to <link>map</link>, but does not accumulate an array of results</p>.
-
-</article>
-
-<article title="fold">
-
-<programlisting>
-fold(f,init,array_1, ..., array_n) -> b
-
-init : b
-f : a_1 ... a_n b -> b
-array_1 : Array a_1
-...
-array_n : Array a_n
-</programlisting>
-
-<p>Reduces the arrays left-to-right.</p>
-
-</article>
-
-<article title="foldR">
-<programlisting>
-foldR(f,init,array_1, ..., array_n) -> b
-
-init : b
-f : a_1 ... a_n b -> b
-array_1 : Array a_1
-...
-array_n : Array a_n
-</programlisting>
-
-<p>Reduces the arrays right-to-left.</p>
-
-</article>
-
-
-</chapter>
 
 </document>

@@ -69,6 +69,7 @@ F.mkArray = function(arrayLike) {
 /**
  * Stamp * Path * Obj
  * @constructor Pulse
+ * @private
  */
 F.internal_.Pulse = function (stamp, value) {
   // Timestamps are used by liftB (and ifE).  Since liftB may receive multiple
@@ -80,6 +81,7 @@ F.internal_.Pulse = function (stamp, value) {
 
 /**
  * @constructor PQ
+ * @private
  */
 F.internal_.PQ = function () {
   var ctx = this;
@@ -447,6 +449,9 @@ F.EventStream.prototype.collectE = function(init,fold) {
 };
 
 /**
+ * Given a stream of event streams, fires events from the most recent event
+ * stream.
+ * 
  * @returns {F.EventStream}
  */
 F.EventStream.prototype.switchE = function() {
@@ -854,7 +859,7 @@ F.Behavior.prototype.calmB = function (intervalB) {
   return this.changes().calmE(intervalB).startsWith(this.valueNow());
 };
 
-//////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // DOM Utilities
 
 /**
@@ -1791,9 +1796,12 @@ F.xhr_.encodeREST = function(obj) {
 
 /**
  * Must be an event stream of bodies
+ * 
+ * @private
  * @param {!string} method PUT or POST
  * @param {!string} url URL to POST to
- * @returns {F.EventStream}
+ * @returns {F.EventStream} an event stream carrying objects with three
+ * fields: the request, the response, and the xhr object.
  */
 F.EventStream.prototype.xhrWithBody_ = function(method, url) {
   var respE = F.receiverE();
@@ -1813,10 +1821,24 @@ F.EventStream.prototype.xhrWithBody_ = function(method, url) {
   return respE; 
 };
 
+/**
+ * POST the body to url. The resulting event stream carries objects with three
+ * fields: <code>{request: string, response: string, xhr: XMLHttpRequest}</code>
+ *
+ * @param {!string} url
+ * @returns {F.EventStream}
+ */
 F.EventStream.prototype.POST = function(url) {
   return this.xhrWithBody_('POST', url);
 };
 
+/**
+ * Transforms a  stream of objects, <code>obj</code>, to a stream of fields
+ * <code>obj[name]</code>.
+ *
+ * @param {!string} name
+ * @returns {F.EventStream}
+ */
 F.EventStream.prototype.index = function(name) {
   return this.mapE(function(obj) {
     if (typeof obj !== 'object' && obj !== null) {
@@ -1826,12 +1848,22 @@ F.EventStream.prototype.index = function(name) {
   });
 };
 
+/**
+ * Parses a steram of JSON-serialized strings.
+ *
+ * @returns {F.EventStream}
+ */
 F.EventStream.prototype.JSONParse = function() {
   return this.mapE(function(val) {
     return JSON.parse(val);
   });
 };
 
+/**
+ * Serializes a stream of values.
+ *
+ * @returns {F.EventStream}
+ */
 F.EventStream.prototype.JSONStringify = function() {
   return this.mapE(function(val) {
     return JSON.stringify(val);

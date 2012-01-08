@@ -34,4 +34,4 @@ clean:
 doc:
 	cd ../tools/jsdoc-toolkit/jsdoc_toolkit-2.4.0/jsdoc-toolkit && \
 	java -jar jsrun.jar app/run.js -a -t=templates/jsdoc \
-	--directory=../../../../docs ../../../../fx/flapjax-impl.js -p
+	--directory=../../../../docs ../../../../fx/flapjax-impl.js
