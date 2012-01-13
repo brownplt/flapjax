@@ -276,6 +276,9 @@ F.EventStream.prototype.mergeE = function() {
 };
 
 /**
+ * Transforms this event stream to produce only <code>constantValue</code>.
+ *
+ * @param {*} constantValue
  * @returns {F.EventStream}
  */
 F.EventStream.prototype.constantE = function(constantValue) {
@@ -391,6 +394,8 @@ F.EventStream.prototype.notE = function() {
 };
 
 /**
+ * Only produces events that match the given predicate.
+ *
  * @param {function(*):boolean} pred
  * @returns {F.EventStream}
  */
@@ -406,39 +411,56 @@ F.EventStream.prototype.filterE = function(pred) {
 };
 
 /**
+ * Only triggers on the first event on this event stream.
+ *
  * @returns {F.EventStream}
  */
 F.EventStream.prototype.onceE = function() {
   var done = false;
-  return new F.EventStream([this],function(pulse) {
-    if (!done) { done = true; return pulse; }
-    else { return F.doNotPropagate; }
+  return this.filterE(function(_) {
+    if (!done) {
+      done = true;
+      return true;
+    }
+    return false;
   });
 };
 
 /**
+ * Does not trigger on the first event on this event stream.
+ *
  * @returns {F.EventStream}
  */
 F.EventStream.prototype.skipFirstE = function() {
   var skipped = false;
-  return new F.EventStream([this],function(pulse) {
-    if (skipped)
-      { return pulse; }
-    else
-      { return F.doNotPropagate; }
+  return this.filterE(function(_) {
+    if (!skipped) {
+      skipped = true;
+      return false;
+    }
+    return true;
   });
 };
 
 /**
+ * Transforms this event stream to produce the result accumulated by
+ * <code>combine</code>.
+ *
+ * <p>The following example accumulates a list of values with the latest
+ * at the head:</p>
+ *
+ * @example
+ * original.collectE([],function(new,arr) { return [new].concat(arr); });
+ *
  * @param {*} init
- * @param {Function} fold
+ * @param {Function} combine <code>combine(acc, val)</code> 
  * @returns {F.EventStream}
  */
-F.EventStream.prototype.collectE = function(init,fold) {
+F.EventStream.prototype.collectE = function(init, combine) {
   var acc = init;
   return this.mapE(
     function (n) {
-      var next = fold(n, acc);
+      var next = combine(n, acc);
       acc = next;
       return next;
     });
@@ -569,17 +591,22 @@ F.mapE = function (fn /*, [node0 | val0], ...*/) {
 };
 
 /** 
+ * Produces values from <i>valueB</i>, which are sampled when <i>sourceE</i>
+ * is triggered.
+ *
  * @param {F.Behavior} valueB
  * @returns {F.EventStream}
  */
 F.EventStream.prototype.snapshotE = function (valueB) {
   return new F.EventStream([this], function (pulse) {
-    pulse.value = valueB.valueNow();
+    pulse.value = valueB.valueNow(); // TODO: glitch
     return pulse;
   });
 };
 
 /**
+ * Filters out repeated events that are equal (JavaScript's <code>===</code>).
+ *
  * @param {*=} optStart initial value (optional)
  * @returns {F.EventStream}
  */
