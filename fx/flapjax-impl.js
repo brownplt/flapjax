@@ -1152,7 +1152,7 @@ F.dom_.dynamicEnstyle = function(obj, prop, val) {
 
 /**
  * @param {string} tagName
- * @returns {function((string|Object|Node)=, ...[(string|Node|Array.<Node>)]):!Node}
+ * @returns {function((string|Object|Node)=, ...[(string|Node|Array.<Node>)]):!HTMLElement}
  */
 F.dom_.makeTagB = function(tagName) { return function() {
   var attribs, children;
@@ -1362,7 +1362,7 @@ F.dom_.extractEventStaticE = function(elt, eventName, useCapture) {
 };
 
 /**
- * Constructs an event stream of DOM events.
+ * A signal carrying DOM events, which triggers on each event.
  * 
  * The argument <code>elt</code> may be a behavior of DOM nodes or 
  * <code>false</code>.
@@ -1579,6 +1579,11 @@ F.dom_.extractValueStaticB = function (domObj, triggerE) {
 };
 
 /**
+ * Signal carries the value of the form element <code>domObj</code>.
+ *
+ * The signal triggers when a change event fires, which depends on the
+ * type of <code>domObj</code>.
+ *
  * @param {!F.Behavior|!Node} domObj
  * @returns {!F.Behavior}
  */
