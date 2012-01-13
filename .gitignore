@@ -12,3 +12,4 @@ build
 /tools/closure-library
 /tools/jsdoc-toolkit.zip
 /tools/jsdoc-toolkit
+src/flapjax.min.js

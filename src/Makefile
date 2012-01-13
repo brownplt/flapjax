@@ -6,15 +6,15 @@ CLOSURE=../tools/closure-compiler/compiler.jar
 all: flapjax.min.js
 
  
-flapjax.min.js: flapjax-impl.js
+flapjax.min.js: flapjax.js
 	java -jar $(CLOSURE) \
 		--externs $(JSONEXTERN) \
 		--language_in ECMASCRIPT5 \
 		--warning_level VERBOSE \
-		--js    flapjax-impl.js \
+		--js    flapjax.js \
 		--js_output_file flapjax.min.js
 
-flapjaxlib.min.js: flapjax-impl.js
+flapjaxlib.min.js: flapjax.js
 	$(CLOSUREBUILDER) \
 		--root=$(CLOSURELIB)/closure \
 		--root=$(CLOSURELIB)/third_party \
@@ -28,10 +28,10 @@ flapjaxlib.min.js: flapjax-impl.js
 		--compiler_flag="--formatting=PRETTY_PRINT"
 
 clean:
-	rm -f flapjax.debug.js
-	rm -f flapjax.js
+	rm -f flapjax.min.js
+	rm -f flapjaxlib.min.js
 
 doc:
 	cd ../tools/jsdoc-toolkit/jsdoc_toolkit-2.4.0/jsdoc-toolkit && \
 	java -jar jsrun.jar app/run.js -a -t=templates/jsdoc \
-	--directory=../../../../docs ../../../../fx/flapjax-impl.js
+	--directory=../../../../docs ../../../../src/flapjax.js
