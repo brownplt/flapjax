@@ -285,10 +285,6 @@ F.EventStream.prototype.constantE = function(constantValue) {
   });
 };
 
-F.EventStream.prototype.index = function(fieldName) {
-  return this.mapE(function(obj) { return obj[fieldName]; });
-};
-
 /**
  * @constructor
  * @param {F.EventStream} event
