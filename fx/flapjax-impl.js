@@ -256,6 +256,9 @@ F.oneE = function(val) {
 
 
 /**
+ * Triggers when any of the argument event stream trigger; carries the signal
+ * from the last event stream that triggered.
+ *
  * @param {...F.EventStream} var_args
  * @returns {F.EventStream}
  */
@@ -322,6 +325,12 @@ F.Behavior.prototype.index = function(fieldName) {
   return this.liftB(function(obj) { return obj[fieldName]; });
 };
 
+/**
+ * Creates an event stream that can be imperatively triggered with 
+ * <code>sendEvent</code>.
+ *
+ * Useful for integrating Flapajx with callback-driven JavaScript code.
+ */
 F.receiverE = function() {
   var evt = F.internal_.internalE();
   evt.sendEvent = function(value) {
@@ -497,6 +506,9 @@ F.internal_.delayStaticE = function (event, time) {
 };
 
 /**
+ * Propagates signals from this event stream after <code>time</code>
+ * milliseconds.
+ * 
  * @param {F.Behavior|number} time
  * @returns {F.EventStream}
  */
@@ -627,7 +639,14 @@ F.EventStream.prototype.filterRepeatsE = function(optStart) {
 };
 
 /**
- * @param {(number|F.Behavior)} time
+ * <i>Calms</i> this event stream to fire at most once every <i>time</i> ms.
+ *
+ * Events that occur sooner are delayed to occur <i>time</i> milliseconds after
+ * the most recently-fired event.  Only the  most recent event is delayed.  So,
+ * if multiple events fire within <i>time</i>, only the last event will be
+ * propagated.
+ *
+ * @param {!number|F.Behavior} time
  * @returns {F.EventStream}
  */
 F.EventStream.prototype.calmE = function(time) {
@@ -651,6 +670,13 @@ F.EventStream.prototype.calmE = function(time) {
   return out;
 };
 
+/**
+ * Only triggers at most every <code>time</code> milliseconds. Higher-frequency
+ * events are thus ignored.
+ *
+ * @param {!number|F.Behavior} time
+ * @returns {F.EventStream}
+ */
 F.EventStream.prototype.blindE = function (time) {
   return new F.EventStream(
     [this],
@@ -729,7 +755,7 @@ F.Behavior.prototype.switchB = function() {
 };
 
 /**
- * @param {F.Behavior|number} interval
+ * @param {!F.Behavior|number} interval
  * @returns {F.Behavior}
  */
 F.timerB = function(interval) {
@@ -764,6 +790,9 @@ F.Behavior.prototype.ifB = function(trueB,falseB) {
 
 /** 
  * condB: . [F.Behavior boolean, F.Behavior a] -> F.Behavior a
+ * 
+ * Evaluates to the first <i>resultB</i> whose associated <i>conditionB</i> is
+ * <code>True</code>
  *
  * @param {Array.<Array.<F.Behavior>>} var_args
  * @returns {F.Behavior}
@@ -972,7 +1001,12 @@ F.dom_.getDomVal = function (domObj, indices) {
 };
 
 /**
- * @param {F.Behavior|number} intervalB
+ * An event stream that fires every <code>intervalB</code> ms.
+ *
+ * The interval itself may be time-varying. The signal carried is the current
+ * time, in milliseconds.
+ *
+ * @param {!F.Behavior|number} intervalB
  * @returns {F.EventStream}
  */
 F.timerE = function(intervalB) {
@@ -1191,6 +1225,30 @@ F.dom_.makeTagB = function(tagName) { return function() {
 });
 
 /**
+ * Creates a DOM element with time-varying children.
+ *
+ * @param {!string} tag
+ * @param {!string|Object|Node=} opt_style
+ * @param {...(string|Node|Array.<Node>|F.Behavior)} var_args
+ * @returns {!HTMLElement}
+ */
+F.elt = function(tag, opt_style, var_args) {
+  return F.dom_.makeTagB(tag).apply(null, F.mkArray(arguments).slice(1));
+};
+
+//TEXTB: F.Behavior a -> F.Behavior Dom TextNode
+F.text = function (strB) {
+
+  // TODO: Create a static textnode and set the data field?
+  //      if (!(strB instanceof F.Behavior || typeof(strB) == 'string')) { throw 'TEXTB: expected F.Behavior as second arg'; } //SAFETY
+  if (!(strB instanceof F.Behavior)) { strB = F.constantB(strB); }
+  
+  return strB.changes().mapE(
+      function (txt) { return document.createTextNode(txt); })
+    .startsWith(document.createTextNode(strB.valueNow()));
+};
+
+/**
  * @typedef {function((!string|Object|Node)=, ...[(!string|Node|Array.<Node>)]):!Node}
  */
 F.tagMaker;
@@ -1214,15 +1272,6 @@ var IMG = F.dom_.makeTagB('IMG');
 /** @type {F.tagMaker} */
 var PRE = F.dom_.makeTagB('pre');
 
-//TEXTB: F.Behavior a -> F.Behavior Dom TextNode    
-var TEXTB = function (strB) {
-  //      if (!(strB instanceof F.Behavior || typeof(strB) == 'string')) { throw 'TEXTB: expected F.Behavior as second arg'; } //SAFETY
-  if (!(strB instanceof F.Behavior)) { strB = F.constantB(strB); }
-  
-  return strB.changes().mapE(
-      function (txt) { return document.createTextNode(txt); })
-    .startsWith(document.createTextNode(strB.valueNow()));
-};
 
 var TEXT = function (str) {
   return document.createTextNode(str);
@@ -1231,10 +1280,33 @@ var TEXT = function (str) {
 ///////////////////////////////////////////////////////////////////////////////
 // Reactive DOM
 
-//tagRec: Array (EventName a) * 
-//      ( .Array (Event a) * Array (Event a) -> F.Behavior Dom) -> F.Behavior Dom
+/**
+ * [EventName] * (F.EventStream DOMEvent, ... -> Element) -> Element
+ *
 
-// tagRec :: [EventName] * (F.EventStream DOMEvent, ... -> Element) -> Element
+ * <p>An element may be a function of some event and behaviours, while those
+ * same events and behaviours might als be functions of the tag. <i>tagRec</i>
+ * is a convenience method for writing such cyclic dependencies. Also, as
+ * certain updates may cause a tag to be destroyed and recreated, this
+ * guarentees the extracted events are for the most recently constructed DOM
+ * node.</p>
+ * 
+ * <p>This example create a tags whose background color is white on mouse 
+ * over and black on mouseout, starting as black.</p>
+ *
+ * @example
+ * F.tagRec(
+ *  ['mouseover', 'mouseout'],
+ *  function (overE, outE) {
+ *    return F.elt('div',
+ *      { style: {
+ *        color:
+ *          mergeE(overE.constantE('#FFF'), outE.constantE('#000')).
+ *          startsWith('#000')}},
+ *      'mouse over me to change color!');
+ *  });
+ * 
+ */
 F.tagRec = function (eventNames, maker) {
   if (!(eventNames instanceof Array)) { throw 'tagRec: expected array of event names as first arg'; } //SAFETY
   if (!(maker instanceof Function)) { throw 'tagRec: expected function as second arg'; } //SAFETY
@@ -1340,15 +1412,6 @@ F.extractEventsE = function (domObj, var_args) {
          });
   
   return F.mergeE.apply(null, events);
-};
-
-
-//value of dom form object during trigger
-F.extractValueOnEventE = function (triggerE, domObj) {
-  if (!(triggerE instanceof F.EventStream)) { throw 'extractValueOnEventE: expected Event as first arg'; } //SAFETY
-  
-  return F.extractValueOnEventB.apply(null, arguments).changes();
-  
 };
 
 /**extractDomFieldOnEventE: Event * Dom U String . Array String -> Event a
@@ -1603,6 +1666,9 @@ F.insertValueE = function (triggerE, domObj /* . indices */) {
 //insertValueB: F.Behavior * domeNode . Array (id) -> void
 //TODO notify adapter of initial state change?
 /**
+ * Inserts each event in <i>triggerB</i> into the field <i>field</i> of the 
+ * elmeent <i>dest</i></p>.
+ *
  * @param {F.Behavior} triggerB
  * @param {Node} domObj
  * @param {...string} var_args
@@ -1762,28 +1828,13 @@ F.mouseE = function(elem) {
 };
 
 /**
+ * Triggered when the mouse moves, carrying the mouse coordinates.
+ *
  * @param {Node} elem
- * @returns {F.Behavior}
+ * @returns {F.Behavior} <code>{ left: number, top: number }</code>
  */
 F.mouseB = function(elem) {
   return F.mouseE(elem).startsWith({ left: 0, top: 0 });
-};
-
-/**
- * @param {Node} elem
- * @returns {F.Behavior}
- */
-F.mouseLeftB = function(elem) {
-  return F.mouseB(elem).liftB(function(v) { return v.left; });
-};
-
-
-/** 
- * @param {Node} elem
- * @returns {F.Behavior}
- */
-F.mouseTopB = function(elem) {
-  return F.mouseB(elem).liftB(function(v) { return v.top; });
 };
 
 /**
