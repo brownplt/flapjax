@@ -351,6 +351,17 @@ F.appWithInit = function(valueNow, f, var_args) {
 };
 
 /**
+ *
+ */
+F.Node.prototype.fold = function(acc, f) {
+  function g(v) {
+    acc  = f(v, acc);
+    return acc;
+  }
+  return F.appWithInit(acc, g, this);
+};
+
+/**
  * @param {F.Node} interval
  * @returns {F.Node}
  */
@@ -375,16 +386,6 @@ F.interval = function(interval) {
   return F.app(g, t, F.app(f, interval).disableTrigger());
 };
 
-/**
- *
- */
-F.Node.prototype.fold = function(acc, f) {
-  function g(v) {
-    acc  = f(v, acc);
-    return acc;
-  }
-  return F.appWithInit(acc, g, this);
-};
 
 /**
  * @param {F.Node} delay
