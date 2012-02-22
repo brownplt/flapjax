@@ -31,6 +31,13 @@ F.util.now = function() {
 };
 
 /**
+ * @returns {Array}
+ */
+F.util.mkArray = function(arrayLike) {
+  return Array.prototype.slice.call(arrayLike);
+};
+
+/**
  * @param {goog.structs.PriorityQueue} q
  */
 F.propagate_ = function(q) {
@@ -41,6 +48,9 @@ F.propagate_ = function(q) {
   }
 };
 
+/**
+ * When an input does not carry a signal, its value is F.X.
+ */
 F.X = { 
   toString: function() { 
     return 'F.X'; 
@@ -50,6 +60,11 @@ F.X = {
 F.nodes_ = { };
 
 /**
+ * The common prototype of all nodes.
+ *
+ * @param {*} valueNow The initial value. Use F.X if it is unintialized.
+ * @param {number} rank 
+ *
  * @constructor
  */
 F.Node = function(valueNow, rank) {
@@ -278,6 +293,16 @@ F.nodes_.Merge.prototype.consume = function(q, k, child) {
 };
 
 /**
+ * @returns {F.Node}
+ */
+F.sig = function(v) {
+  if (v instanceof F.Node) {
+    return v;
+  }
+  return F.constant(v);
+};
+
+/**
  * @param {number} n
  * @param {function(Array.<F.Node>):Array.<F.Node>} f
  */
@@ -308,6 +333,10 @@ F.Node.prototype.flatten = function() {
   return new F.nodes_.Bind(this, F.util.identity);
 };
 
+/**
+ * @returns {F.Node} carries the value of the current signal, but does not
+ *                   trigger updates.
+ */
 F.Node.prototype.disableTrigger = function() {
   var node = new F.nodes_.Untriggered(this.valueNow_);
   this.connect({ key: null, signal: node });
@@ -385,6 +414,7 @@ F.interval = function(interval) {
   }
   return F.app(g, t, F.app(f, interval).disableTrigger());
 };
+
 
 
 /**

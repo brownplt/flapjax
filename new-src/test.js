@@ -1,4 +1,5 @@
 goog.require('goog.testing.jsunit');
+goog.require('F');
 
 function testBind1() {
   var e1 = F.receiver(F.X);
