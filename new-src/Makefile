@@ -15,3 +15,10 @@ all:
 		--compiler_flags="--warning_level=VERBOSE" \
 		--compiler_flag="--compilation_level=WHITESPACE_ONLY" \
 		--compiler_flag="--formatting=PRETTY_PRINT"
+
+
+doc:
+	cd ../tools/jsdoc-toolkit/jsdoc_toolkit-2.4.0/jsdoc-toolkit && \
+	java -jar jsrun.jar app/run.js -a -t=templates/jsdoc \
+	--directory=../../../../new-doc ../../../../new-src/core.js \
+	../../../../new-src/dom.js

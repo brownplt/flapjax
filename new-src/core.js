@@ -1,8 +1,16 @@
 "use strict";
 
+/**
+ * @namespace
+ */
+var F = { };
 goog.provide('F');
 goog.require('goog.structs.PriorityQueue');
 
+
+/**
+ * @namespace
+ */
 F.util = { };
 
 F.util.identity = function(x) {
@@ -57,6 +65,9 @@ F.X = {
   }
 };
 
+/**
+ * @namespace
+ */
 F.nodes_ = { };
 
 /**
@@ -142,7 +153,7 @@ F.Node.prototype.consume = function(q, k, child) {
 
 /**
  * @constructor
- * @extends {F.Node}
+ * @extends F.Node
  * @param {F.Node} m
  * @param {function(*): F.Node} k
  */
@@ -191,7 +202,7 @@ F.nodes_.Bind.prototype.consume = function(q, k, child) {
 
 /** 
  * @constructor
- * @extends {F.Node}
+ * @extends F.Node
  */
 F.nodes_.App = function(valueNow, f, args) {
   var this_ = this;
@@ -233,7 +244,7 @@ F.nodes_.App.prototype.produce = function(q) {
 
 /**
  * @constructor
- * @extends {F.Node}
+ * @extends F.Node
  */
 F.nodes_.Receiver = function(valueNow) {
   F.Node.call(this, valueNow, 0);
@@ -249,7 +260,7 @@ F.nodes_.Receiver.prototype.send = function(v) {
 
 /**
  * @constructor
- * @extends {F.Node}
+ * @extends F.Node
  */
 F.nodes_.Untriggered = function(valueNow) {
   F.Node.call(this, valueNow, 0);
@@ -267,7 +278,7 @@ F.nodes_.Untriggered.prototype.produce = function(q) {
 
 /**
  * @constructor
- * @extends {F.Node}
+ * @extends F.Node
  */
 F.nodes_.Merge = function(srcs) {
   var valueNow = F.util.find(function(n) { return n.valueNow_ !== F.X; }, 
@@ -293,6 +304,9 @@ F.nodes_.Merge.prototype.consume = function(q, k, child) {
 };
 
 /**
+ * Creates constant signals from values.
+ *
+ * If v is a signal, returns v.
  * @returns {F.Node}
  */
 F.sig = function(v) {
@@ -303,8 +317,9 @@ F.sig = function(v) {
 };
 
 /**
- * @param {number} n
- * @param {function(Array.<F.Node>):Array.<F.Node>} f
+ * @param {number} n number of mutually-dependent signals to create
+ * @param {function(Array.<F.Node>):Array.<F.Node>} f 
+ *   consumes and produces n signals
  */
 F.letrecN_ = function(n, f) {
   // TODO: Glitches? what if the outNodes have different ranks?
@@ -325,10 +340,27 @@ F.letrec = function(f) {
   return F.letrecN_(f.length, f);
 };
 
+/**
+ * Primitive signal transformer.
+ *
+ * This function is akin to monadic bind. It should not be necessary to use it
+ * directly.
+ *
+ * @param {function(*):F.Node} k
+ *   function that is applied to all signal values, which returns a new signal
+ *   for each value
+ * @returns {F.Node} signal carrying values from the last application of k
+ */
 F.Node.prototype.bind = function(k) {
   return new F.nodes_.Bind(this, k);
 };
 
+/**
+ * Given a signal carrying signals, produces the values of the current 
+ * inner signal.
+ *
+ * @returns {F.Node}
+ */
 F.Node.prototype.flatten = function() {
   return new F.nodes_.Bind(this, F.util.identity);
 };
@@ -347,6 +379,12 @@ F.receiver = function(v) {
   return new F.nodes_.Receiver(v);
 };
 
+/**
+ * A constant signal.
+ *
+ * @param {*} v any value
+ * @returns {F.Node} a constant signal carrying v
+ */
 F.constant = function(v) {
   return new F.Node(v, 0);
 };
