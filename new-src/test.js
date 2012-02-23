@@ -286,3 +286,27 @@ function testInterval1() {
   }
   F.app(f, F.interval(delay));
 }
+
+function testFilter1() {
+  var src = F.receiver(0);
+  src.filter(function(x) { return x % 2 === 0; }).map(function(v) {
+    assertEquals(0, v % 2);
+  });
+  src.send(1);
+  src.send(2);
+  src.send(F.X);
+  src.send(10);
+  src.send(99);
+}
+
+function testFilter2() {
+  var sig = F.receiver(1).filter(function(v) { return v % 2 === 0; });
+  assertEquals(F.X, sig.valueNow_);
+}
+/*
+function testDelay1() {
+  var src = F.receiver(F.X);
+  var start = Date.now()
+  src.delay(1000).filter(
+
+}*/

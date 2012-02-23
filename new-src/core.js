@@ -241,6 +241,29 @@ F.nodes_.App.prototype.produce = function(q) {
   });
 };
 
+/** 
+ * @constructor
+ * @extends F.Node
+ */
+F.nodes_.Filter = function(pred, src) {
+  var this_ = this;
+  src.connect({ key: 0, signal: this });
+  this.pred_ = pred;
+  var initValueNow = pred(src.valueNow_) ? src.valueNow_ : F.X;
+  F.Node.call(this, initValueNow, 1 + src.rank_);
+};
+goog.inherits(F.nodes_.Filter, F.Node);
+
+F.nodes_.Filter.prototype.consume = function(q, k, child) {
+  if (!this.queuedNow_) {
+    if (this.pred_(child.valueNow_)) {
+      this.valueNow_ = child.valueNow_;
+      this.queuedNow_ = true;
+      q.enqueue(this.rank_, this);
+    }
+  }
+};
+
 /**
  * @constructor
  * @extends F.Node
@@ -354,6 +377,10 @@ F.Node.prototype.bind = function(k) {
   return new F.nodes_.Bind(this, k);
 };
 
+F.Node.prototype.filter = function(pred) {
+  return new F.nodes_.Filter(pred, this);
+};
+
 /**
  * Given a signal carrying signals, produces the values of the current 
  * inner signal.
@@ -460,6 +487,36 @@ F.interval = function(interval) {
     return t;
   }
   return F.app(g, t, F.app(f, interval).disableTrigger());
+};
+
+/**
+ * @param {F.Node|number} delay
+ * @returns {F.Node}
+ */
+F.delay = function(delay) {
+
+  function hasOut(w) {
+    return w.hasOwnProperty('out');
+  }
+
+  delay = F.sig(delay);
+  var acc = F.world({ queue: [], out: this.valueNow_ },
+    [ [ delay, function(w, _) { return { queue: [] }; } ],
+      [ F.interval(delay), function(w, _) {
+          if (w.queue.length > 0) {
+            var out = w.queue.shift();
+            return { queue: w.queue, out: out };
+          }
+          else {
+            return { queue: w.queue };
+          }
+        } ],
+      [ this, function(w, v) {
+          w.queue.push(v);
+          return { queue: w.queue };
+        } ] ]);
+  return acc.filter(hasOut).get('out');
+  
 };
 
 F.Node.prototype.log = function(prefix) {
