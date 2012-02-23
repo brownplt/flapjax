@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+</head>
+
+<body>
+
+<div id='timer'></div>
+
+  
+<script src="flapjax.js"></script>
+<script>
+  var on_tick = F.interval(1000);
+  var on_click = F.evt(document.getElementById('timer'), 'click');
+
+  var w = F.world(
+    0,
+    [ [on_tick, function(w, _) { return w + 1; }],
+      [on_click, function(w, _) { return 0; }] ]
+  );
+  var to_draw = F.elt('p', {}, F.text(w));
+
+  timer.appendChild(to_draw);
+</script>
+
+</body>
+</html>
+

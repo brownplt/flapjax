@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * @namespace F
+ * @namespace
  */
 goog.provide('F');
 goog.require('goog.structs.PriorityQueue');
@@ -368,6 +368,10 @@ F.Node.prototype.get = function(propName) {
   return F.app(function(obj) { return obj[propName]; }, this);
 };
 
+F.Node.prototype.map = function(f) {
+  return F.app(f, this);
+};
+
 /**
  * @returns {F.Node} carries the value of the current signal, but does not
  *                   trigger updates.
@@ -432,10 +436,12 @@ F.Node.prototype.fold = function(acc, f) {
 };
 
 /**
- * @param {F.Node} interval
+ * @param {F.Node|number} interval
  * @returns {F.Node}
  */
 F.interval = function(interval) {
+  interval = F.sig(interval);
+
   var intervalID = null;
   var t = F.receiver(F.util.now());
   function callback() {
@@ -458,60 +464,30 @@ F.interval = function(interval) {
 
 F.Node.prototype.log = function(prefix) {
   return F.app(function(v) { 
-    console.log(prefix, v); 
-    return v; 
-  }, this);
+      console.log(prefix, v); 
+      return v; 
+      }, this);
 };
 
-
-/**
- * @param {F.Node} delay
- * @returns {F.Node}
- */
-/*
-F.Node.prototype.delay = function(delay) {
-  // Pairs each triggered value the delay it incurs.
-  function f(val, delay) {
-    return { val: val, delay: delay };
-  }
-  var vals = F.app(f, this, delay.disableTrigger());
-
-  var es = F.letrec(function(queue, ticks) {
-    // Ticks won't trigger until queue fires
-    // A ticks trigger means a delayed event should now fire, queue can discard
-    // the value
-    var ticks_ =  F.interval(queue.map(function(v) { return v[0].delay; }));
-    // valsTicks fires whenver either vals or ticks fires. 
-    var valsTicks = F.disjointMerge(vals, ticks);
-    // Queue will trigger whenever valsTicks fires. So, first trigger will
-    // be by vals, since ticks is waiting for queue to trigger.
-    var queue_ = valsTicks.fold([], function(vt, q) {
-      if (vt.i === 0) {
-        return q.enqueue(vt.v);
-      }
-      // assume v.t === 1
-      else {
-        // TODO: timer should only update when something is dequeued. It is easy
-        // to also return a didDequeue flag in the accumulator and filter by
-        // that value
-        return q.dequeue();
-      }
+/*: ∀ α . α * Array<∃ β . {0: EventStream<β>, 1: α * β -> α}> -> Behavior<α> */
+F.world = function(init, handlers) {
+  return F.merge.apply(null,
+      handlers.map(function(handler)
+        /*: ∃ β . {0: EventStream<β>, 1: α * β -> α} -> EventStream<α -> α> */
+        {
+        return handler[0].map(function(eventValue) /*: β -> (α -> α) */ {
+          return function(world) /*: α -> α */ {
+          return handler[1](world, eventValue);
+          };
+      });
+    }))
+   .fold(init, function(handler, world) /*: (α -> α) * α -> α */ {
+      return handler(world);
     });
-  
-    return [queue_, ticks_];
-  });
-  var queue = es[0];
-  var ticks = es[1];
-  
-  // TODO: Relies on reading the last value of q, before q is dequeued on this
-  // turn. Simplest solution is to add a last value field to the accumulation
-  // variable q.
-  return F.app(function(q, t) {
-    return q[0].value;
-  }, queue.disableTrigger(), ticks);
-
 };
-*/
+
+
+
 
 /**
  * @param {Object} obj
