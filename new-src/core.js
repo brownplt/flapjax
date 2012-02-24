@@ -493,7 +493,7 @@ F.interval = function(interval) {
  * @param {F.Node|number} delay
  * @returns {F.Node}
  */
-F.delay = function(delay) {
+F.Node.prototype.delay = function(delay) {
 
   function hasOut(w) {
     return w.hasOwnProperty('out');

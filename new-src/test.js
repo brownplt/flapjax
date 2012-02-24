@@ -1,4 +1,5 @@
 goog.require('goog.testing.jsunit');
+goog.require('goog.testing.AsyncTestCase');
 goog.require('F');
 
 function testBind1() {
@@ -277,14 +278,15 @@ function testInterval1() {
     lastT = t;
     if (calls === 3) {
       delay.send(null);
+      // allow calls > 3 fire if there is a bug
+      window.setTimeout(function() { asyncTestCase.continueTesting(); }, 500);
     }
     if (calls > 3) {
-      // TODO: async test case needs more setup, this error is not reported
-      // correctly
       fail('timer did not stop');
     }
   }
   F.app(f, F.interval(delay));
+  asyncTestCase.waitForAsync();
 }
 
 function testFilter1() {
@@ -303,10 +305,120 @@ function testFilter2() {
   var sig = F.receiver(1).filter(function(v) { return v % 2 === 0; });
   assertEquals(F.X, sig.valueNow_);
 }
-/*
-function testDelay1() {
-  var src = F.receiver(F.X);
-  var start = Date.now()
-  src.delay(1000).filter(
 
-}*/
+function testDelay1() {
+  var start = Date.now();
+  var src = F.receiver(F.X);
+  src.delay(500).map(function(end) {
+    if (end == F.X) {
+      return F.X;
+    }
+    assertRoughlyEquals(start, end, 500);
+    asyncTestCase.continueTesting();
+  });
+  src.send(start);
+  asyncTestCase.waitForAsync();
+}
+
+function testDelayVarying() {
+  var d = F.receiver(500);
+  var src = F.receiver(0);
+  var last = Date.now();
+  src.delay(d).map(function(v) {
+    switch (v) {
+    case 0:
+      d.send(200);
+      break;
+    case 1:
+      assertRoughlyEquals(last + 200, Date.now(), 100);
+      last = Date.now();
+      src.send(2);
+      break;
+    case 2:
+      assertRoughlyEquals(last + 200, Date.now(), 100);
+      last = Date.now();
+      d.send(500);
+      src.send(3);
+      break;
+    case 3:
+      assertRoughlyEquals(last + 500, Date.now(), 100);
+      last = Date.now();
+      asyncTestCase.continueTesting();
+      break;
+    default:
+      fail('> 3 iterations');
+    }
+    return F.X;
+  });
+  src.send(1);
+  asyncTestCase.waitForAsync();
+}
+
+function testDelayEdgeCase() {
+  var d = F.receiver(500);
+  var src = F.receiver(0);
+  var last = Date.now();
+  src.delay(d).map(function(v) {
+    switch (v) {
+    case 0:
+      d.send(2000);
+      src.send(1);
+      window.setTimeout(function() {
+        d.send(500);
+        src.send(2);
+      }, 500);
+      break;
+    case 1:
+      fail('1 should be skipped because delay is changed while 1 is queued');
+      break;
+    case 2:
+      assertRoughlyEquals(last + 1000, Date.now(), 100);
+      asyncTestCase.continueTesting();
+      break;
+    default:
+      fail('too many values');
+    }
+    return F.X;
+  });
+  asyncTestCase.waitForAsync();
+}
+
+function testDelayRapid() {
+  var d = F.receiver(500);
+  var src = F.receiver(0);
+  var last = Date.now();
+  src.delay(d).map(function(v) {
+    switch (v) {
+    case 0:
+      break;
+    case 1:
+    case 2:
+      assertRoughlyEquals(last + 500, Date.now(), 100);
+      last = Date.now();
+      break;
+    case 3:
+      assertRoughlyEquals(last + 500, Date.now(), 100);
+      asyncTestCase.continueTesting();
+      break;
+    default:
+      fail('too many values');
+    }
+    return F.X;
+  });
+  asyncTestCase.waitForAsync();
+  window.setTimeout(function() {
+    src.send(1);
+    window.setTimeout(function() {
+      src.send(2);
+      window.setTimeout(function() {
+        src.send(3);
+      }, 100);
+    }, 100);
+  }, 100);
+}
+
+var asyncTestCase;
+window.addEventListener('load', function(_) {
+  asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
+  asyncTestCase.stepTimeout = 3000;
+});
