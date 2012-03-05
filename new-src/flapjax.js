@@ -3,6 +3,8 @@
 /**
  * @namespace
  */
+F = { };
+
 goog.provide('F');
 goog.require('goog.structs.PriorityQueue');
 
@@ -63,11 +65,6 @@ F.X = {
     return 'F.X'; 
   }
 };
-
-/**
- * @namespace
- */
-F.nodes_ = { };
 
 /**
  * The common prototype of all nodes.
@@ -155,8 +152,9 @@ F.Node.prototype.consume = function(q, k, child) {
  * @extends F.Node
  * @param {F.Node} m
  * @param {function(*): F.Node} k
+ * @private
  */
-F.nodes_.Bind = function(m, k) {
+F.Bind = function(m, k) {
   this.m_ = m;
   this.k_ = k;
   if (m.valueNow_ === F.X) {
@@ -170,9 +168,9 @@ F.nodes_.Bind = function(m, k) {
   m.connect({ key: 'm', signal: this });
   this.r_.connect({ key: 'r', signal: this });
 }
-goog.inherits(F.nodes_.Bind, F.Node);
+goog.inherits(F.Bind, F.Node);
 
-F.nodes_.Bind.prototype.consume = function(q, k, child) {
+F.Bind.prototype.consume = function(q, k, child) {
   var v = child.valueNow_;
   if (k === 'm') {
     this.r_.disconnect(this);
@@ -202,8 +200,9 @@ F.nodes_.Bind.prototype.consume = function(q, k, child) {
 /** 
  * @constructor
  * @extends F.Node
+ * @private
  */
-F.nodes_.App = function(valueNow, f, args) {
+F.App = function(valueNow, f, args) {
   var this_ = this;
   var i = 0;
   args.forEach(function(arg) {
@@ -216,16 +215,16 @@ F.nodes_.App = function(valueNow, f, args) {
     1 + Math.max.apply(null, args.map(function(a) { return a.rank_; }));
   F.Node.call(this, valueNow, rank);
 };
-goog.inherits(F.nodes_.App, F.Node);
+goog.inherits(F.App, F.Node);
 
-F.nodes_.App.prototype.consume = function(q, k, child) {
+F.App.prototype.consume = function(q, k, child) {
   if (!this.queuedNow_) {
     this.queuedNow_ = true;
     q.enqueue(this.rank_, this);
   }
 };
 
-F.nodes_.App.prototype.produce = function(q) {
+F.App.prototype.produce = function(q) {
   var this_ = this;
   this.queuedNow_ = false;
   var argVals = new Array(this.args_.length);
@@ -244,17 +243,18 @@ F.nodes_.App.prototype.produce = function(q) {
 /** 
  * @constructor
  * @extends F.Node
+ * @private
  */
-F.nodes_.Filter = function(pred, src) {
+F.Filter = function(pred, src) {
   var this_ = this;
   src.connect({ key: 0, signal: this });
   this.pred_ = pred;
   var initValueNow = pred(src.valueNow_) ? src.valueNow_ : F.X;
   F.Node.call(this, initValueNow, 1 + src.rank_);
 };
-goog.inherits(F.nodes_.Filter, F.Node);
+goog.inherits(F.Filter, F.Node);
 
-F.nodes_.Filter.prototype.consume = function(q, k, child) {
+F.Filter.prototype.consume = function(q, k, child) {
   if (!this.queuedNow_) {
     if (this.pred_(child.valueNow_)) {
       this.valueNow_ = child.valueNow_;
@@ -267,13 +267,14 @@ F.nodes_.Filter.prototype.consume = function(q, k, child) {
 /**
  * @constructor
  * @extends F.Node
+ * @private
  */
-F.nodes_.Receiver = function(valueNow) {
+F.Receiver = function(valueNow) {
   F.Node.call(this, valueNow, 0);
 }
-goog.inherits(F.nodes_.Receiver, F.Node);
+goog.inherits(F.Receiver, F.Node);
 
-F.nodes_.Receiver.prototype.send = function(v) {
+F.Receiver.prototype.send = function(v) {
   this.valueNow_ = v;
   var q = new goog.structs.PriorityQueue();
   q.enqueue(0, this);
@@ -283,26 +284,28 @@ F.nodes_.Receiver.prototype.send = function(v) {
 /**
  * @constructor
  * @extends F.Node
+ * @private
  */
-F.nodes_.Untriggered = function(valueNow) {
+F.Untriggered = function(valueNow) {
   F.Node.call(this, valueNow, 0);
 }
-goog.inherits(F.nodes_.Untriggered, F.Node);
+goog.inherits(F.Untriggered, F.Node);
 
-F.nodes_.Untriggered.prototype.consume = function(q, k, child) {
+F.Untriggered.prototype.consume = function(q, k, child) {
   // this is not pushed onto q
   this.valueNow_ = child.valueNow_;
 };
 
-F.nodes_.Untriggered.prototype.produce = function(q) {
+F.Untriggered.prototype.produce = function(q) {
   throw 'Untriggered.prototype.produce must not be applied';
 };
 
 /**
  * @constructor
  * @extends F.Node
+ * @private
  */
-F.nodes_.Merge = function(srcs) {
+F.Merge = function(srcs) {
   var valueNow = F.util.find(function(n) { return n.valueNow_ !== F.X; }, 
     srcs, { valueNow_ : F.X }).valueNow_;
   var rank = 1 + Math.max.apply(null, srcs);
@@ -313,9 +316,9 @@ F.nodes_.Merge = function(srcs) {
     src.connect({ key: null, signal: this_ });
   });
 };
-goog.inherits(F.nodes_.Merge, F.Node);
+goog.inherits(F.Merge, F.Node);
 
-F.nodes_.Merge.prototype.consume = function(q, k, child) {
+F.Merge.prototype.consume = function(q, k, child) {
   // Latest value from one of srcs
   if (this.queuedNow_) {
     return;
@@ -346,7 +349,7 @@ F.sig = function(v) {
 F.letrecN_ = function(n, f) {
   // TODO: Glitches? what if the outNodes have different ranks?
   var inNodes = F.util.iota(n).map(function(n) {
-    return new F.nodes_.Untriggered(F.X);
+    return new F.Untriggered(F.X);
   });
   var outNodes = f.apply(null, inNodes);
   outNodes.forEach(function(outNode, i) {
@@ -374,11 +377,11 @@ F.letrec = function(f) {
  * @returns {F.Node} signal carrying values from the last application of k
  */
 F.Node.prototype.bind = function(k) {
-  return new F.nodes_.Bind(this, k);
+  return new F.Bind(this, k);
 };
 
 F.Node.prototype.filter = function(pred) {
-  return new F.nodes_.Filter(pred, this);
+  return new F.Filter(pred, this);
 };
 
 /**
@@ -388,7 +391,7 @@ F.Node.prototype.filter = function(pred) {
  * @returns {F.Node}
  */
 F.Node.prototype.flatten = function() {
-  return new F.nodes_.Bind(this, F.util.identity);
+  return new F.Bind(this, F.util.identity);
 };
 
 F.Node.prototype.get = function(propName) {
@@ -409,13 +412,13 @@ F.Node.prototype.map = function(f) {
  *                   trigger updates.
  */
 F.Node.prototype.disableTrigger = function() {
-  var node = new F.nodes_.Untriggered(this.valueNow_);
+  var node = new F.Untriggered(this.valueNow_);
   this.connect({ key: null, signal: node });
   return node;
 };
 
 F.receiver = function(v) {
-  return new F.nodes_.Receiver(v);
+  return new F.Receiver(v);
 };
 
 /**
@@ -429,7 +432,7 @@ F.constant = function(v) {
 };
 
 F.merge = function(var_args) {
-  return new F.nodes_.Merge(Array.prototype.slice.call(arguments));
+  return new F.Merge(Array.prototype.slice.call(arguments));
 };
 
 F.disjointMerge = function(var_args) {
@@ -437,7 +440,7 @@ F.disjointMerge = function(var_args) {
   function f(signal, i) {
     return F.app(function(v) { return { v: v, i: i }; }, signal);
   }
-  return new F.nodes_.Merge(args.map(f));
+  return new F.Merge(args.map(f));
 };
 
 /**
@@ -448,16 +451,16 @@ F.disjointMerge = function(var_args) {
 F.app = function(f, var_args) {
   var args = Array.prototype.slice.call(arguments, 1);
   var valueNow = f.apply(null, args.map(function(v) { return v.valueNow_; }));
-  return new F.nodes_.App(valueNow, f, args);
+  return new F.App(valueNow, f, args);
 };
 
 F.appWithInit = function(valueNow, f, var_args) {
   var args = Array.prototype.slice.call(arguments, 2);
-  return new F.nodes_.App(valueNow, f, args);
+  return new F.App(valueNow, f, args);
 };
 
 /**
- *
+ * fold
  */
 F.Node.prototype.fold = function(acc, f) {
   function g(v) {
