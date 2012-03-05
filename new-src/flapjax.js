@@ -79,7 +79,7 @@ F.Node = function(valueNow, rank) {
   this.queuedNow_ = false;
   this.valueNow_ = valueNow;
   this.rank_ = rank;
-}
+};
 
 /**
  * Attach a signal to receive values from this signal.
@@ -87,7 +87,7 @@ F.Node = function(valueNow, rank) {
  * @param {{key: *, signal: F.Node}} tuple
  */
 F.Node.prototype.connect = function(tuple) {
-    this.sendsTo_.push(tuple);
+  this.sendsTo_.push(tuple);
 };
 
 /**
@@ -119,8 +119,8 @@ F.Node.prototype.childRankChanged = function(newChildRank) {
   var newRank = newChildRank + 1;
   this.rank_ = newRank;
   this.sendsTo_.forEach(function(tup) {
-    tup.signal.childRankChanged(newRank);
-  });
+                          tup.signal.childRankChanged(newRank);
+                        });
 };
 
 /**
@@ -132,8 +132,8 @@ F.Node.prototype.produce = function(q) {
   var this_ = this;
   this.queuedNow_ = false;
   this.sendsTo_.forEach(function(tuple) {
-    tuple.signal.consume(q, tuple.key, this_);
-  });
+                          tuple.signal.consume(q, tuple.key, this_);
+                        });
 };
 
 /**
@@ -164,10 +164,10 @@ F.Bind = function(m, k) {
     this.r_ = this.k_(m.valueNow_);
   }
   F.Node.call(this, this.r_.valueNow_, 
-    1 + Math.max(m.rank_, this.r_.rank_));
+              1 + Math.max(m.rank_, this.r_.rank_));
   m.connect({ key: 'm', signal: this });
   this.r_.connect({ key: 'r', signal: this });
-}
+};
 goog.inherits(F.Bind, F.Node);
 
 F.Bind.prototype.consume = function(q, k, child) {
@@ -206,9 +206,9 @@ F.App = function(valueNow, f, args) {
   var this_ = this;
   var i = 0;
   args.forEach(function(arg) {
-    arg.connect({ key: i, signal: this_ });
-    i = i + 1;
-  });
+                 arg.connect({ key: i, signal: this_ });
+                 i = i + 1;
+               });
   this.f_ = f;
   this.args_ = args;
   var rank = 
@@ -230,14 +230,14 @@ F.App.prototype.produce = function(q) {
   var argVals = new Array(this.args_.length);
   var i = 0;
   this.args_.forEach(function(arg) {
-    argVals[i] = arg.valueNow_;
-    i = i + 1;
-  });
+                       argVals[i] = arg.valueNow_;
+                       i = i + 1;
+                     });
   var valueNow = this.f_.apply(null, argVals);
   this.valueNow_ = valueNow;
   this.sendsTo_.forEach(function(tuple) {
-    tuple.signal.consume(q, tuple.key, this_); 
-  });
+                          tuple.signal.consume(q, tuple.key, this_); 
+                        });
 };
 
 /** 
@@ -271,7 +271,7 @@ F.Filter.prototype.consume = function(q, k, child) {
  */
 F.Receiver = function(valueNow) {
   F.Node.call(this, valueNow, 0);
-}
+};
 goog.inherits(F.Receiver, F.Node);
 
 F.Receiver.prototype.send = function(v) {
@@ -279,7 +279,7 @@ F.Receiver.prototype.send = function(v) {
   var q = new goog.structs.PriorityQueue();
   q.enqueue(0, this);
   F.propagate_(q);
-}
+};
 
 /**
  * @constructor
@@ -288,7 +288,7 @@ F.Receiver.prototype.send = function(v) {
  */
 F.Untriggered = function(valueNow) {
   F.Node.call(this, valueNow, 0);
-}
+};
 goog.inherits(F.Untriggered, F.Node);
 
 F.Untriggered.prototype.consume = function(q, k, child) {
@@ -307,14 +307,14 @@ F.Untriggered.prototype.produce = function(q) {
  */
 F.Merge = function(srcs) {
   var valueNow = F.util.find(function(n) { return n.valueNow_ !== F.X; }, 
-    srcs, { valueNow_ : F.X }).valueNow_;
+                             srcs, { valueNow_ : F.X }).valueNow_;
   var rank = 1 + Math.max.apply(null, srcs);
   F.Node.call(this, valueNow, rank);
 
   var this_ = this;
   srcs.forEach(function(src) {
-    src.connect({ key: null, signal: this_ });
-  });
+                 src.connect({ key: null, signal: this_ });
+               });
 };
 goog.inherits(F.Merge, F.Node);
 
@@ -349,12 +349,12 @@ F.sig = function(v) {
 F.letrecN_ = function(n, f) {
   // TODO: Glitches? what if the outNodes have different ranks?
   var inNodes = F.util.iota(n).map(function(n) {
-    return new F.Untriggered(F.X);
-  });
+                                     return new F.Untriggered(F.X);
+                                   });
   var outNodes = f.apply(null, inNodes);
   outNodes.forEach(function(outNode, i) {
-    outNode.connect({ key: 'src', signal: inNodes[i] });
-  });
+                     outNode.connect({ key: 'src', signal: inNodes[i] });
+                   });
   return outNodes;
 };
 
@@ -396,11 +396,11 @@ F.Node.prototype.flatten = function() {
 
 F.Node.prototype.get = function(propName) {
   return F.app(function(obj) { 
-    if (!obj.hasOwnProperty(propName)) {
-      return F.X;
-    }
-    return obj[propName]; 
-  }, this);
+                 if (!obj.hasOwnProperty(propName)) {
+                   return F.X;
+                 }
+                 return obj[propName]; 
+               }, this);
 };
 
 F.Node.prototype.map = function(f) {
@@ -567,11 +567,11 @@ F.Node.prototype.delay = function(delay) {
   // . <- t1 -> . <- t2 -> . <- t3 -> . <- t4 -> . ...
 
   var worldArr = F.letrec(function(world) {
-    console.log('setting up world');
-    return [ F.world({ q: [] },
-               [ [ vals, calcDelay ],
-                 [ F.interval(F.app(delayByHead(world), vals)), outputVal ] ]) ];
-  });
+                            console.log('setting up world');
+                            return [ F.world({ q: [] },
+                                             [ [ vals, calcDelay ],
+                                               [ F.interval(F.app(delayByHead(world), vals)), outputVal ] ]) ];
+                          });
 
   var world = worldArr[0];
 
@@ -582,26 +582,26 @@ F.Node.prototype.delay = function(delay) {
 
 F.Node.prototype.log = function(prefix) {
   return F.app(function(v) { 
-      console.log(prefix, v); 
-      return v; 
-      }, this);
+                 console.log(prefix, v); 
+                 return v; 
+               }, this);
 };
 
 /*: ∀ α . α * Array<∃ β . {0: EventStream<β>, 1: α * β -> α}> -> Behavior<α> */
 F.world = function(init, handlers) {
   return F.merge.apply(null,
-      handlers.map(function(handler)
-        /*: ∃ β . {0: EventStream<β>, 1: α * β -> α} -> EventStream<α -> α> */
-        {
-        return handler[0].map(function(eventValue) /*: β -> (α -> α) */ {
-          return function(world) /*: α -> α */ {
-          return handler[1](world, eventValue);
-          };
-      });
-    }))
-   .fold(init, function(world, handler) /*: (α -> α) * α -> α */ {
-      return handler(world);
-    });
+                       handlers.map(function(handler)
+                                    /*: ∃ β . {0: EventStream<β>, 1: α * β -> α} -> EventStream<α -> α> */
+                                    {
+                                      return handler[0].map(function(eventValue) /*: β -> (α -> α) */ {
+                                                              return function(world) /*: α -> α */ {
+                                                                return handler[1](world, eventValue);
+                                                              };
+                                                            });
+                                    }))
+    .fold(init, function(world, handler) /*: (α -> α) * α -> α */ {
+            return handler(world);
+          });
 };
 
 
@@ -630,17 +630,17 @@ F.staticEnstyle_ = function(obj, prop) {
  */
 F.enstyle_ = function(target, obj) {
   Object.keys(obj).forEach(function(key) {
-    var val = obj[key];
-    if (val instanceof F.Node) {
-      F.app(F.staticEnstyle_(target, key), val);
-    }
-    else if (typeof val === 'object') {
-      F.enstyle_(target[key], val);
-    }
-    else {
-      target[key] = val;
-    }
-  });
+                             var val = obj[key];
+                             if (val instanceof F.Node) {
+                               F.app(F.staticEnstyle_(target, key), val);
+                             }
+                             else if (typeof val === 'object') {
+                               F.enstyle_(target[key], val);
+                             }
+                             else {
+                               target[key] = val;
+                             }
+                           });
 };
 
 /**
@@ -693,24 +693,24 @@ F.swapChildren_ = function(parent, existingChildren, newChildren) {
 F.appendDynChild_ = function(parent, child) {
   var lastVal = [];
   F.app(function(childV) {
-    // TODO: flapjax.js msut have a bug when the time-varying array is empty
-    if (childV === F.X || childV.length === 0) {
-      childV = [document.createTextNode('')];
-    }
-    else if (!(childV instanceof Array)) {
-      childV = [childV];
-    }
+          // TODO: flapjax.js msut have a bug when the time-varying array is empty
+          if (childV === F.X || childV.length === 0) {
+            childV = [document.createTextNode('')];
+          }
+          else if (!(childV instanceof Array)) {
+            childV = [childV];
+          }
 
-    if (lastVal.length === 0) {
-      childV.forEach(function(e) {
-        parent.appendChild(e);
-      });
-    }
-    else {
-      F.swapChildren_(parent, lastVal, childV);
-    }
-    lastVal = childV;
-  }, child);
+          if (lastVal.length === 0) {
+            childV.forEach(function(e) {
+                             parent.appendChild(e);
+                           });
+          }
+          else {
+            F.swapChildren_(parent, lastVal, childV);
+          }
+          lastVal = childV;
+        }, child);
 };
 
 /**
@@ -741,10 +741,10 @@ F.elt = function(tagName, attribs, var_args /* ... */) {
   var elt = document.createElement(tagName);
   F.enstyle_(elt, attribs);
   children.forEach(function(child) {
-    F.appendChild_(elt, child);
-  });
+                     F.appendChild_(elt, child);
+                   });
   return elt;
-}
+};
 
 /**
  * @param {F.Node|string} text text to display
@@ -757,15 +757,15 @@ F.text = function(text) {
 
   var node = document.createTextNode('');
   F.app(function(t) { 
-    if (t === F.X) {
-      node.textContent = '';
-    }
-    else {
-      node.textContent = t;
-    }
-  }, text);
+          if (t === F.X) {
+            node.textContent = '';
+          }
+          else {
+            node.textContent = t;
+          }
+        }, text);
   return node;
-}
+};
 
 /**
  * A signal carrying DOM events, which triggers on each event.
