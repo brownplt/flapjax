@@ -392,7 +392,12 @@ F.Node.prototype.flatten = function() {
 };
 
 F.Node.prototype.get = function(propName) {
-  return F.app(function(obj) { return obj[propName]; }, this);
+  return F.app(function(obj) { 
+    if (!obj.hasOwnProperty(propName)) {
+      return F.X;
+    }
+    return obj[propName]; 
+  }, this);
 };
 
 F.Node.prototype.map = function(f) {
@@ -456,13 +461,25 @@ F.appWithInit = function(valueNow, f, var_args) {
  */
 F.Node.prototype.fold = function(acc, f) {
   function g(v) {
-    acc  = f(v, acc);
+    acc  = f(acc, v);
     return acc;
   }
   return F.appWithInit(acc, g, this);
 };
 
+F.fold2 = function(f, acc, x, y) {
+  function g(x, y) {
+    acc  = f(acc, x, y);
+    return acc;
+  }
+  return F.appWithInit(acc, g, x, y);
+};
+
 /**
+ * Send a signal every <code>interval</code> milliseconds.
+ * 
+ * If <code>interval</code> changes, the timer is reset.
+ * 
  * @param {F.Node|number} interval
  * @returns {F.Node}
  */
@@ -490,6 +507,9 @@ F.interval = function(interval) {
 };
 
 /**
+ * Delay changes to this signal by <code>delay</code> milliseconds.
+ *
+ * If the delay changes while signals 
  * @param {F.Node|number} delay
  * @returns {F.Node}
  */
@@ -499,25 +519,63 @@ F.Node.prototype.delay = function(delay) {
     return w.hasOwnProperty('out');
   }
 
-  delay = F.sig(delay);
-  var acc = F.world({ queue: [], out: this.valueNow_ },
-    [ [ delay, function(w, _) { return { queue: [] }; } ],
-      [ F.interval(delay), function(w, _) {
-          if (w.queue.length > 0) {
-            var out = w.queue.shift();
-            return { queue: w.queue, out: out };
-          }
-          else {
-            return { queue: w.queue };
-          }
-        } ],
-      [ this, function(w, v) {
-          w.queue.push(v);
-          return { queue: w.queue };
-        } ] ]);
-  return acc.filter(hasOut).get('out');
+  function calcDelay(acc, v) {
+    console.log('calcDelay', acc, v);
+    var t = Date.now();
+    if (acc.q.length === 0) {
+      // TODO: do not use valueNow_
+      acc.q.push({ v: v, delay: delay.valueNow_, t: t });
+    }
+    else {
+      acc.q.push({ v: v, t: t, delay: t - acc.q[acc.q.length - 1].t });
+    }
+    return acc;
+  }
+
+  function delayByHead(w) {
+    return function(_) {
+      if (w === undefined) {
+        return F.X;
+      }
+      w = w.valueNow_;
+      console.log('delayByHead', w);
+      if (w === F.X || w.q.length === 0) {
+        console.log('delayByHead pausing timer', w);
+        return F.X;
+      }
+      var d = Date.now() - w.q[0].t;
+      console.log('delayByHead', d);
+      return d;
+    };
+  }
+
+  function outputVal(world, _) {
+    console.log('outputting: ', out.v);
+    var out = world.q.unshift();
+    return { q: world.q, out: out.v };
+  }
+
+  var vals = this;
+
+  // INPUT: v1 <- t1 -> v2 <- t2 -> v3 <- t4 -> v4 ... 
+  // OUTPUT: (v1, 0) <- t1 -> (v2, t1) <- t2 -> (v3, t3) <- t4 <- (v4, t4) ...
+  //         ... outputs are accumulated into a queue
   
+  // . <- t1 -> . <- t2 -> . <- t3 -> . <- t4 -> . ...
+
+  var worldArr = F.letrec(function(world) {
+    console.log('setting up world');
+    return [ F.world({ q: [] },
+               [ [ vals, calcDelay ],
+                 [ F.interval(F.app(delayByHead(world), vals)), outputVal ] ]) ];
+  });
+
+  var world = worldArr[0];
+
+  // filter filters the triggers
+  return world.filter(hasOut).get('out');
 };
+
 
 F.Node.prototype.log = function(prefix) {
   return F.app(function(v) { 
@@ -538,7 +596,7 @@ F.world = function(init, handlers) {
           };
       });
     }))
-   .fold(init, function(handler, world) /*: (α -> α) * α -> α */ {
+   .fold(init, function(world, handler) /*: (α -> α) * α -> α */ {
       return handler(world);
     });
 };

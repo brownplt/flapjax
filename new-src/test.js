@@ -310,7 +310,7 @@ function testDelay1() {
   var start = Date.now();
   var src = F.receiver(F.X);
   src.delay(500).map(function(end) {
-    if (end == F.X) {
+    if (end === F.X) {
       return F.X;
     }
     assertRoughlyEquals(start, end, 500);
