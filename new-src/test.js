@@ -268,7 +268,7 @@ function testLetrec2() {
   assertEquals(700, es[1].valueNow_);
 }
 
-function testInterval1() {
+function testIntervalShouldStopTimer() {
   var delay = F.receiver(100);
   var calls = 0;
   var lastT = F.util.now();
@@ -306,98 +306,127 @@ function testFilter2() {
   assertEquals(F.X, sig.valueNow_);
 }
 
-function testDelay1() {
+function testWorld1() {
+  function recvIncr(w, _) {
+    return w + 1;
+  }
+
+  function recvReset(w, _) {
+    return 0;
+  }
+  var incr = F.receiver(F.X);
+  var reset = F.receiver(F.X);
+
+  var w = F.world(0, 
+                  [[ incr, recvIncr], 
+                   [ reset, recvReset]]);
+  assertEquals(0, w.valueNow_);
+  incr.send(1);
+  assertEquals(1, w.valueNow_);
+  incr.send(1);
+  assertEquals(2, w.valueNow_);
+  reset.send('arg ignored');
+  assertEquals(0, w.valueNow_);
+}
+
+function testDelay0() {
   var start = Date.now();
   var src = F.receiver(F.X);
-  src.delay(500).map(function(end) {
-    if (end === F.X) {
-      return F.X;
-    }
-    assertRoughlyEquals(start, end, 500);
-    asyncTestCase.continueTesting();
-  });
-  src.send(start);
+  var d = F.receiver(500);
+  src.delay(d).map(function(end) {
+                     if (end === F.X) {
+                       return F.X;
+                     }
+                     assertEquals('hello', end);
+                     assertRoughlyEquals(500, Date.now() - start, 50);
+                     d.send(F.X);
+                     asyncTestCase.continueTesting();
+                       return false;
+                     });
+  src.send('hello');
+  asyncTestCase.waitForAsync();
+}
+
+
+function testDelayShouldApproximatelyMatchClock() {
+  var src = F.receiver('init');
+  var d = F.receiver(500);
+  src.delay(d).map(function(start) {
+                     if (start === 'init') {
+                       return false;
+                     }
+                     assertRoughlyEquals(Date.now() - start, 500, 50);
+                     asyncTestCase.continueTesting();
+                     d.send(F.X);
+                     return false;
+                   });
+  src.send(Date.now());
+  asyncTestCase.waitForAsync();
+}
+
+function testDelayShouldSignalInitialValue() {
+  var start = Date.now();
+  F.constant('zero').delay(5)
+    .map(function(v) {
+           assertEquals('zero', v);
+           asyncTestCase.continueTesting();
+         });
   asyncTestCase.waitForAsync();
 }
 
 function testDelayVarying() {
   var d = F.receiver(500);
   var src = F.receiver(0);
-  var last = Date.now();
+  var count = 0;
   src.delay(d).map(function(v) {
-    switch (v) {
+    switch (count++) {
     case 0:
       d.send(200);
+      src.send(Date.now());
       break;
     case 1:
-      assertRoughlyEquals(last + 200, Date.now(), 100);
-      last = Date.now();
-      src.send(2);
+      assertRoughlyEquals(v + 200, Date.now(), 200);
+      src.send(Date.now());
       break;
     case 2:
-      assertRoughlyEquals(last + 200, Date.now(), 100);
-      last = Date.now();
+      assertRoughlyEquals(v + 200, Date.now(), 200);
       d.send(500);
-      src.send(3);
+      src.send(Date.now());
       break;
     case 3:
-      assertRoughlyEquals(last + 500, Date.now(), 100);
-      last = Date.now();
-      asyncTestCase.continueTesting();
+      assertRoughlyEquals(v + 500, Date.now(), 500);
+      d.send(F.X);
+      window.setTimeout(function() { 
+                          asyncTestCase.continueTesting();
+                        }, 200);
       break;
     default:
-      fail('> 3 iterations');
+      debugger;
+      fail('more than 3 iterations');
     }
     return F.X;
   });
-  src.send(1);
+
   asyncTestCase.waitForAsync();
 }
 
-function testDelayEdgeCase() {
+function testDelayShouldDelayRapidChangesCorrectly() {
   var d = F.receiver(500);
   var src = F.receiver(0);
   var last = Date.now();
   src.delay(d).map(function(v) {
     switch (v) {
     case 0:
-      d.send(2000);
-      src.send(1);
-      window.setTimeout(function() {
-        d.send(500);
-        src.send(2);
-      }, 500);
-      break;
-    case 1:
-      fail('1 should be skipped because delay is changed while 1 is queued');
-      break;
-    case 2:
-      assertRoughlyEquals(last + 1000, Date.now(), 100);
-      asyncTestCase.continueTesting();
-      break;
-    default:
-      fail('too many values');
-    }
-    return F.X;
-  });
-  asyncTestCase.waitForAsync();
-}
-
-function testDelayRapid() {
-  var d = F.receiver(500);
-  var src = F.receiver(0);
-  var last = Date.now();
-  src.delay(d).map(function(v) {
-    switch (v) {
-    case 0:
+      last = Date.now();
       break;
     case 1:
     case 2:
-      assertRoughlyEquals(last + 500, Date.now(), 100);
+      assertRoughlyEquals(100, Date.now() - last, 50);
       last = Date.now();
       break;
     case 3:
-      assertRoughlyEquals(last + 500, Date.now(), 100);
+      assertRoughlyEquals(100, Date.now() - last, 50);
+      d.send(F.X);
       asyncTestCase.continueTesting();
       break;
     default:

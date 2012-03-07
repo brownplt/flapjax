@@ -3,8 +3,6 @@
 /**
  * @namespace
  */
-F = { };
-
 goog.provide('F');
 goog.require('goog.structs.PriorityQueue');
 
@@ -517,68 +515,54 @@ F.interval = function(interval) {
  * @returns {F.Node}
  */
 F.Node.prototype.delay = function(delay) {
+  delay = F.sig(delay);
 
-  function hasOut(w) {
-    return w.hasOwnProperty('out');
-  }
+  /** @type Array<{val:*,time:number}> */
+  var queue = [];
+  
+  var updDelta = F.receiver(F.X);
 
-  function calcDelay(acc, v) {
-    console.log('calcDelay', acc, v);
-    var t = Date.now();
-    if (acc.q.length === 0) {
-      // TODO: do not use valueNow_
-      acc.q.push({ v: v, delay: delay.valueNow_, t: t });
+  function calcDelta(delay, updDelta) {
+    if (updDelta === F.X) {
+      return F.X;
+    }
+    else if (typeof updDelta === 'number') {
+      if (updDelta < 0) {
+        return delay;
+      }
+      else {
+        return updDelta;
+      }
     }
     else {
-      acc.q.push({ v: v, t: t, delay: t - acc.q[acc.q.length - 1].t });
+      debugger;
     }
-    return acc;
   }
-
-  function delayByHead(w) {
-    return function(_) {
-      if (w === undefined) {
-        return F.X;
-      }
-      w = w.valueNow_;
-      console.log('delayByHead', w);
-      if (w === F.X || w.q.length === 0) {
-        console.log('delayByHead pausing timer', w);
-        return F.X;
-      }
-      var d = Date.now() - w.q[0].t;
-      console.log('delayByHead', d);
-      return d;
-    };
-  }
-
-  function outputVal(world, _) {
-    console.log('outputting: ', out.v);
-    var out = world.q.unshift();
-    return { q: world.q, out: out.v };
-  }
-
-  var vals = this;
-
-  // INPUT: v1 <- t1 -> v2 <- t2 -> v3 <- t4 -> v4 ... 
-  // OUTPUT: (v1, 0) <- t1 -> (v2, t1) <- t2 -> (v3, t3) <- t4 <- (v4, t4) ...
-  //         ... outputs are accumulated into a queue
+  var delta = F.app(calcDelta, delay.disableTrigger(), updDelta);
   
-  // . <- t1 -> . <- t2 -> . <- t3 -> . <- t4 -> . ...
+  function enqueue(v) {
+    queue.push({ val: v, time: Date.now() });
+    if (queue.length === 1) {
+      updDelta.send(-1);
+    }
+  }
+  this.map(enqueue);
 
-  var worldArr = F.letrec(function(world) {
-                            console.log('setting up world');
-                            return [ F.world({ q: [] },
-                                             [ [ vals, calcDelay ],
-                                               [ F.interval(F.app(delayByHead(world), vals)), outputVal ] ]) ];
-                          });
+  function dequeue() {
+    if (queue.length === 0)
+      debugger;
+    var p = queue.shift();
+    if (queue.length > 0) {
+      updDelta.send(queue[0].time - p.time);
+    }
+    else {
+      updDelta.send(F.X);
+    }
+    return p.val;
+  }
 
-  var world = worldArr[0];
-
-  // filter filters the triggers
-  return world.filter(hasOut).get('out');
+  return F.interval(delta).map(dequeue);
 };
-
 
 F.Node.prototype.log = function(prefix) {
   return F.app(function(v) { 
