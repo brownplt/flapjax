@@ -366,7 +366,7 @@ function testDelayShouldApproximatelyMatchClock() {
 
 function testDelayShouldSignalInitialValue() {
   var start = Date.now();
-  F.constant('zero').delay(5)
+  F.constant('zero').delay(0)
     .map(function(v) {
            assertEquals('zero', v);
            asyncTestCase.continueTesting();
@@ -420,6 +420,9 @@ function testDelayShouldDelayRapidChangesCorrectly() {
       last = Date.now();
       break;
     case 1:
+      assertRoughlyEquals(600, Date.now() - last, 50);
+      last = Date.now();
+      break;
     case 2:
       assertRoughlyEquals(100, Date.now() - last, 50);
       last = Date.now();
