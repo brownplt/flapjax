@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Mouse with a Tail</title>
+<style>
+div {
+  font-family: Helvetica, sans-serif;
+  position: absolute;
+  width: 100px;
+  background-color: black;
+  color: white;
+  padding: 10px;
+}
+.mouse {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+</style>
+
+</head>
+
+<body>
+<script src="flapjax.js"></script>
+<script>
+function offset(n) { 
+  return function(m) {
+    return (m + n) + 'px';
+  }
+}
+
+var mouse = F.evt(document, 'mousemove');
+
+
+
+var elt = F.elt('div', 
+  { className: 'mouse',
+    style: { left: mouse.get('clientX').map(offset(10)),
+             top: mouse.get('clientY').map(offset(10)) } },           
+        F.text('the mouse!'));
+document.body.appendChild(elt);
+
+var tail = F.elt('div',
+  { style: { position: 'absolute',
+             left: mouse.get('clientX').delay(100).map(offset(130)),
+             top: mouse.get('clientY').delay(100).map(offset(10)) } },
+  F.text('the tail'));
+document.body.appendChild(tail);
+
+</script>
+
+</body>
+
+</html>
