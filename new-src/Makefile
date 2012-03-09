@@ -18,6 +18,6 @@ all:
 
 
 doc:
-	cd ../tools/jsdoc3 && \
-	./jsdoc --destination ../../new-doc \
-	../../new-src/flapjax.js
+	cd ../tools/jsdoc-toolkit/jsdoc_toolkit-2.4.0/jsdoc-toolkit && \
+	java -jar jsrun.jar app/run.js -a -t=templates/jsdoc \
+	--directory=../../../../new-doc ../../../../new-src/flapjax.js
