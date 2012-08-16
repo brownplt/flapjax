@@ -60,7 +60,17 @@ F.doNotPropagate = { };
  * @returns {Array}
  */
 F.mkArray = function(arrayLike) {
-  return Array.prototype.slice.call(arrayLike);
+  var output, i;
+  try {
+    output = Array.prototype.slice.call(arrayLike);
+  } catch(e) {
+    output = [];
+    for (i = 0; i < arrayLike.length; i += 1) {
+      output.push(arrayLike[i]);
+    }
+  }
+  
+  return output;
 };
 
 //////////////////////////////////////////////////////////////////////////////
