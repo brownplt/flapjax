@@ -1355,9 +1355,14 @@ F.dom_.extractEventStaticE = function(elt, eventName, useCapture) {
   }
   var eventStream = F.receiverE();
   var callback = function(evt) {
+    evt.target = elt;
     eventStream.sendEvent(evt); 
   };
-  elt.addEventListener(eventName, callback, useCapture);
+  if (elt.addEventListener) {
+    elt.addEventListener(eventName, callback, useCapture);
+  } else {
+    elt.attachEvent('on' + eventName, callback, useCapture);
+  }
   return eventStream;
 };
 
