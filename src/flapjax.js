@@ -60,7 +60,17 @@ F.doNotPropagate = { };
  * @returns {Array}
  */
 F.mkArray = function(arrayLike) {
-  return Array.prototype.slice.call(arrayLike);
+  var output, i;
+  try {
+    output = Array.prototype.slice.call(arrayLike);
+  } catch(e) {
+    output = [];
+    for (i = 0; i < arrayLike.length; i += 1) {
+      output.push(arrayLike[i]);
+    }
+  }
+  
+  return output;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1355,9 +1365,14 @@ F.dom_.extractEventStaticE = function(elt, eventName, useCapture) {
   }
   var eventStream = F.receiverE();
   var callback = function(evt) {
+    evt.target = elt;
     eventStream.sendEvent(evt); 
   };
-  elt.addEventListener(eventName, callback, useCapture);
+  if (elt.addEventListener) {
+    elt.addEventListener(eventName, callback, useCapture);
+  } else {
+    elt.attachEvent('on' + eventName, callback, useCapture);
+  }
   return eventStream;
 };
 
