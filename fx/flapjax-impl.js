@@ -1436,6 +1436,7 @@ extractValueStaticB = function (domObj, triggerE) {
     break;
     
   case 'text':
+  case 'range':
   case 'textarea':
   case 'hidden':
   case 'password':
