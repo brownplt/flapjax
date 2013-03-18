@@ -58,7 +58,7 @@ function initialLoaded(initial) {
 
   var compileResultE = compileE(doE,src);
 
-  var displayB = mergeE(clicksE("hideMsgs").constantE("none"),
+  var displayB = mergeE(clicksE($("hideMsgs")).constantE("none"),
                         compileResultE.mapE(function(msg) {
                           return !msg ? "none" : "block" }))
                  .startsWith("none");
