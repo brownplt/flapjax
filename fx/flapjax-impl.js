@@ -37,6 +37,11 @@ var mkArray = function(arrayLike) {
   return Array.prototype.slice.call(arrayLike);
 };
 
+// compiler needs this
+function forEach(fn, array) { 
+  array.forEach(fn);
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Flapjax core
 
